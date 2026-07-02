@@ -1,11 +1,36 @@
 // ============================================================
-// MONTA ABA RECUSAS — cole no Google Apps Script e execute
+// MONTA ABA RECUSAS — uma linha por recusa
 // ============================================================
+
+const MOTIVOS = [
+  "Alteração laboratorial","Alteração morfológica","Alterações no tecido",
+  "Antecedentes mórbidos","Cardiopatia - coronariopatia",
+  "Cardiopatia - hipertensão arterial","Cardiopatia - miocardiopatia",
+  "Cardiopatia - valvulopatia","Condições do Doador","Diabetes",
+  "Distância","Droga vasopressora","Falta de cateterismo/eco","Idade",
+  "Infecção","Instabilidade hemodinâmica","Lesão do órgão",
+  "Má perfusão do órgão","Não ofertado","Preservação inadequada do órgão",
+  "Ranking esgotado","SARS-CoV-2 Positivo","Sem equipe para transplante",
+  "Sem receptores","Sorologia - Chagas","Sorologia - Hepatite B",
+  "Sorologia - Hepatite C","Sorologia - HTLV I/II","Sorologia - Sífilis",
+  "Sorologia - Toxoplasmose/Citomegalovirus","Sorologia não realizada",
+  "Tamanho ou Peso","Tempo de isquemia fria",
+  "Tempo prolongado de intubação/internação","Usuário de droga injetável",
+  "Utilizado para pesquisa","Utilizado para transplante de ilhotas",
+  "Utilizado para valvas cardíacas","Utilizado parente/cônjuge",
+];
 
 function montarAbaRecusas() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // Cria ou limpa aba RECUSAS
+  // ── Aba LISTAS (oculta) com os 39 motivos ───────────────
+  let wsL = ss.getSheetByName("LISTAS");
+  if (!wsL) wsL = ss.insertSheet("LISTAS");
+  wsL.clearContents();
+  MOTIVOS.forEach((m, i) => wsL.getRange(i + 1, 1).setValue(m));
+  wsL.hideSheet();
+
+  // ── Aba RECUSAS ──────────────────────────────────────────
   let ws = ss.getSheetByName("RECUSAS");
   if (!ws) {
     ws = ss.insertSheet("RECUSAS");
@@ -15,9 +40,9 @@ function montarAbaRecusas() {
     ws.clearFormats();
   }
 
-  // ── Linha 1: título ─────────────────────────────────────
-  ws.getRange("A1:U1").merge()
-    .setValue("RECUSAS EXPORTADAS")
+  // Linha 1: título
+  ws.getRange("A1:E1").merge()
+    .setValue("RECUSAS DE CÓRNEAS")
     .setBackground("#C00000")
     .setFontColor("#FFFFFF")
     .setFontWeight("bold")
@@ -25,67 +50,61 @@ function montarAbaRecusas() {
     .setHorizontalAlignment("center");
   ws.setRowHeight(1, 32);
 
-  // ── Linha 2: cabeçalhos ──────────────────────────────────
-  // Estrutura: RGCT | OFERTA OD | HOSP OD | MR-1 OD | EQ | MR-2 OD | EQ | MR-3 OD | EQ | MR-4 OD | EQ
-  //          | OFERTA OE | HOSP OE | MR-1 OE | EQ | MR-2 OE | EQ | MR-3 OE | EQ | MR-4 OE | EQ | DATA
-  const CABS = [
-    // A  B                C           D        E         F        G         H        I         J        K
-    "RGCT","OFERTA OD","HOSPITAL OD",
-    "MR-1 OD","EQUIPE","MR-2 OD","EQUIPE","MR-3 OD","EQUIPE","MR-4 OD","EQUIPE",
-    // L              M           N        O         P        Q         R        S         T        U
-    "OFERTA OE","HOSPITAL OE",
-    "MR-1 OE","EQUIPE","MR-2 OE","EQUIPE","MR-3 OE","EQUIPE","MR-4 OE","EQUIPE",
-  ];
+  // Linha 2: cabeçalhos
+  const CABS = ["RGCT", "HOSPITAL", "OLHO", "MOTIVO DE RECUSA", "EQUIPE"];
+  const CORES = ["#1F4E79","#1F4E79","#1F4E79","#C00000","#2E75B6"];
 
   CABS.forEach((nome, i) => {
-    const isMR    = nome.startsWith("MR");
-    const isEq    = nome === "EQUIPE";
-    const isData  = nome === "DATA EXPORTAÇÃO";
-
-    const bg = isMR   ? "#1F4E79"
-             : isEq   ? "#2E75B6"
-             : isData ? "#843C0C"
-             :          "#1F4E79";
-
     ws.getRange(2, i + 1)
       .setValue(nome)
-      .setBackground(bg)
+      .setBackground(CORES[i])
       .setFontColor("#FFFFFF")
       .setFontWeight("bold")
-      .setHorizontalAlignment("center")
-      .setWrap(true);
+      .setHorizontalAlignment("center");
   });
+  ws.setRowHeight(2, 24);
 
-  ws.setRowHeight(2, 40);
+  // Larguras
+  [14, 20, 8, 38, 30].forEach((w, i) => ws.setColumnWidth(i + 1, w * 7));
 
-  // ── Larguras das colunas ─────────────────────────────────
-  const larguras = [
-    12,  // A RGCT
-    22,  // B OFERTA OD
-    14,  // C HOSPITAL OD
-    30,  // D MR-1 OD
-    20,  // E EQUIPE
-    30,  // F MR-2 OD
-    20,  // G EQUIPE
-    30,  // H MR-3 OD
-    20,  // I EQUIPE
-    30,  // J MR-4 OD
-    20,  // K EQUIPE
-    22,  // L OFERTA OE
-    14,  // M HOSPITAL OE
-    30,  // N MR-1 OE
-    20,  // O EQUIPE
-    30,  // P MR-2 OE
-    20,  // Q EQUIPE
-    30,  // R MR-3 OE
-    20,  // S EQUIPE
-    30,  // T MR-4 OE
-    20,  // U EQUIPE
-  ];
-  larguras.forEach((w, i) => ws.setColumnWidth(i + 1, w * 7));
+  // ── Dropdowns nas linhas de dados (3 a 1000) ────────────
+  const MAX_LINHAS = 998; // linhas 3 a 1000
 
-  // ── Congela as 2 primeiras linhas ───────────────────────
+  // Coluna C: OLHO — OD ou OE
+  const regraOlho = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["OD", "OE"], true)
+    .setAllowInvalid(false)
+    .build();
+  ws.getRange(3, 3, MAX_LINHAS, 1).setDataValidation(regraOlho);
+
+  // Coluna D: MOTIVO DE RECUSA — 39 motivos SNT
+  const regraMR = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(wsL.getRange(1, 1, MOTIVOS.length, 1), true)
+    .setAllowInvalid(false)
+    .build();
+  ws.getRange(3, 4, MAX_LINHAS, 1).setDataValidation(regraMR);
+
+  // Coluna E: EQUIPE — da aba EQUIPES
+  const wsEq = ss.getSheetByName("EQUIPES");
+  if (wsEq && wsEq.getLastRow() >= 3) {
+    const regraEq = SpreadsheetApp.newDataValidation()
+      .requireValueInRange(wsEq.getRange(3, 1, wsEq.getLastRow() - 2, 1), true)
+      .setAllowInvalid(false)
+      .build();
+    ws.getRange(3, 5, MAX_LINHAS, 1).setDataValidation(regraEq);
+  }
+
+  // Congela cabeçalho
   ws.setFrozenRows(2);
 
-  SpreadsheetApp.getUi().alert("✔ Aba RECUSAS montada!\n\n21 colunas (A-U):\n• 4 blocos MR + EQUIPE para OD\n• 4 blocos MR + EQUIPE para OE");
+  SpreadsheetApp.getUi().alert(
+    "✔ Aba RECUSAS montada!\n\n" +
+    "Estrutura: uma linha por recusa\n" +
+    "  A: RGCT\n" +
+    "  B: HOSPITAL\n" +
+    "  C: OLHO (dropdown OD/OE)\n" +
+    "  D: MOTIVO DE RECUSA (dropdown 39 motivos)\n" +
+    "  E: EQUIPE (dropdown aba EQUIPES)\n\n" +
+    "Sem limite de linhas — pode ter 100 recusas por RGCT."
+  );
 }
