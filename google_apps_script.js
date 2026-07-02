@@ -57,7 +57,7 @@ function salvarRecusa(dados) {
   const proxima = Math.max(wsRec.getLastRow() + 1, 3);
   wsRec.getRange(proxima, 1, 1, 5).setValues([[
     dados.rgct,
-    dados.hospital,
+    dados.nome,
     dados.olho,
     dados.mr,
     dados.equipe
@@ -88,7 +88,7 @@ function montarAbaRecusas() {
     .setHorizontalAlignment("center");
   ws.setRowHeight(1, 32);
 
-  const CABS  = ["RGCT","HOSPITAL","OLHO","MOTIVO DE RECUSA","EQUIPE"];
+  const CABS  = ["RGCT","NOME","OLHO","MOTIVO DE RECUSA","EQUIPE"];
   const CORES = ["#1F4E79","#1F4E79","#1F4E79","#C00000","#2E75B6"];
   CABS.forEach((nome, i) => {
     ws.getRange(2, i + 1)
@@ -134,8 +134,8 @@ function formHtml(equipes) {
     <input id="rgct" type="text" placeholder="Ex: 510686-143">
   </div>
   <div>
-    <label>HOSPITAL</label>
-    <input id="hospital" type="text" placeholder="Ex: HCPA">
+    <label>NOME</label>
+    <input id="nome" type="text" placeholder="Nome do doador">
   </div>
 </div>
 
@@ -163,7 +163,7 @@ function formHtml(equipes) {
 <script>
 function enviar() {
   var rgct     = document.getElementById('rgct').value.trim();
-  var hospital = document.getElementById('hospital').value.trim();
+  var nome     = document.getElementById('nome').value.trim();
   var olho     = document.getElementById('olho').value;
   var mr       = document.getElementById('mr').value;
   var equipe   = document.getElementById('equipe').value;
@@ -178,12 +178,12 @@ function enviar() {
       document.querySelector('button').style.background = '#107c41';
       setTimeout(function(){ resetForm(); }, 1200);
     })
-    .salvarRecusa({ rgct, hospital, olho, mr, equipe });
+    .salvarRecusa({ rgct, nome, olho, mr, equipe });
 }
 
 function resetForm() {
   document.getElementById('rgct').value = '';
-  document.getElementById('hospital').value = '';
+  document.getElementById('nome').value = '';
   document.getElementById('olho').value = '';
   document.getElementById('mr').value = '';
   document.getElementById('equipe').value = '';
