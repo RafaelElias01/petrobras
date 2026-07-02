@@ -16,7 +16,7 @@ function montarAbaRecusas() {
   }
 
   // ── Linha 1: título ─────────────────────────────────────
-  ws.getRange("A1:V1").merge()
+  ws.getRange("A1:U1").merge()
     .setValue("RECUSAS EXPORTADAS")
     .setBackground("#C00000")
     .setFontColor("#FFFFFF")
@@ -35,8 +35,6 @@ function montarAbaRecusas() {
     // L              M           N        O         P        Q         R        S         T        U
     "OFERTA OE","HOSPITAL OE",
     "MR-1 OE","EQUIPE","MR-2 OE","EQUIPE","MR-3 OE","EQUIPE","MR-4 OE","EQUIPE",
-    // V
-    "DATA EXPORTAÇÃO"
   ];
 
   CABS.forEach((nome, i) => {
@@ -83,12 +81,11 @@ function montarAbaRecusas() {
     20,  // S EQUIPE
     30,  // T MR-4 OE
     20,  // U EQUIPE
-    18,  // V DATA
   ];
   larguras.forEach((w, i) => ws.setColumnWidth(i + 1, w * 7));
 
   // ── Congela as 2 primeiras linhas ───────────────────────
   ws.setFrozenRows(2);
 
-  SpreadsheetApp.getUi().alert("✔ Aba RECUSAS montada!\n\n22 colunas (A-V):\n• 4 blocos MR + EQUIPE para OD\n• 4 blocos MR + EQUIPE para OE\n• DATA EXPORTAÇÃO em V");
+  SpreadsheetApp.getUi().alert("✔ Aba RECUSAS montada!\n\n21 colunas (A-U):\n• 4 blocos MR + EQUIPE para OD\n• 4 blocos MR + EQUIPE para OE");
 }
