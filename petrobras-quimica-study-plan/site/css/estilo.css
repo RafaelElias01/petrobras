@@ -673,4 +673,24 @@ button {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* Footer */
+.rodape {
+  padding: 20px;
+  text-align: center;
+  color: var(--texto-sec);
+  font-size: 13px;
+  border-top: 1px solid var(--borda);
+  background: var(--bg);
+  margin-top: 40px;
+}
+
+.rodape p {
+  margin: 4px 0;
+}
+
+.rodape strong {
+  color: var(--primaria);
+  font-weight: 600;
+}
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
