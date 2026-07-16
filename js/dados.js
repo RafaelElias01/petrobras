@@ -319,3 +319,31 @@ const CONTEUDOS = [
 
 const SEMANAS_PLANO = 12;
 const META_HORAS_SEMANA = 30;
+
+const CICLO_ESTUDOS = [
+  { materia: 'Português', icone: '📝', tempo: 80, peso: 4 },
+  { materia: 'Química — Soluções + Inorgânica', icone: '🧪', tempo: 90, peso: 4 },
+  { materia: 'Matemática', icone: '🔢', tempo: 70, peso: 3 },
+  { materia: 'Química — Equilíbrio + pH', icone: '🧪', tempo: 60, peso: 2 },
+  { materia: 'Química — Orgânica', icone: '🧪', tempo: 60, peso: 2 },
+  { materia: 'Química — Cinética + Termo + Eletro', icone: '🧪', tempo: 60, peso: 3 },
+  { materia: 'Química — Substâncias/Propriedades', icone: '🧪', tempo: 40, peso: 1 },
+  { materia: 'Química — Técnicas + Titulometria', icone: '🧪', tempo: 60, peso: 2 },
+  { materia: 'Química — Transformações + Estequiometria', icone: '🧪', tempo: 80, peso: 3 }
+];
+
+const DIAS_SEMANA = [
+  { valor: 'seg', rotulo: 'Segunda' },
+  { valor: 'ter', rotulo: 'Terça' },
+  { valor: 'qua', rotulo: 'Quarta' },
+  { valor: 'qui', rotulo: 'Quinta' },
+  { valor: 'sex', rotulo: 'Sexta' },
+  { valor: 'sab', rotulo: 'Sábado' },
+  { valor: 'dom', rotulo: 'Domingo' }
+];
+
+const REVISAO_INTERVALOS = [
+  { id: 'd1', rotulo: 'D+1 (24h)', dias: 1 },
+  { id: 'd7', rotulo: 'D+7 (1 sem)', dias: 7 },
+  { id: 'd30', rotulo: 'D+30 (1 mês)', dias: 30 }
+];

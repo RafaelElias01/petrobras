@@ -130,6 +130,92 @@ const Armazenamento = {
     if (this._usaServer) await this._put('simulados', lista);
   },
 
+  // --- Erros (Caderno de Erros) ---
+  async getErros() {
+    const server = await this._get('erros');
+    const local = this._carregarLocal('erros', []);
+    const merged = this._mergeArray(server, local);
+    this._salvarLocal('erros', merged);
+    if (this._usaServer) this._put('erros', merged);
+    return merged;
+  },
+
+  async salvarErro(erro) {
+    const lista = await this.getErros();
+    const idx = lista.findIndex(e => e.id === erro.id);
+    if (idx >= 0) lista[idx] = erro;
+    else lista.push(erro);
+    this._salvarLocal('erros', lista);
+    if (this._usaServer) await this._put('erros', lista);
+  },
+
+  async removerErro(id) {
+    const lista = await this.getErros();
+    const idx = lista.findIndex(e => e.id === id);
+    if (idx >= 0) lista.splice(idx, 1);
+    this._salvarLocal('erros', lista);
+    if (this._usaServer) await this._put('erros', lista);
+  },
+
+  // --- Diário (Daily Checklist) ---
+  async getDiario() {
+    const server = await this._get('diario');
+    const local = this._carregarLocal('diario', {});
+    const merged = this._mergeObj(server, local);
+    this._salvarLocal('diario', merged);
+    if (this._usaServer) this._put('diario', merged);
+    return merged;
+  },
+
+  async salvarDiario(data, items) {
+    const diario = await this.getDiario();
+    diario[data] = items;
+    this._salvarLocal('diario', diario);
+    if (this._usaServer) await this._put('diario', diario);
+  },
+
+  // --- Revisões ---
+  async getRevisoes() {
+    const server = await this._get('revisoes');
+    const local = this._carregarLocal('revisoes', []);
+    const merged = this._mergeArray(server, local);
+    this._salvarLocal('revisoes', merged);
+    if (this._usaServer) this._put('revisoes', merged);
+    return merged;
+  },
+
+  async salvarRevisao(rev) {
+    const lista = await this.getRevisoes();
+    const idx = lista.findIndex(r => r.id === rev.id);
+    if (idx >= 0) lista[idx] = rev;
+    else lista.push(rev);
+    this._salvarLocal('revisoes', lista);
+    if (this._usaServer) await this._put('revisoes', lista);
+  },
+
+  async removerRevisao(id) {
+    const lista = await this.getRevisoes();
+    const idx = lista.findIndex(r => r.id === id);
+    if (idx >= 0) lista.splice(idx, 1);
+    this._salvarLocal('revisoes', lista);
+    if (this._usaServer) await this._put('revisoes', lista);
+  },
+
+  // --- Ciclo (posição atual) ---
+  async getCiclo() {
+    const server = await this._get('ciclo');
+    const local = this._carregarLocal('ciclo', { posicao: 0, concluido: {} });
+    const merged = this._mergeObj(server, local);
+    this._salvarLocal('ciclo', merged);
+    if (this._usaServer) this._put('ciclo', merged);
+    return merged;
+  },
+
+  async salvarCiclo(ciclo) {
+    this._salvarLocal('ciclo', ciclo);
+    if (this._usaServer) await this._put('ciclo', ciclo);
+  },
+
   // --- Config ---
   async getConfig() {
     const server = await this._get('config');

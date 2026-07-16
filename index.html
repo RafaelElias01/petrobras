@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estudo Petrobras - Técnico em Química</title>
-  <base href="/dados/">
+  <base href="/">
   <link rel="stylesheet" href="css/estilo.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -26,11 +26,20 @@
         <button class="nav-item" :class="{ ativa: view === 'checklist' }" @click="irPara('checklist')">
           <span class="icone">✅</span> Conteúdos
         </button>
+        <button class="nav-item" :class="{ ativa: view === 'ciclo' }" @click="irPara('ciclo')">
+          <span class="icone">🔄</span> Ciclo
+        </button>
         <button class="nav-item" :class="{ ativa: view === 'horas' }" @click="irPara('horas')">
           <span class="icone">⏱</span> Horas
         </button>
         <button class="nav-item" :class="{ ativa: view === 'simulados' }" @click="irPara('simulados')">
           <span class="icone">📋</span> Simulados
+        </button>
+        <button class="nav-item" :class="{ ativa: view === 'erros' }" @click="irPara('erros')">
+          <span class="icone">📕</span> Erros
+        </button>
+        <button class="nav-item" :class="{ ativa: view === 'diario' }" @click="irPara('diario')">
+          <span class="icone">📌</span> Diário
         </button>
         <div style="border-top:1px solid rgba(255,255,255,0.08);margin:8px 16px;"></div>
         <button class="nav-item" :class="{ ativa: view === 'plano' }" @click="irPara('plano')">
@@ -76,6 +85,25 @@
             </div>
           </div>
 
+          <div class="grade-cartoes">
+            <div class="cartao-stat" style="border-top-color:#8b5cf6;">
+              <div class="valor" style="font-size:20px;color:#8b5cf6;">{{ totalErros }}</div>
+              <div class="rotulo">Erros no caderno</div>
+            </div>
+            <div class="cartao-stat" :class="diarioProgresso >= 100 ? 'verde' : ''">
+              <div class="valor" style="font-size:20px;">{{ diarioProgresso }}%</div>
+              <div class="rotulo">Checklist de hoje</div>
+            </div>
+            <div class="cartao-stat" style="border-top-color:#8b5cf6;">
+              <div class="valor" style="font-size:20px;color:#8b5cf6;">{{ cicloCompleto }}%</div>
+              <div class="rotulo">Ciclo concluído</div>
+            </div>
+            <div class="cartao-stat" :class="revisoesHoje.length > 0 ? 'vermelho' : 'verde'">
+              <div class="valor" style="font-size:20px;">{{ revisoesHoje.length }}</div>
+              <div class="rotulo">Revisões hoje</div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-titulo">Progresso por Matéria</div>
             <div v-for="m in conteudos" :key="m.id" class="materia-progresso">
@@ -94,7 +122,7 @@
             <div style="font-size:14px; line-height:1.8; color:var(--texto-sec);">
               <strong style="color:var(--texto)">12 semanas</strong> de estudo ·
               <strong style="color:var(--texto)">{{ metaHoras }}h/semana</strong> ·
-              <strong style="color:var(--texto)">60 questões</strong> na prova (38 Química, 10 Português, 10 Matemática)<br>
+              <strong style="color:var(--texto)">60 questões</strong> (20 básicas eliminatórias + 40 específicas classificatórias)<br>
               Banca: <strong>Cesgranrio</strong> · Última prova referência: 2018
             </div>
           </div>
@@ -344,6 +372,229 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- CICLO DE ESTUDOS -->
+        <div v-if="view === 'ciclo'" key="ciclo">
+          <div class="grade-cartoes">
+            <div class="cartao-stat" :style="{ borderTopColor: '#8b5cf6' }">
+              <div class="valor" style="font-size:24px;color:#8b5cf6;">{{ materiaAtual.materia }}</div>
+              <div class="rotulo">Próxima matéria do ciclo</div>
+            </div>
+            <div class="cartao-stat" :style="{ borderTopColor: '#8b5cf6' }">
+              <div class="valor" style="font-size:24px;color:#8b5cf6;">{{ materiaAtual.tempo }} min</div>
+              <div class="rotulo">Tempo sugerido para hoje</div>
+            </div>
+            <div class="cartao-stat" :class="cicloCompleto >= 100 ? 'verde' : ''">
+              <div class="valor">{{ cicloCompleto }}%</div>
+              <div class="rotulo">Ciclo completo</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">
+              <span>Sequência do Ciclo</span>
+              <button @click="cicloExpandido = !cicloExpandido" style="background:none;border:1px solid var(--borda);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:13px;">
+                {{ cicloExpandido ? 'Recolher' : 'Expandir' }}
+              </button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+              <div v-for="(m, i) in CICLO_ESTUDOS" :key="i"
+                style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:13px;cursor:default;"
+                :style="{
+                  background: i === ciclo.posicao ? '#8b5cf6' : ciclo.concluido[m.materia+'-c'+i] ? '#10b981' : 'var(--bg)',
+                  color: i === ciclo.posicao ? '#fff' : ciclo.concluido[m.materia+'-c'+i] ? '#fff' : 'var(--texto)',
+                  border: '1px solid ' + (i === ciclo.posicao ? '#8b5cf6' : 'var(--borda)')
+                }">
+                <span>{{ m.icone }}</span>
+                <span>{{ m.materia }}</span>
+                <span style="opacity:0.7;font-size:12px;">{{ m.tempo }}min</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <button @click="avancarCiclo" style="padding:10px 24px;background:#8b5cf6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;">
+                Concluí esta matéria → Avançar
+              </button>
+              <button @click="reiniciarCiclo" style="padding:10px 24px;background:transparent;color:var(--texto-sec);border:1px solid var(--borda);border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;">
+                Reiniciar Ciclo
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">Metodologia da Sessão</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;font-size:14px;">
+              <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                <strong style="color:var(--primaria);display:block;margin-bottom:4px;">0-25 min</strong>
+                Teoria / Videoaula
+              </div>
+              <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                <strong style="color:var(--aviso);display:block;margin-bottom:4px;">25-30 min</strong>
+                Pausa
+              </div>
+              <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                <strong style="color:var(--sucesso);display:block;margin-bottom:4px;">30-55 min</strong>
+                Active Recall + Questões
+              </div>
+              <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                <strong style="color:var(--erro);display:block;margin-bottom:4px;">55-60 min</strong>
+                Pausa
+              </div>
+              <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                <strong style="color:#8b5cf6;display:block;margin-bottom:4px;">60-80 min</strong>
+                Correção + Caderno de Erros
+              </div>
+            </div>
+            <div style="margin-top:16px;padding:16px;background:#fef3c7;border-radius:8px;font-size:13px;color:#92400e;">
+              💡 <strong>Tática dos 60%:</strong> Na prova, resolva primeiro as questões mais rápidas e fáceis de cada matéria. Deixe as longas e complexas para o final.
+            </div>
+          </div>
+        </div>
+
+        <!-- CADERNO DE ERROS -->
+        <div v-if="view === 'erros'" key="erros">
+          <div class="grade-cartoes">
+            <div class="cartao-stat vermelho">
+              <div class="valor">{{ totalErros }}</div>
+              <div class="rotulo">Total de erros registrados</div>
+            </div>
+            <div class="cartao-stat" v-for="(errList, mat) in errosAgrupados" :key="mat">
+              <div class="valor" style="font-size:24px;">{{ errList.length }}</div>
+              <div class="rotulo">{{ mat }}</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">
+              <span>{{ editandoErro ? (editandoErro.id ? 'Editar Erro' : 'Novo Erro') : 'Caderno de Erros' }}</span>
+            </div>
+            <div v-if="editandoErro" class="form-simulado">
+              <div>
+                <label>Matéria</label>
+                <select v-model="editandoErro.materia" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+                  <option value="">Selecione...</option>
+                  <option>Português</option>
+                  <option>Matemática</option>
+                  <option>Química</option>
+                </select>
+              </div>
+              <div>
+                <label>Tópico</label>
+                <input v-model="editandoErro.topico" placeholder="Ex: pH, Estequiometria">
+              </div>
+              <div>
+                <label>O que pensei (erro)</label>
+                <input v-model="editandoErro.pensamento" placeholder="Seu raciocínio na hora">
+              </div>
+              <div>
+                <label>Resposta correta</label>
+                <input v-model="editandoErro.respostaCorreta" placeholder="O que deveria ser">
+              </div>
+              <div>
+                <label>Lacuna identificada</label>
+                <input v-model="editandoErro.lacuna" placeholder="O que faltou saber">
+              </div>
+              <div>
+                <label>Tipo de erro</label>
+                <select v-model="editandoErro.tipo" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+                  <option value="A">A - Desconhecimento</option>
+                  <option value="B">B - Confusão</option>
+                  <option value="C">C - Atenção</option>
+                </select>
+              </div>
+              <div>
+                <label>Descrição</label>
+                <input v-model="editandoErro.descricao" placeholder="Descreva o contexto">
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button @click="salvarErro" style="flex:1;">Salvar</button>
+                <button @click="cancelarErro" style="flex:1;background:var(--texto-sec);">Cancelar</button>
+              </div>
+            </div>
+            <div v-else>
+              <button @click="novoErro" style="margin-bottom:16px;padding:8px 20px;background:var(--primaria);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;">
+                + Novo Erro
+              </button>
+              <div v-for="(errList, mat) in errosAgrupados" :key="mat" style="margin-bottom:20px;">
+                <h4 style="font-size:14px;margin-bottom:8px;color:var(--texto-sec);text-transform:uppercase;">{{ mat }} ({{ errList.length }})</h4>
+                <div v-if="errList.length === 0" style="font-size:13px;color:var(--texto-sec);padding:8px 0;">Nenhum erro registrado.</div>
+                <div v-for="e in errList" :key="e.id" style="padding:12px;border:1px solid var(--borda);border-radius:8px;margin-bottom:8px;font-size:14px;">
+                  <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+                    <div style="flex:1;">
+                      <strong>{{ e.topico }}</strong>
+                      <span :style="{
+                        display:'inline-block',
+                        marginLeft:'8px',
+                        padding:'2px 8px',
+                        borderRadius:'4px',
+                        fontSize:'12px',
+                        fontWeight:600,
+                        background: e.tipo === 'A' ? '#fef3c7' : e.tipo === 'B' ? '#dbeafe' : '#fce7f3',
+                        color: e.tipo === 'A' ? '#92400e' : e.tipo === 'B' ? '#1e40af' : '#9d174d'
+                      }">{{ e.tipo === 'A' ? 'Desconhecimento' : e.tipo === 'B' ? 'Confusão' : 'Atenção' }}</span>
+                      <div style="margin-top:6px;font-size:13px;color:var(--texto-sec);">
+                        <div><strong>Pensei:</strong> {{ e.pensamento }}</div>
+                        <div><strong>Correto:</strong> {{ e.respostaCorreta }}</div>
+                        <div v-if="e.lacuna"><strong>Lacuna:</strong> {{ e.lacuna }}</div>
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:4px;flex-shrink:0;">
+                      <button @click="agendarRevisao(e.topico, e.materia, e.data)" title="Agendar revisão espaçada" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;">📅</button>
+                      <button @click="editarErro(e)" title="Editar" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;">✏️</button>
+                      <button @click="removerErro(e.id)" title="Remover" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;color:var(--erro);">✕</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DIÁRIO (DAILY CHECKLIST) -->
+        <div v-if="view === 'diario'" key="diario">
+          <div class="grade-cartoes">
+            <div class="cartao-stat" :class="diarioProgresso >= 100 ? 'verde' : diarioProgresso >= 50 ? 'laranja' : 'vermelho'">
+              <div class="valor">{{ diarioProgresso }}%</div>
+              <div class="rotulo">Checklist de hoje</div>
+            </div>
+            <div class="cartao-stat">
+              <div class="valor" style="font-size:20px;">{{ revisoesHoje.length }}</div>
+              <div class="rotulo">Revisões pendentes hoje</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">
+              <input type="date" v-model="diarioData" style="padding:8px 12px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;">
+            </div>
+            <div v-for="item in CHECKLIST_ITENS" :key="item.id" class="item-check"
+              :class="{ concluido: diarioHoje[item.id] }"
+              @click="alternarDiario(item.id)">
+              <input type="checkbox" :checked="diarioHoje[item.id]" @click.stop>
+              <span class="texto">{{ item.texto }}</span>
+            </div>
+            <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:8px;font-size:13px;color:var(--texto-sec);">
+              💡 Sequência ideal: 1. Teoria → 2. Active Recall → 3. Questões → 4. Correção/Erros → 5. Registrar tudo
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">Revisões Agendadas (Revisão Espaçada)</div>
+            <div v-if="revisoesPendentes.length === 0" style="font-size:13px;color:var(--texto-sec);padding:8px 0;">
+              Nenhuma revisão pendente. Registre erros no caderno e agende revisões pelo botão 📅.
+            </div>
+            <div v-for="r in revisoesPendentes" :key="r.id" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--borda);font-size:14px;">
+              <div>
+                <strong>{{ r.topico }}</strong>
+                <span style="color:var(--texto-sec);font-size:12px;margin-left:8px;">{{ r.materia }} · {{ r.intervalo }}</span>
+                <span v-if="r.data === new Date().toISOString().slice(0,10)" style="color:var(--erro);font-size:12px;margin-left:8px;">🔴 Hoje!</span>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <button @click="concluirRevisao(r.id)" style="background:var(--sucesso);color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">✓ Concluída</button>
+                <button @click="removerRevisao(r.id)" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--erro);">✕</button>
+              </div>
+            </div>
           </div>
         </div>
       </transition>

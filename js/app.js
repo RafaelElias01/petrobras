@@ -7,6 +7,14 @@ const app = createApp({
     const semanaAtual = ref(1);
     const gruposAbertos = ref({});
     const formSimulado = ref({ semana: 1, portugues: 0, matematica: 0, quimica: 0 });
+    const erros = ref([]);
+    const formErro = ref({ materia: '', topico: '', descricao: '', pensamento: '', respostaCorreta: '', lacuna: '', tipo: 'B' });
+    const editandoErro = ref(null);
+    const diario = ref({});
+    const diarioData = ref(new Date().toISOString().slice(0, 10));
+    const revisoes = ref([]);
+    const ciclo = ref({ posicao: 0, concluido: {} });
+    const cicloExpandido = ref(false);
 
     const tema = ref('light');
     const checklist = ref({});
@@ -31,6 +39,10 @@ const app = createApp({
       checklist.value = await Armazenamento.getChecklist();
       horas.value = await Armazenamento.getHoras();
       simulados.value = await Armazenamento.getSimulados();
+      erros.value = await Armazenamento.getErros();
+      diario.value = await Armazenamento.getDiario();
+      revisoes.value = await Armazenamento.getRevisoes();
+      ciclo.value = await Armazenamento.getCiclo();
       initPlanos();
       carregando.value = false;
     });
@@ -53,8 +65,11 @@ const app = createApp({
     const subtituloView = computed(() => ({
       dashboard: 'Visão geral do seu progresso',
       checklist: 'Marque os tópicos já estudados',
+      ciclo: 'Sua próxima matéria no ciclo de estudos',
       horas: 'Registre suas horas de estudo',
       simulados: 'Acompanhe seu desempenho nos simulados',
+      erros: 'Caderno de Erros — cada erro é um ponto garantido',
+      diario: 'Checklist diário do concurseiro aprovado',
       plano: 'Consulte o cronograma e conteúdos programáticos'
     })[view.value]);
 
@@ -259,6 +274,146 @@ const app = createApp({
       } catch {}
     }
 
+    // --- Erros (Caderno de Erros) ---
+    const errosAgrupados = computed(() => {
+      const grupos = {};
+      const materias = ['Português', 'Matemática', 'Química'];
+      materias.forEach(m => grupos[m] = []);
+      erros.value.forEach(e => {
+        if (grupos[e.materia]) grupos[e.materia].push(e);
+      });
+      return grupos;
+    });
+
+    const totalErros = computed(() => erros.value.length);
+
+    function novoErro() {
+      editandoErro.value = { id: Date.now(), data: new Date().toISOString().slice(0, 10), ...formErro.value };
+    }
+
+    async function salvarErro() {
+      if (!editandoErro.value) return;
+      if (!editandoErro.value.materia || !editandoErro.value.topico) return;
+      await Armazenamento.salvarErro(editandoErro.value);
+      erros.value = await Armazenamento.getErros();
+      editandoErro.value = null;
+      formErro.value = { materia: '', topico: '', descricao: '', pensamento: '', respostaCorreta: '', lacuna: '', tipo: 'B' };
+    }
+
+    function editarErro(e) {
+      editandoErro.value = { ...e };
+    }
+
+    async function removerErro(id) {
+      await Armazenamento.removerErro(id);
+      erros.value = await Armazenamento.getErros();
+    }
+
+    function cancelarErro() {
+      editandoErro.value = null;
+    }
+
+    // --- Diário (Daily Checklist) ---
+    const CHECKLIST_ITENS = [
+      { id: 'ciclo', texto: 'Defini a próxima matéria do ciclo' },
+      { id: 'teoria', texto: 'Estudei teoria (máx 25 min por Pomodoro)' },
+      { id: 'recall', texto: 'Fiz Active Recall (fechei e tentei lembrar)' },
+      { id: 'questoes', texto: 'Resolvi questões do tópico' },
+      { id: 'correcao', texto: 'Corrigi e registrei erros no caderno' },
+      { id: 'flashcards', texto: 'Revisei flashcards pendentes (10-15 min)' },
+      { id: 'checklist', texto: 'Marquei progresso no checklist de conteúdos' },
+      { id: 'horas', texto: 'Registrei horas no quadro de horas' }
+    ];
+
+    const diarioHoje = computed(() => {
+      return diario.value[diarioData.value] || {};
+    });
+
+    const diarioProgresso = computed(() => {
+      const items = diarioHoje.value;
+      const total = CHECKLIST_ITENS.length;
+      const feitos = CHECKLIST_ITENS.filter(i => items[i.id]).length;
+      return total > 0 ? Math.round(feitos / total * 100) : 0;
+    });
+
+    async function alternarDiario(itemId) {
+      const hoje = { ...(diario.value[diarioData.value] || {}) };
+      hoje[itemId] = !hoje[itemId];
+      await Armazenamento.salvarDiario(diarioData.value, hoje);
+      diario.value = await Armazenamento.getDiario();
+    }
+
+    // --- Revisões ---
+    const revisoesPendentes = computed(() => {
+      const hoje = new Date();
+      return revisoes.value.filter(r => new Date(r.data) <= hoje && !r.concluida);
+    });
+
+    const revisoesHoje = computed(() => {
+      const hoje = new Date().toISOString().slice(0, 10);
+      return revisoesPendentes.value.filter(r => r.data === hoje);
+    });
+
+    async function agendarRevisao(topico, materia, dataEstudo) {
+      const dt = new Date(dataEstudo);
+      REVISAO_INTERVALOS.forEach(async iv => {
+        const dataRev = new Date(dt);
+        dataRev.setDate(dataRev.getDate() + iv.dias);
+        const rev = {
+          id: `${topico}-${iv.id}-${Date.now()}`,
+          topico,
+          materia,
+          data: dataRev.toISOString().slice(0, 10),
+          intervalo: iv.rotulo,
+          concluida: false
+        };
+        await Armazenamento.salvarRevisao(rev);
+      });
+      revisoes.value = await Armazenamento.getRevisoes();
+    }
+
+    async function concluirRevisao(id) {
+      const lista = await Armazenamento.getRevisoes();
+      const rev = lista.find(r => r.id === id);
+      if (rev) {
+        rev.concluida = true;
+        await Armazenamento.salvarRevisao(rev);
+      }
+      revisoes.value = await Armazenamento.getRevisoes();
+    }
+
+    async function removerRevisao(id) {
+      await Armazenamento.removerRevisao(id);
+      revisoes.value = await Armazenamento.getRevisoes();
+    }
+
+    // --- Ciclo de Estudos ---
+    const materiaAtual = computed(() => {
+      return CICLO_ESTUDOS[ciclo.value.posicao] || CICLO_ESTUDOS[0];
+    });
+
+    const cicloCompleto = computed(() => {
+      const total = CICLO_ESTUDOS.length;
+      const concluidos = Object.keys(ciclo.value.concluido || {}).length;
+      return Math.round(concluidos / total * 100);
+    });
+
+    async function avancarCiclo() {
+      const c = { ...ciclo.value };
+      const materia = CICLO_ESTUDOS[c.posicao];
+      const chave = `${materia.materia}-c${c.posicao}`;
+      c.concluido = { ...(c.concluido || {}), [chave]: true };
+      c.posicao = (c.posicao + 1) % CICLO_ESTUDOS.length;
+      await Armazenamento.salvarCiclo(c);
+      ciclo.value = c;
+    }
+
+    async function reiniciarCiclo() {
+      const c = { posicao: 0, concluido: {} };
+      await Armazenamento.salvarCiclo(c);
+      ciclo.value = c;
+    }
+
     // --- Nav ---
     function irPara(v) {
       view.value = v;
@@ -293,7 +448,15 @@ const app = createApp({
       planoSelecionado, planoHtml, carregandoPlano,
       planosDisponiveis, planosGrupos, planosFiltrados,
       carregarPlano,
-      irPara, alternarTema
+      irPara, alternarTema,
+      erros, formErro, editandoErro, errosAgrupados, totalErros,
+      novoErro, salvarErro, editarErro, removerErro, cancelarErro,
+      CHECKLIST_ITENS, diario, diarioData, diarioHoje, diarioProgresso, alternarDiario,
+      revisoes, revisoesPendentes, revisoesHoje,
+      agendarRevisao, concluirRevisao, removerRevisao,
+      ciclo, materiaAtual, cicloCompleto, cicloExpandido,
+      avancarCiclo, reiniciarCiclo,
+      CICLO_ESTUDOS, REVISAO_INTERVALOS, DIAS_SEMANA
     };
   }
 });
