@@ -2,6 +2,8 @@
 
 **Horas totais no plano:** ~96h (6h/semana)
 
+> ⚡ **Estratégia Cesgranrio:** Esta é a matéria mais pesada da prova (~25 questões). Foco em **Estequiometria** (cálculos passo a passo), **Oxirredução** (NOX, agente redutor/oxidante) e **Funções Inorgânicas** (ácidos/bases/sais/óxidos). Cesgranrio adora contextualizar em processos industriais da Petrobras como refino, tratamento de água e corrosão.
+
 ---
 
 ## 1. MODELOS ATÔMICOS (2 questões)
@@ -347,6 +349,8 @@
 - Inverte: Cu × 3, N × 2
 - 3Cu + 8HNO₃ → 3Cu(NO₃)₂ + 2NO + 4H₂O
 
+> 🧠 **Mnemônico NOX:** "Fui **NO** **X**ingar" — **N**ox do **O**xigênio = -**X** (2-) na maioria. "H **+1** (happy)" — Hidrogênio = +1. Halogênios = -1 quando no final da fórmula. Metais alcalinos = +1, alcalino-terrosos = +2.
+
 ---
 
 ## 6. ESTEQUIOMETRIA (cálculos)
@@ -533,3 +537,21 @@ D) 24,6 L
 E) 44,8 L
 
 > **Resposta:** B. PV = nRT → V = nRT/P = 1 × 0,082 × (27+273)/2 = 1 × 0,082 × 300/2 = 24,6/2 = 12,3 L.
+
+**Q6.** (Cesgranrio — adaptada) Na reação de oxirredução: Fe₂O₃ + 3CO → 2Fe + 3CO₂, qual o NOX do carbono no CO e no CO₂?
+A) 0 e +4
+B) +2 e +4 ✅
+C) +4 e +2
+D) -2 e +4
+E) +2 e -4
+
+> **Resposta:** B. CO: O = -2, C + (-2) = 0 → C = +2. CO₂: 2×(-2) = -4, C + (-4) = 0 → C = +4. Fe₂O₃: Fe = +3, O = -2. CO oxida (redutor), Fe₂O₃ reduz (oxidante).
+
+**Q7.** 100g de calcário com 80% de CaCO₃ são aquecidos (CaCO₃ → CaO + CO₂). Qual a massa de CaO obtida? (MM: CaCO₃ = 100 g/mol, CaO = 56 g/mol)
+A) 80,0 g
+B) 56,0 g
+C) 44,8 g ✅
+D) 100,0 g
+E) 112,0 g
+
+> **Resposta:** C. Massa pura = 100 × 0,80 = 80g de CaCO₃. Mols = 80/100 = 0,8 mol. Proporção 1:1 → 0,8 mol de CaO. Massa = 0,8 × 56 = 44,8 g. Cesgranrio gosta de questões com pureza + rendimento.

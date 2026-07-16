@@ -3,6 +3,8 @@
 **Peso na prova:** ~8% (4-5 questões de Química)
 **Horas totais no plano:** ~40h (2.5h/semana)
 
+> ⚡ **Estratégia Cesgranrio:** Foco em **nomenclatura IUPAC** (alcanos, alcenos, funções oxigenadas), **reações orgânicas** (adição em alcenos, oxidação, esterificação) e **petróleo** (destilação fracionada, frações). Cesgranrio gosta de perguntar "produto principal" de reações (Regra de Markovnikov) e classificação de cadeias carbônicas. Isomeria óptica e geométrica também aparecem.
+
 ---
 
 ## 1. INTRODUÇÃO À QUÍMICA ORGÂNICA
@@ -84,7 +86,25 @@
 3. Nomear radicais em ordem alfabética (di, tri, etc. não contam)
 4. Escrever: posição-radical + nome da cadeia principal
 
-### 2.3 Aromáticos
+> 🧠 **Mnemônico prefixos:** "**M**eu **E**terno **P**rofessor **B**eatriz **P**ede **H**elena **O**rando **N**a **D**écima" → **M**et(1), **E**t(2), **P**rop(3), **B**ut(4), **P**ent(5), **H**ex(6), **H**ept(7), **O**ct(8), **N**on(9), **D**ec(10).
+
+### 2.3 Petróleo e seus Derivados (Contexto Petrobras)
+
+| Fração | Faixa de PE | nº de carbonos | Aplicação |
+|--------|------------|----------------|-----------|
+| Gás natural | < 20°C | C₁-C₄ | Gás de cozinha (GLP), aquecimento |
+| Gasolina | 20-200°C | C₅-C₁₂ | Combustível veicular |
+| Querosene | 175-275°C | C₁₂-C₁₅ | Aviação, iluminação |
+| Diesel | 250-350°C | C₁₅-C₂₀ | Combustível diesel |
+| Óleo lubrificante | 300-370°C | C₂₀-C₃₀ | Lubrificação |
+| Óleo combustível | 370-600°C | C₃₀-C₇₀ | Navios, indústrias |
+| Asfalto | > 600°C | > C₇₀ | Pavimentação |
+
+**Processo de refino:** 1️⃣ Destilação atmosférica → 2️⃣ Destilação a vácuo → 3️⃣ Craqueamento (quebra cadeias longas em menores) → 4️⃣ Reforma catalítica (aumenta octanagem)
+
+> ⚡ **Cesgranrio:** Pergunta as frações na ordem correta de PE crescente (gás → gasolina → querosene → diesel → lubrificante → asfalto) e a aplicação de cada fração.
+
+### 2.4 Aromáticos
 
 **Benzeno (C₆H₆):** anel com 6 ligações π deslocalizadas
 
@@ -318,3 +338,21 @@ D) Metameria
 E) Tautomeria
 
 > **Resposta:** C. Mesma função (álcool), mesma cadeia, OH em posição diferente no carbono 1 e 2.
+
+**Q6.** (Cesgranrio) Na destilação fracionada do petróleo, a fração que contém de C₅ a C₁₂ é:
+A) Gás natural
+B) **Gasolina** ✅
+C) Querosene
+D) Diesel
+E) Asfalto
+
+> A faixa C₅-C₁₂ corresponde à gasolina (PE entre 20-200°C). É a fração mais leve após o gás natural.
+
+**Q7.** Quantos carbonos quirais tem a molécula de glicose (C₆H₁₂O₆, cadeia aberta)?
+A) 1
+B) **4** ✅
+C) 2
+D) 6
+E) 0
+
+> A glicose em cadeia aberta tem 4 carbonos quirais (C2, C3, C4, C5). Total de isômeros ópticos ativos: 2⁴ = 16. Cesgranrio cobra conceito de carbono quiral (4 ligantes diferentes) e cálculo de isômeros.

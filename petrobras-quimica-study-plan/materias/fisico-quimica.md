@@ -3,6 +3,8 @@
 **Peso na prova:** ~15% (6-7 questões)
 **Horas totais no plano:** ~56h (3.5h/semana)
 
+> ⚡ **Estratégia Cesgranrio:** O tópico **Soluções** (concentração, diluição, Kps) é o mais cobrado de toda a prova de Química. Em segundo lugar, **Equilíbrio Químico** (pH, Le Chatelier, tampão). Cesgranrio sempre coloca pelo menos 1 questão de **Eletroquímica** (pilha Zn/Cu é clássica). Domine a Lei de Beer para UV-Vis (A = εbc) e equação de Henderson-Hasselbalch.
+
 ---
 
 ## 1. SOLUÇÕES
@@ -91,6 +93,8 @@ Propriedades que dependem apenas do **número de partículas** do soluto, não d
 | **Ebulioscopia** | ↑ Temperatura de ebulição | ΔTe = Ke · W |
 | **Crioscopia** | ↓ Temperatura de congelamento | ΔTc = Kc · W |
 | **Osmose** | Pressão osmótica | π = M · R · T · i |
+
+> 🧠 **Mnemônico "TECO":** **T**onoscopia (↓ pressão vapor), **E**bulioscopia (↑ PE), **C**rioscopia (↓ PF), **O**smose (π). Lembre: "**T**oda **E**mpresa **C**omercial **O**pera" — as 4 propriedades coligativas.
 
 **Onde:**
 - P₀ = pressão de vapor do solvente puro
@@ -360,3 +364,21 @@ D) Aumenta a constante de equilíbrio
 E) A e D
 
 > **Resposta:** E. Aumentar T favorece o sentido endotérmico (direita), e Kc aumenta (K = e^(-ΔG/RT), T maior favorece ΔH > 0).
+
+**Q6.** Uma solução de NaOH tem pH = 13. Qual a concentração de OH⁻ em mol/L?
+A) 10⁻¹³
+B) 10⁻⁷
+C) **10⁻¹** ✅
+D) 10¹
+E) 13
+
+> pH = 13 → pOH = 14 - 13 = 1 → [OH⁻] = 10⁻¹ mol/L. Questão clássica Cesgranrio: relação pH + pOH = 14.
+
+**Q7.** (Cesgranrio) Na pilha Zn|Zn²⁺(1M)||Cu²⁺(1M)|Cu, qual das afirmações é correta? (E°red: Zn²⁺/Zn = -0,76 V; Cu²⁺/Cu = +0,34 V)
+A) O zinco sofre redução
+B) **O potencial da pilha é +1,10 V** ✅
+C) Os elétrons fluem do cobre para o zinco
+D) O cobre é o ânodo
+E) A pilha não é espontânea
+
+> **Resposta:** B. E° = E°(cátodo) - E°(ânodo) = 0,34 - (-0,76) = +1,10 V. Zn oxida (ânodo, -), Cu reduz (cátodo, +), elétrons fluem do Zn para o Cu. E° > 0 → espontânea.

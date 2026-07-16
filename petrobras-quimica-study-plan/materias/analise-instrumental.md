@@ -3,6 +3,8 @@
 **Peso na prova:** ~7% (2-4 questões)
 **Horas totais no plano:** ~40h (2.5h/semana)
 
+> ⚡ **Estratégia Cesgranrio:** **Espectrometria IV** (identificação de grupos funcionais por bandas) é o tópico mais recorrente. Decore as faixas: O-H (3600-3200), C=O (1750-1680), C-H (2960-2850). **Lei de Beer-Lambert** (A = εbc) cai todo ano. Em cromatografia, saiba a diferença entre HPLC e CG, os detectores (FID, ECD, MS) e fase normal vs. reversa.
+
 ---
 
 ## 1. ESPECTROMETRIA NO INFRAVERMELHO (IV)
@@ -48,6 +50,8 @@
 | NO₂ | 1550-1350 | Forte | Duas bandas |
 | C-Cl | 800-600 | Forte | |
 | C-F | 1400-1000 | Forte | |
+
+> 🧠 **Mnemônico IR — "C=O é Forte e Gordo":** A carbonila (C=O) aparece como banda forte em 1750-1680. "O-H largo de 3000" — álcool tem banda larga em 3600-3200, ácido ainda mais larga 3300-2500. "C-H em 2900 sempre" — todo composto orgânico tem C-H.
 
 ### 1.4 Região da "impressão digital" (fingerprint)
 
@@ -266,7 +270,7 @@ E) Todas
 
 > C=O tem elétrons não ligantes (n) no oxigênio e elétrons π. Transição n → π* é a de menor energia e mais característica.
 
-**Q4.** Em cromatografia em fase reversa (C₁₈), qual composto elui primeiro?
+**Q5.** Em cromatografia em fase reversa (C₁₈), qual composto elui primeiro?
 A) **Mais polar** ✅
 B) Menos polar
 C) Maior massa molar

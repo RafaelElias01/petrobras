@@ -320,6 +320,10 @@ Onde: C = capital, i = taxa (decimal), t = tempo, J = juros, M = montante
 
 ---
 
+> 🧠 **Mnemônicos Matemática:** PA: "P**A**rte **A**diante" — termo geral: aₙ = a₁ + (n-1)·r (soma a razão). PG: "P**G**uarda **G**rande" — termo geral: aₙ = a₁·q^(n-1) (multiplica pela razão). Função afim f(x)=ax+b: "**a** = **a**ngulo" (coeficiente angular), "**b** = **b**ase" (corta y em b).
+
+---
+
 ## Exercícios Comentados
 
 **Q1.** (Cesgranrio) Se f(x) = 2x + 3, qual o valor de f(5)?

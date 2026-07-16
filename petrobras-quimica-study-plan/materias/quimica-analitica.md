@@ -3,6 +3,8 @@
 **Peso na prova:** ~20% (8-10 questões)
 **Horas totais no plano:** ~72h (4.5h/semana)
 
+> ⚡ **Estratégia Cesgranrio:** **Titulometria** é o coração da Química Analítica para Cesgranrio — neutralização, complexação (EDTA), redox (permanganometria) e precipitação (Mohr). As questões sempre pedem **cálculo de concentração** (n = M·V) e escolha de indicador. Gravimetria (fator gravimétrico) e potenciometria (eletrodo de vidro, calomelano) são tópicos frequentes.
+
 ---
 
 ## 1. TÉCNICAS ANALÍTICAS DE LABORATÓRIO
@@ -269,3 +271,21 @@ D) Eletrodo seletivo para íons
 E) Eletrodo de cobre
 
 > ECS (calomelano) é o eletrodo de referência mais comum. Eletrodo de vidro é indicador (pHmetro).
+
+**Q5.** (Cesgranrio) Na titulação de 25 mL de ácido acético (CH₃COOH) 0,1 mol/L com NaOH 0,1 mol/L, qual indicador é mais adequado? (Ka do CH₃COOH = 1,8×10⁻⁵)
+A) Alaranjado de metila (viragem pH 3,1-4,4)
+B) **Fenolftaleína (viragem pH 8,2-10,0)** ✅
+C) Azul de bromotimol (viragem pH 6,0-7,6)
+D) Vermelho de metila (viragem pH 4,2-6,3)
+E) Nenhum, pois não há ponto de equivalência
+
+> Ácido fraco + Base forte → ponto de equivalência em pH > 7 (≈ 8,7). Fenolftaleína (8,2-10,0) é a escolha correta. O sal formado (CH₃COONa) sofre hidrólise básica.
+
+**Q6.** Qual o fator gravimétrico para determinar Fe a partir de Fe₂O₃?
+A) FG = 55,85/159,7
+B) FG = 2×55,85/159,7 ✅
+C) FG = 159,7/55,85
+D) FG = 159,7/(2×55,85)
+E) FG = 1,0
+
+> FG = (n×MM do analito) / (MM do precipitado). Fe₂O₃ contém 2 Fe. FG = (2 × 55,85) / 159,7 = 111,7/159,7 = 0,6994. Se 0,500g de Fe₂O₃, massa de Fe = 0,500 × 0,6994 = 0,3497g.

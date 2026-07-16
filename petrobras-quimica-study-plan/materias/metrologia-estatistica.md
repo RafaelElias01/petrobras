@@ -3,6 +3,8 @@
 **Peso na prova:** ~3% (0-2 questões)
 **Horas totais no plano:** ~16h (1h/semana)
 
+> ⚡ **Estratégia Cesgranrio:** Tópico de menor peso, mas de resposta rápida. Foco em **precisão vs. exatidão**, **erro sistemático vs. aleatório**, **algarismos significativos** e **desvio padrão**. Se cair, será conceitual — entenda a definição de cada termo. ISO 17025 e calibração aparecem em questões sobre garantia da qualidade.
+
 ---
 
 ## 1. CONTROLE METROLÓGICO
