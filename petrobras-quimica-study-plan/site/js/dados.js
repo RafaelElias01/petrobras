@@ -618,10 +618,8 @@ const CONTEUDOS = [
           'Auditoria interna e não-conformidade',
           'Ações corretivas e preventivas (CAPA)',
           'Gestão de documentos: versões, aprovação, distribuição'
-        ]
+       ]
       }
-     ]
-   }
     ]
   }
 ];
