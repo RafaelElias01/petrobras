@@ -1,10 +1,13 @@
 const API_BASE = '/api/dados';
 
+const { ref } = Vue;
+
 const Armazenamento = {
   _usaServer: undefined, // undefined: não verificado, false: offline, true: online
   _initPromise: null,
   _cache: {},
   _debounceTimers: {},
+  status: ref('idle'), // 'idle', 'saving', 'saved', 'error'
 
   _init() {
     if (!this._initPromise) {
@@ -35,24 +38,37 @@ const Armazenamento = {
     }
   },
 
-  _putToServer(nome, dados) {
-    // Agrupa múltiplas chamadas para o mesmo endpoint
-    if (this._debounceTimers[nome]) {
-      clearTimeout(this._debounceTimers[nome]);
-    }
-    this._debounceTimers[nome] = setTimeout(async () => {
-      await this._init();
-      if (!this._usaServer) return;
-      try {
-        await fetch(`${API_BASE}/${nome}.json`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dados)
-        });
-      } catch (err) {
-        console.error(`Falha ao salvar '${nome}' no servidor:`, err);
+  _putToServer(nome, dados, debounceMs = 1000) {
+    this.status.value = 'saving';
+
+    return new Promise((resolve) => {
+      // Agrupa múltiplas chamadas para o mesmo endpoint
+      if (this._debounceTimers[nome]) {
+        clearTimeout(this._debounceTimers[nome].timer);
       }
-    }, 1000); // Aguarda 1 segundo de inatividade antes de salvar
+
+      const timer = setTimeout(async () => {
+        await this._init();
+        if (!this._usaServer) return resolve({ ok: true, offline: true });
+        try {
+          const response = await fetch(`${API_BASE}/${nome}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+          });
+          this.status.value = response.ok ? 'saved' : 'error';
+          resolve({ ok: response.ok });
+        } catch (err) {
+          console.error(`Falha ao salvar '${nome}' no servidor:`, err);
+          this.status.value = 'error';
+          resolve({ ok: false, error: err });
+        } finally {
+          setTimeout(() => { if (this.status.value !== 'saving') this.status.value = 'idle'; }, 2000);
+        }
+      }, debounceMs);
+
+      this._debounceTimers[nome] = { timer, resolve };
+    });
   },
 
   async _deleteFromServer(nome, chave) {
@@ -102,7 +118,6 @@ const Armazenamento = {
 
     this._cache[nome] = mergedData;
     this._salvarLocal(nome, mergedData); // Sincroniza o local com o merge
-    this._putToServer(nome, mergedData); // Envia o merge para o servidor
     return this._cache[nome];
   },
 
@@ -115,7 +130,7 @@ const Armazenamento = {
     const lista = await this.getChecklist();
     lista[idItem] = valor;
     this._salvarLocal('checklist', lista);
-    this._putToServer('checklist', lista);
+    return this._putToServer('checklist', lista);
   },
 
   // --- Horas ---
@@ -129,7 +144,7 @@ const Armazenamento = {
     if (!horas[semana][dia]) horas[semana][dia] = {};
     horas[semana][dia][materia] = Number(valor) || 0;
     this._salvarLocal('horas', horas);
-    this._putToServer('horas', horas);
+    return this._putToServer('horas', horas);
   },
 
   // --- Simulados ---
@@ -143,7 +158,7 @@ const Armazenamento = {
     if (idx >= 0) lista[idx] = simulado;
     else lista.push(simulado);
     this._salvarLocal('simulados', lista);
-    this._putToServer('simulados', lista);
+    return this._putToServer('simulados', lista);
   },
 
   async removerSimulado(semana) {
@@ -151,7 +166,7 @@ const Armazenamento = {
     const idx = lista.findIndex(s => s.semana === semana);
     if (idx >= 0) lista.splice(idx, 1);
     this._salvarLocal('simulados', lista);
-    this._putToServer('simulados', lista);
+    return this._putToServer('simulados', lista);
   },
 
   // --- Erros (Caderno de Erros) ---
@@ -165,7 +180,7 @@ const Armazenamento = {
     if (idx >= 0) lista[idx] = erro;
     else lista.push(erro);
     this._salvarLocal('erros', lista);
-    this._putToServer('erros', lista);
+    return this._putToServer('erros', lista);
   },
 
   async removerErro(id) {
@@ -173,7 +188,7 @@ const Armazenamento = {
     const idx = lista.findIndex(e => e.id === id);
     if (idx >= 0) lista.splice(idx, 1);
     this._salvarLocal('erros', lista);
-    this._putToServer('erros', lista);
+    return this._putToServer('erros', lista);
   },
 
   // --- Diário (Daily Checklist) ---
@@ -185,7 +200,7 @@ const Armazenamento = {
     const diario = await this.getDiario();
     diario[data] = items;
     this._salvarLocal('diario', diario);
-    this._putToServer('diario', diario);
+    return this._putToServer('diario', diario);
   },
 
   // --- Revisões ---
@@ -199,7 +214,7 @@ const Armazenamento = {
     if (idx >= 0) lista[idx] = rev;
     else lista.push(rev);
     this._salvarLocal('revisoes', lista);
-    this._putToServer('revisoes', lista);
+    return this._putToServer('revisoes', lista);
   },
 
   async removerRevisao(id) {
@@ -207,7 +222,7 @@ const Armazenamento = {
     const idx = lista.findIndex(r => r.id === id);
     if (idx >= 0) lista.splice(idx, 1);
     this._salvarLocal('revisoes', lista);
-    this._putToServer('revisoes', lista);
+    return this._putToServer('revisoes', lista);
   },
 
   // --- Ciclo (posição atual) ---
@@ -217,7 +232,7 @@ const Armazenamento = {
 
   async salvarCiclo(ciclo) {
     this._salvarLocal('ciclo', ciclo);
-    this._putToServer('ciclo', ciclo);
+    return this._putToServer('ciclo', ciclo);
   },
 
   // --- Config ---
@@ -226,13 +241,13 @@ const Armazenamento = {
     const local = this._carregarLocal('config', { tema: 'light' });
     const merged = server || local;
     this._salvarLocal('config', merged);
-    if (this._usaServer && !server) this._put('config', merged);
+    if (this._usaServer && !server) this._putToServer('config', merged);
     return merged;
   },
 
   async salvarConfig(config) {
     this._salvarLocal('config', config);
-    this._putToServer('config', config);
+    return this._putToServer('config', config);
   },
 
   // --- Fallback localStorage ---

@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const path = require('path');
+const compression = require('compression');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +23,7 @@ function sendJSON(res, status, data) {
 }
 
 // Middlewares
+app.use(compression()); // <-- Adicionar compressão Gzip
 app.use(express.json()); // Para parsear body de PUT/POST
 app.use((req, res, next) => { // CORS
   res.header('Access-Control-Allow-Origin', '*');
