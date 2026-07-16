@@ -21,11 +21,20 @@ export function useHoras() {
   const getHorasDia = (sem, dia) => horas.value[sem]?.[dia] || {};
 
   const horaValor = (sem, dia, mat) => getHorasDia(sem, dia)[mat] || 0;
+  
   const setHora = (sem, dia, mat, val) => {
-    if (!horas.value[sem]) horas.value[sem] = {};
-    if (!horas.value[sem][dia]) horas.value[sem][dia] = {};
-    // Garante que o valor não seja negativo.
-    horas.value[sem][dia][mat] = Math.max(0, Number(val) || 0);
+    // Adaptação para o registro rápido no Diário
+    // Se 'sem' for uma data completa (ex: "2026-07-17"), usamos 'dia' como a matéria.
+    if (String(sem).includes('-')) {
+      const data = sem;
+      const materia = dia;
+      if (!horas.value[data]) horas.value[data] = {};
+      horas.value[data][materia] = Math.max(0, Number(mat) || 0);
+    } else { // Lógica original para a tabela de horas
+      if (!horas.value[sem]) horas.value[sem] = {};
+      if (!horas.value[sem][dia]) horas.value[sem][dia] = {};
+      horas.value[sem][dia][mat] = Math.max(0, Number(val) || 0);
+    }
   };
 
   const totalDia = (sem, dia) => computed(() => {

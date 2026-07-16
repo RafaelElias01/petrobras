@@ -12,7 +12,7 @@ const { progressoGeral, progressoMateria, itensConcluidos, totalItens } = useChe
 const { horasSemanaAtual, metaSemanaCss } = useHoras();
 const { simuladoStatus } = useSimulados();
 const { totalErros } = useErros();
-const { diarioProgresso, revisoesHoje } = useDiario();
+const { revisoesHoje } = useDiario();
 const { cicloCompleto } = useCiclo();
 
 const conteudos = CONTEUDOS;
