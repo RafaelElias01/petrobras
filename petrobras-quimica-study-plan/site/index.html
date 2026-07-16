@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estudo Petrobras - Técnico em Química</title>
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <div id="app">
+    <div v-if="carregando" style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:var(--texto-sec);">
+      Carregando...
+    </div>
+    <template v-if="!carregando">
+    <aside class="sidebar" :class="{ aberta: menuAberta }">
+      <div class="sidebar-logo">
+        <h1>Petrobras 2026</h1>
+        <span>Técnico em Química • Cesgranrio</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item" :class="{ ativa: view === 'dashboard' }" @click="irPara('dashboard')">
+          <span class="icone">📊</span> Dashboard
+        </button>
+        <button class="nav-item" :class="{ ativa: view === 'checklist' }" @click="irPara('checklist')">
+          <span class="icone">✅</span> Conteúdos
+        </button>
+        <button class="nav-item" :class="{ ativa: view === 'horas' }" @click="irPara('horas')">
+          <span class="icone">⏱</span> Horas
+        </button>
+        <button class="nav-item" :class="{ ativa: view === 'simulados' }" @click="irPara('simulados')">
+          <span class="icone">📋</span> Simulados
+        </button>
+      </nav>
+      <div style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <button class="nav-item" @click="alternarTema" style="font-size:13px;">
+          <span class="icone">{{ tema === 'dark' ? '☀️' : '🌙' }}</span>
+          {{ tema === 'dark' ? 'Tema Claro' : 'Tema Escuro' }}
+        </button>
+      </div>
+    </aside>
+
+    <main class="conteudo">
+      <div class="topo">
+        <div>
+          <button class="menu-toggle" @click="menuAberta = !menuAberta">☰</button>
+          <h2>{{ tituloView }}</h2>
+          <span class="sub">{{ subtituloView }}</span>
+        </div>
+      </div>
+
+      <transition name="fade" mode="out-in">
+        <!-- DASHBOARD -->
+        <div v-if="view === 'dashboard'" key="dashboard">
+          <div class="grade-cartoes">
+            <div class="cartao-stat verde">
+              <div class="valor">{{ progressoGeral }}%</div>
+              <div class="rotulo">Conteúdo Estudado</div>
+            </div>
+            <div class="cartao-stat">
+              <div class="valor">{{ horasSemanaAtual }}</div>
+              <div class="rotulo">h nesta semana</div>
+            </div>
+            <div class="cartao-stat" :class="metaSemanaCss">
+              <div class="valor">{{ horasSemanaAtual }}/{{ metaHoras }}</div>
+              <div class="rotulo">Meta semanal (h)</div>
+            </div>
+            <div class="cartao-stat" :class="simuladoStatus.classe">
+              <div class="valor">{{ simuladoStatus.texto }}</div>
+              <div class="rotulo">Último simulado</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">Progresso por Matéria</div>
+            <div v-for="m in conteudos" :key="m.id" class="materia-progresso">
+              <div class="cabecalho">
+                <span class="nome">{{ m.icone }} {{ m.nome }}</span>
+                <span class="pct">{{ progressoMateria(m) }}% ({{ itensConcluidos(m) }}/{{ totalItens(m) }})</span>
+              </div>
+              <div class="barra-progresso">
+                <div class="preenchimento" :style="{ width: progressoMateria(m)+'%', background: m.cor }"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">Resumo do Plano</div>
+            <div style="font-size:14px; line-height:1.8; color:var(--texto-sec);">
+              <strong style="color:var(--texto)">12 semanas</strong> de estudo ·
+              <strong style="color:var(--texto)">{{ metaHoras }}h/semana</strong> ·
+              <strong style="color:var(--texto)">60 questões</strong> na prova (38 Química, 10 Português, 10 Matemática)<br>
+              Banca: <strong>Cesgranrio</strong> · Última prova referência: 2018
+            </div>
+          </div>
+        </div>
+
+        <!-- CHECKLIST -->
+        <div v-if="view === 'checklist'" key="checklist">
+          <div class="grade-cartoes">
+            <div v-for="m in conteudos" :key="m.id" class="cartao-stat" :style="{ borderTopColor: m.cor }">
+              <div class="valor" :style="{ color: m.cor }">{{ progressoMateria(m) }}%</div>
+              <div class="rotulo">{{ m.icone }} {{ m.nome }}</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">
+              <span>Conteúdos Detalhados</span>
+              <span style="font-size:14px;color:var(--texto-sec);font-weight:400;">
+                {{ totalConcluidoGeral }}/{{ totalGeral }} concluídos
+              </span>
+            </div>
+            <div v-for="m in conteudos" :key="m.id" style="margin-bottom:24px;">
+              <h3 style="font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--borda);">
+                {{ m.icone }} {{ m.nome }}
+                <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">
+                  ({{ itensConcluidos(m) }}/{{ totalItens(m) }})
+                </span>
+              </h3>
+              <div v-for="g in m.grupos" :key="g.nome" class="grupo-checklist">
+                <div class="grupo-titulo" @click="toggleGrupo(m.id, g.nome)">
+                  {{ gruposAbertos[m.id+'-'+g.nome] ? '▼' : '▶' }} {{ g.nome }}
+                  <span style="font-size:12px;color:var(--texto-sec);font-weight:400;">
+                    ({{ itensConcluidosGrupo(m.id, g) }}/{{ g.topicos.length }})
+                  </span>
+                </div>
+                <div v-show="gruposAbertos[m.id+'-'+g.nome]">
+                  <div v-for="(t, idx) in g.topicos" :key="t"
+                    class="item-check"
+                    :class="{ concluido: checkId(m.id, g.nome, idx) }"
+                    @click="alternarItem(m.id, g.nome, idx)">
+                    <input type="checkbox" :checked="checkId(m.id, g.nome, idx)" @click.stop>
+                    <span class="texto">{{ t }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HORAS -->
+        <div v-if="view === 'horas'" key="horas">
+          <div class="grade-cartoes" style="margin-bottom:20px;">
+            <div class="cartao-stat verde">
+              <div class="valor">{{ horasSemanaAtual }}</div>
+              <div class="rotulo">h nesta semana</div>
+            </div>
+            <div class="cartao-stat" :class="metaSemanaCss">
+              <div class="valor">{{ horasSemanaAtual }}/{{ metaHoras }}</div>
+              <div class="rotulo">Meta semanal (h)</div>
+            </div>
+            <div class="cartao-stat">
+              <div class="valor">{{ totalHorasAcumuladas }}h</div>
+              <div class="rotulo">Total acumulado ({{ Math.round(totalHorasAcumuladas/360*100) }}% da meta)</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">
+              <div class="navegacao-semanas">
+                <button @click="semanaAtual--">‹ Anterior</button>
+                <strong>Semana {{ semanaAtual }}</strong>
+                <button @click="semanaAtual++" :disabled="semanaAtual >= semanasPlano">Próxima ›</button>
+              </div>
+            </div>
+            <table class="tabela-horas">
+              <thead>
+                <tr>
+                  <th>Dia</th>
+                  <th>Português</th>
+                  <th>Matemática</th>
+                  <th>Química</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="dia in diasSemana" :key="dia.valor">
+                  <td style="font-weight:600;">{{ dia.rotulo }}</td>
+                  <td><input type="number" min="0" max="6" step="0.5"
+                    :value="horaValor(semanaAtual, dia.valor, 'portugues')"
+                    @input="setHora(semanaAtual, dia.valor, 'portugues', $event.target.value)"></td>
+                  <td><input type="number" min="0" max="6" step="0.5"
+                    :value="horaValor(semanaAtual, dia.valor, 'matematica')"
+                    @input="setHora(semanaAtual, dia.valor, 'matematica', $event.target.value)"></td>
+                  <td><input type="number" min="0" max="6" step="0.5"
+                    :value="horaValor(semanaAtual, dia.valor, 'quimica')"
+                    @input="setHora(semanaAtual, dia.valor, 'quimica', $event.target.value)"></td>
+                  <td class="total-linha">{{ totalDia(semanaAtual, dia.valor) }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td style="font-weight:700;">Total</td>
+                  <td class="total-coluna">{{ totalMateriaSemana(semanaAtual, 'portugues') }}</td>
+                  <td class="total-coluna">{{ totalMateriaSemana(semanaAtual, 'matematica') }}</td>
+                  <td class="total-coluna">{{ totalMateriaSemana(semanaAtual, 'quimica') }}</td>
+                  <td class="total-coluna" style="color:var(--primaria);font-weight:700;">{{ horasSemana(semanaAtual) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">Acumulado por Semana</div>
+            <table class="tabela-horas">
+              <thead>
+                <tr>
+                  <th>Semana</th>
+                  <th>P</th>
+                  <th>M</th>
+                  <th>Q</th>
+                  <th>Total</th>
+                  <th>Meta</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="s in semanasPlano" :key="s">
+                  <td style="font-weight:600;">{{ s }}</td>
+                  <td>{{ totalMateriaSemana(s, 'portugues') }}</td>
+                  <td>{{ totalMateriaSemana(s, 'matematica') }}</td>
+                  <td>{{ totalMateriaSemana(s, 'quimica') }}</td>
+                  <td class="total-linha">{{ horasSemana(s) }}</td>
+                  <td>{{ metaHoras }}</td>
+                  <td>{{ metaHoras > 0 ? Math.round(horasSemana(s)/metaHoras*100) : 0 }}%</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td style="font-weight:700;">Total</td>
+                  <td class="total-coluna">{{ totalAcumulado('portugues') }}</td>
+                  <td class="total-coluna">{{ totalAcumulado('matematica') }}</td>
+                  <td class="total-coluna">{{ totalAcumulado('quimica') }}</td>
+                  <td class="total-coluna" style="color:var(--primaria);font-weight:700;">{{ totalHorasAcumuladas }}</td>
+                  <td>{{ totalMeta }}</td>
+                  <td>{{ totalMeta > 0 ? Math.round(totalHorasAcumuladas/totalMeta*100) : 0 }}%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- SIMULADOS -->
+        <div v-if="view === 'simulados'" key="simulados">
+          <div class="grade-cartoes">
+            <div class="cartao-stat" v-for="(s, i) in simuladosOrdenados" :key="s.semana"
+              :class="s.total/60 >= 0.7 ? 'verde' : s.total/60 >= 0.5 ? 'laranja' : 'vermelho'">
+              <div class="valor">{{ s.porcentagem }}%</div>
+              <div class="rotulo">Simulado {{ i+1 }} (Semana {{ s.semana }})</div>
+            </div>
+            <div class="cartao-stat" v-if="simuladosOrdenados.length === 0">
+              <div class="valor" style="font-size:20px;color:var(--texto-sec);">—</div>
+              <div class="rotulo">Nenhum simulado registrado</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">Registrar Simulado</div>
+            <div class="form-simulado">
+              <div>
+                <label>Semana</label>
+                <input type="number" v-model.number="formSimulado.semana" min="1" :max="semanasPlano">
+              </div>
+              <div>
+                <label>Português (/10)</label>
+                <input type="number" v-model.number="formSimulado.portugues" min="0" max="10">
+              </div>
+              <div>
+                <label>Matemática (/10)</label>
+                <input type="number" v-model.number="formSimulado.matematica" min="0" max="10">
+              </div>
+              <div>
+                <label>Química (/38)</label>
+                <input type="number" v-model.number="formSimulado.quimica" min="0" max="38">
+              </div>
+              <div>
+                <label>Total /60</label>
+                <input type="number" :value="formSimuladoTotal" disabled style="background:#f3f4f6;font-weight:700;">
+              </div>
+              <div>
+                <label>&nbsp;</label>
+                <button @click="salvarSimulado">Salvar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo">Histórico</div>
+            <table class="tabela-simulados">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Semana</th>
+                  <th>Português</th>
+                  <th>Matemática</th>
+                  <th>Química</th>
+                  <th>Total</th>
+                  <th>%</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(s, i) in simuladosOrdenados" :key="s.semana">
+                  <td>{{ i+1 }}</td>
+                  <td>{{ s.semana }}</td>
+                  <td>{{ s.portugues }}/10</td>
+                  <td>{{ s.matematica }}/10</td>
+                  <td>{{ s.quimica }}/38</td>
+                  <td><strong>{{ s.total }}/60</strong></td>
+                  <td :style="{ color: s.porcentagem >= 70 ? 'var(--sucesso)' : s.porcentagem >= 50 ? 'var(--aviso)' : 'var(--erro)', fontWeight: 700 }">
+                    {{ s.porcentagem }}%
+                  </td>
+                  <td><button @click="removerSimulado(s.semana)" style="background:none;border:none;cursor:pointer;color:var(--erro);font-size:16px;">✕</button></td>
+                </tr>
+                <tr v-if="simuladosOrdenados.length === 0">
+                  <td colspan="8" style="color:var(--texto-sec);padding:20px;">Nenhum simulado registrado ainda.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </transition>
+    </main>
+    </template>
+  </div>
+
+  <script src="js/dados.js"></script>
+  <script src="js/armazenamento.js"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
