@@ -121,6 +121,38 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // --- API: listar planos disponíveis ---
+  if (url.pathname === '/api/planos' && method === 'GET') {
+    const planos = [
+      { id: 'cronograma-cesgranrio', nome: 'Cronograma 12 Semanas (Cesgranrio)', grupo: 'Plano Principal' },
+      { id: 'conteudo-programatico', nome: 'Conteúdo Programático Detalhado', grupo: 'Plano Principal' },
+      { id: 'checklist-conteudos', nome: 'Checklist de Conteúdos', grupo: 'Ferramentas' },
+      { id: 'materias/portugues', nome: 'Português', grupo: 'Matérias' },
+      { id: 'materias/matematica', nome: 'Matemática', grupo: 'Matérias' },
+      { id: 'materias/quimica-geral', nome: 'Química Geral e Inorgânica', grupo: 'Matérias' },
+      { id: 'materias/quimica-organica', nome: 'Química Orgânica', grupo: 'Matérias' },
+      { id: 'materias/fisico-quimica', nome: 'Físico-Química', grupo: 'Matérias' },
+      { id: 'materias/quimica-analitica', nome: 'Química Analítica', grupo: 'Matérias' },
+      { id: 'materias/analise-instrumental', nome: 'Análise Instrumental', grupo: 'Matérias' }
+    ];
+    sendJSON(res, 200, planos);
+    return;
+  }
+
+  // --- API: ler arquivo de plano (.md) ---
+  const planosMatch = url.pathname.match(/^\/api\/plano\/(.+)$/);
+  if (planosMatch && method === 'GET') {
+    const nomeArquivo = planosMatch[1] + '.md';
+    const caminho = path.join(__dirname, nomeArquivo);
+    if (!caminho.startsWith(__dirname)) return sendJSON(res, 403, { erro: 'Acesso negado' });
+    fs.readFile(caminho, 'utf-8', (err, data) => {
+      if (err) return sendJSON(res, 404, { erro: 'Arquivo não encontrado' });
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end(data);
+    });
+    return;
+  }
+
   // --- Arquivos estáticos ---
   let filePath = url.pathname === '/' ? path.join(SITE_DIR, 'index.html') : path.join(SITE_DIR, url.pathname);
   if (!filePath.startsWith(SITE_DIR)) return sendJSON(res, 403, { erro: 'Acesso negado' });

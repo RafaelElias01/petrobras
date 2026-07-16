@@ -31,6 +31,7 @@ const app = createApp({
       checklist.value = await Armazenamento.getChecklist();
       horas.value = await Armazenamento.getHoras();
       simulados.value = await Armazenamento.getSimulados();
+      initPlanos();
       carregando.value = false;
     });
 
@@ -45,14 +46,16 @@ const app = createApp({
       dashboard: 'Dashboard',
       checklist: 'Conteúdos',
       horas: 'Quadro de Horas',
-      simulados: 'Simulados'
+      simulados: 'Simulados',
+      plano: 'Plano de Estudos'
     })[view.value]);
 
     const subtituloView = computed(() => ({
       dashboard: 'Visão geral do seu progresso',
       checklist: 'Marque os tópicos já estudados',
       horas: 'Registre suas horas de estudo',
-      simulados: 'Acompanhe seu desempenho nos simulados'
+      simulados: 'Acompanhe seu desempenho nos simulados',
+      plano: 'Consulte o cronograma e conteúdos programáticos'
     })[view.value]);
 
     const semanasPlano = SEMANAS_PLANO;
@@ -214,10 +217,56 @@ const app = createApp({
       };
     });
 
+    // --- Plano ---
+    const planoSelecionado = ref('');
+    const planoHtml = ref('');
+    const carregandoPlano = ref(false);
+    const planosDisponiveis = ref([]);
+
+    const planosGrupos = computed(() => {
+      const grupos = [...new Set(planosDisponiveis.value.map(p => p.grupo))];
+      return grupos;
+    });
+
+    function planosFiltrados(grupo) {
+      return planosDisponiveis.value.filter(p => p.grupo === grupo);
+    }
+
+    async function carregarPlano() {
+      if (!planoSelecionado.value) return;
+      carregandoPlano.value = true;
+      try {
+        const r = await fetch(`/api/plano/${planoSelecionado.value}`);
+        if (!r.ok) throw new Error('Não encontrado');
+        const md = await r.text();
+        if (typeof marked !== 'undefined') {
+          planoHtml.value = marked.parse(md, { breaks: true, gfm: true });
+        } else {
+          planoHtml.value = `<pre style="white-space:pre-wrap;font-size:13px;">${md.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+        }
+      } catch {
+        planoHtml.value = '<p style="color:var(--erro)">Erro ao carregar o documento.</p>';
+      }
+      carregandoPlano.value = false;
+    }
+
+    async function initPlanos() {
+      try {
+        const r = await fetch('/api/planos');
+        if (r.ok) {
+          planosDisponiveis.value = await r.json();
+        }
+      } catch {}
+    }
+
     // --- Nav ---
     function irPara(v) {
       view.value = v;
       menuAberta.value = false;
+      if (v === 'plano' && !planoSelecionado.value && planosDisponiveis.value.length > 0) {
+        planoSelecionado.value = planosDisponiveis.value[0].id;
+        carregarPlano();
+      }
     }
 
     async function alternarTema() {
@@ -241,6 +290,9 @@ const app = createApp({
       totalAcumulado, totalHorasAcumuladas, horasSemanaAtual, metaSemanaCss,
       simulados, simuladosOrdenados, formSimuladoTotal,
       salvarSimulado, removerSimulado, simuladoStatus,
+      planoSelecionado, planoHtml, carregandoPlano,
+      planosDisponiveis, planosGrupos, planosFiltrados,
+      carregarPlano,
       irPara, alternarTema
     };
   }

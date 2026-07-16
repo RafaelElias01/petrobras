@@ -392,6 +392,23 @@ body {
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
+/* Plano (markdown renderizado) */
+.plano-conteudo { font-size: 14px; line-height: 1.7; }
+.plano-conteudo h1 { font-size: 22px; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--borda); }
+.plano-conteudo h2 { font-size: 18px; margin: 20px 0 10px; color: var(--primaria); }
+.plano-conteudo h3 { font-size: 15px; margin: 16px 0 8px; }
+.plano-conteudo p { margin: 8px 0; }
+.plano-conteudo table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.plano-conteudo th, .plano-conteudo td { padding: 8px 10px; border: 1px solid var(--borda); text-align: left; }
+.plano-conteudo th { background: var(--bg); font-weight: 600; }
+.plano-conteudo tr:nth-child(even) { background: var(--bg); }
+.plano-conteudo ul, .plano-conteudo ol { margin: 8px 0; padding-left: 24px; }
+.plano-conteudo li { margin: 4px 0; }
+.plano-conteudo code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.plano-conteudo strong { color: var(--texto); }
+.plano-conteudo blockquote { border-left: 4px solid var(--primaria); padding: 8px 16px; margin: 12px 0; background: var(--bg); border-radius: 0 6px 6px 0; }
+.plano-conteudo input[type="checkbox"] { accent-color: var(--primaria); }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
