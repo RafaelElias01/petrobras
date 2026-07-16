@@ -338,16 +338,32 @@ body {
   color: var(--texto);
 }
 
+@media (max-width: 1024px) {
+  .conteudo {
+    margin-left: 240px;
+    padding: 20px 24px;
+    max-width: 100%;
+  }
+  .grade-cartoes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .card {
+    padding: 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
+    width: 260px;
   }
   .sidebar.aberta {
     transform: translateX(0);
+    box-shadow: 4px 0 8px rgba(0,0,0,0.15);
   }
   .conteudo {
     margin-left: 0;
-    padding: 20px 16px;
+    padding: 16px 12px;
   }
   .menu-toggle {
     display: block;
@@ -356,20 +372,264 @@ body {
     flex-wrap: wrap;
     gap: 8px;
   }
-  .grade-cartoes {
-    grid-template-columns: 1fr 1fr;
+  .topo h2 {
+    font-size: 18px;
   }
-  .tabela-horas, .tabela-simulados {
+  .topo .sub {
     font-size: 12px;
   }
+  .grade-cartoes {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .cartao-stat {
+    padding: 14px 12px;
+  }
+  .cartao-stat .valor {
+    font-size: 24px;
+  }
+  .cartao-stat .rotulo {
+    font-size: 12px;
+  }
+  .card {
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .card-titulo {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .tabela-horas, .tabela-simulados, .tabela-erros {
+    font-size: 11px;
+  }
+  .tabela-horas th, .tabela-horas td,
+  .tabela-simulados th, .tabela-simulados td,
+  .tabela-erros th, .tabela-erros td {
+    padding: 6px 8px;
+  }
   .tabela-horas td input {
-    width: 40px;
-    padding: 4px;
+    width: 45px;
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+  .form-simulado, .form-erro {
+    grid-template-columns: 1fr;
+  }
+  .form-simulado > div, .form-erro > div {
+    margin-bottom: 8px;
+  }
+  .form-simulado input, .form-simulado button,
+  .form-erro input, .form-erro button,
+  .form-erro select, .form-erro textarea {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .grupo-checklist {
+    margin-bottom: 14px;
+  }
+  .grupo-titulo {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+  .item-check {
+    font-size: 13px;
+    padding: 4px 0;
+  }
+  .item-check input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+  .plano-conteudo h1 {
+    font-size: 18px;
+  }
+  .plano-conteudo h2 {
+    font-size: 15px;
+  }
+  .plano-conteudo h3 {
+    font-size: 13px;
+  }
+  .plano-conteudo table {
+    font-size: 11px;
+  }
+  .plano-conteudo th, .plano-conteudo td {
+    padding: 6px 8px;
+  }
+  .plano-conteudo ul, .plano-conteudo ol {
+    padding-left: 20px;
   }
 }
 
-@media (max-width: 480px) {
-  .grade-cartoes { grid-template-columns: 1fr; }
+@media (max-width: 600px) {
+  html {
+    font-size: 14px;
+  }
+  .sidebar {
+    width: 100%;
+  }
+  .conteudo {
+    padding: 12px 8px;
+  }
+  .topo {
+    margin-bottom: 12px;
+  }
+  .topo h2 {
+    font-size: 16px;
+  }
+  .topo .sub {
+    font-size: 11px;
+  }
+  .menu-toggle {
+    padding: 6px 8px;
+    font-size: 18px;
+  }
+  .grade-cartoes {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .cartao-stat {
+    padding: 12px 10px;
+  }
+  .cartao-stat .valor {
+    font-size: 22px;
+  }
+  .cartao-stat .rotulo {
+    font-size: 11px;
+  }
+  .card {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+  .card-titulo {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .card select {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .tabela-horas, .tabela-simulados, .tabela-erros {
+    font-size: 10px;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabela-horas table, .tabela-simulados table, .tabela-erros table {
+    min-width: 100%;
+  }
+  .tabela-horas th, .tabela-horas td,
+  .tabela-simulados th, .tabela-simulados td,
+  .tabela-erros th, .tabela-erros td {
+    padding: 5px 6px;
+  }
+  .tabela-horas td input {
+    width: 40px;
+    padding: 3px 4px;
+    font-size: 11px;
+  }
+  .form-simulado, .form-erro {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .form-simulado > div, .form-erro > div {
+    margin-bottom: 0;
+  }
+  .form-simulado input, .form-simulado button,
+  .form-erro input, .form-erro button,
+  .form-erro select, .form-erro textarea {
+    font-size: 13px;
+    padding: 7px 8px;
+    width: 100%;
+  }
+  .form-simulado button, .form-erro button {
+    margin-top: 4px;
+  }
+  .form-simulado label, .form-erro label {
+    font-size: 12px;
+  }
+  .grupo-checklist {
+    margin-bottom: 12px;
+  }
+  .grupo-titulo {
+    font-size: 12px;
+    padding: 5px 0;
+  }
+  .item-check {
+    font-size: 12px;
+    padding: 3px 0;
+    gap: 8px;
+  }
+  .item-check input[type="checkbox"] {
+    width: 13px;
+    height: 13px;
+    margin-top: 1px;
+  }
+  .item-check .texto {
+    word-break: break-word;
+  }
+  .plano-conteudo {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .plano-conteudo h1 {
+    font-size: 16px;
+    margin: 16px 0 8px;
+  }
+  .plano-conteudo h2 {
+    font-size: 14px;
+    margin: 14px 0 6px;
+  }
+  .plano-conteudo h3 {
+    font-size: 12px;
+    margin: 10px 0 4px;
+  }
+  .plano-conteudo p {
+    margin: 6px 0;
+  }
+  .plano-conteudo table {
+    font-size: 10px;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .plano-conteudo th, .plano-conteudo td {
+    padding: 4px 6px;
+  }
+  .plano-conteudo ul, .plano-conteudo ol {
+    margin: 6px 0;
+    padding-left: 18px;
+  }
+  .plano-conteudo li {
+    margin: 2px 0;
+  }
+  .plano-conteudo blockquote {
+    padding: 6px 12px;
+    margin: 8px 0;
+  }
+  .navegacao-semanas button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  .ciclo-item {
+    padding: 10px;
+    font-size: 12px;
+  }
+}
+
+/* Responsividade de elementos inline */
+select {
+  max-width: 100%;
+}
+
+input[type="number"],
+input[type="text"],
+input[type="date"],
+textarea {
+  max-width: 100%;
+}
+
+button {
+  touch-action: manipulation;
 }
 
 /* Tema escuro */
@@ -413,4 +673,24 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* Footer */
+.rodape {
+  padding: 20px;
+  text-align: center;
+  color: var(--texto-sec);
+  font-size: 13px;
+  border-top: 1px solid var(--borda);
+  background: var(--bg);
+  margin-top: 40px;
+}
+
+.rodape p {
+  margin: 4px 0;
+}
+
+.rodape strong {
+  color: var(--primaria);
+  font-weight: 600;
+}
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

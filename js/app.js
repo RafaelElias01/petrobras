@@ -21,6 +21,7 @@ const app = createApp({
     const horas = ref({});
     const simulados = ref([]);
     const carregando = ref(true);
+    const filtro = ref(''); // P1: Busca/filtro de tópicos
 
     const diasSemana = [
       { valor: 'seg', rotulo: 'Segunda' },
@@ -417,6 +418,38 @@ const app = createApp({
       ciclo.value = c;
     }
 
+    // --- P1: Busca e Expandir/Colapsar Tudo ---
+    const conteudosFiltrados = computed(() => {
+      if (!filtro.value.trim()) return CONTEUDOS;
+      
+      const termo = filtro.value.toLowerCase();
+      return CONTEUDOS.map(materia => ({
+        ...materia,
+        grupos: materia.grupos.map(grupo => ({
+          ...grupo,
+          topicos: grupo.topicos.filter(topico =>
+            topico.toLowerCase().includes(termo)
+          )
+        })).filter(grupo => grupo.topicos.length > 0)
+      })).filter(materia => materia.grupos.length > 0);
+    });
+
+    function expandirTudo() {
+      CONTEUDOS.forEach(m => {
+        m.grupos.forEach(g => {
+          gruposAbertos.value[m.id + '-' + g.nome] = true;
+        });
+      });
+    }
+
+    function colapsarTudo() {
+      CONTEUDOS.forEach(m => {
+        m.grupos.forEach(g => {
+          gruposAbertos.value[m.id + '-' + g.nome] = false;
+        });
+      });
+    }
+
     // --- Nav ---
     function irPara(v) {
       view.value = v;
@@ -459,7 +492,8 @@ const app = createApp({
       agendarRevisao, concluirRevisao, removerRevisao,
       ciclo, materiaAtual, cicloCompleto, cicloExpandido,
       avancarCiclo, reiniciarCiclo,
-      CICLO_ESTUDOS, REVISAO_INTERVALOS, DIAS_SEMANA
+      CICLO_ESTUDOS, REVISAO_INTERVALOS, DIAS_SEMANA,
+      filtro, conteudosFiltrados, expandirTudo, colapsarTudo // P1
     };
   }
 });

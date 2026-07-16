@@ -145,7 +145,20 @@
                 {{ totalConcluidoGeral }}/{{ totalGeral }} concluídos
               </span>
             </div>
-            <div v-for="m in conteudos" :key="m.id" style="margin-bottom:24px;">
+
+            <!-- P1: Busca e Botões -->
+            <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <input v-model="filtro" type="text" placeholder="🔍 Buscar tópico..." 
+                style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--borda);border-radius:4px;background:var(--fundo-sec);color:var(--texto);font-size:13px;">
+              <button @click="expandirTudo" style="padding:8px 12px;background:var(--primaria);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;transition:background 0.2s;">
+                📂 Expandir Tudo
+              </button>
+              <button @click="colapsarTudo" style="padding:8px 12px;background:var(--texto-sec);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;transition:background 0.2s;">
+                 📁 Colapsar Tudo
+              </button>
+            </div>
+
+            <div v-for="m in (filtro ? conteudosFiltrados : conteudos)" :key="m.id" style="margin-bottom:24px;">
               <h3 style="font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--borda);">
                 {{ m.icone }} {{ m.nome }}
                 <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">
@@ -601,6 +614,15 @@
         </div>
       </transition>
     </main>
+
+    <footer class="rodape">
+      <div class="conteudo-rodape">
+        <p>🎓 Desenvolvido por <strong>Rafael Elias Ioppi</strong></p>
+        <p style="font-size:12px;color:var(--texto-sec);margin-top:4px;">
+          Plano de Estudos | Concurso Petrobras 2026 | Cesgranrio
+        </p>
+      </div>
+    </footer>
     </template>
   </div>
 
