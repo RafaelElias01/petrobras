@@ -64,7 +64,8 @@
       </div>
 
       <transition name="fade" mode="out-in">
-        <!-- DASHBOARD -->
+        <div key="view">
+          <!-- DASHBOARD -->
         <div v-if="view === 'dashboard'" key="dashboard">
           <div class="grade-cartoes">
             <div class="cartao-stat verde">
@@ -595,6 +596,7 @@
                 <button @click="removerRevisao(r.id)" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--erro);">✕</button>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </transition>

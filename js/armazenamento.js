@@ -58,11 +58,13 @@ const Armazenamento = {
   },
 
   _mergeArray(server, local) {
-    if (!server && !local) return [];
-    if (!server) return local || [];
-    if (!local) return server;
+    const arrServer = Array.isArray(server) ? server : null;
+    const arrLocal = Array.isArray(local) ? local : null;
+    if (!arrServer && !arrLocal) return [];
+    if (!arrServer) return arrLocal;
+    if (!arrLocal) return arrServer;
     const mapa = new Map();
-    [...local, ...server].forEach(item => mapa.set(item.semana, item));
+    [...arrLocal, ...arrServer].forEach(item => mapa.set(item.semana, item));
     return [...mapa.values()];
   },
 
