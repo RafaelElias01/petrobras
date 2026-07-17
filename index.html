@@ -998,6 +998,7 @@
       <div class="flashcard-toolbar">
         <button class="btn-primary" @click="novoFlashcard">➕ Novo Flashcard</button>
         <button class="btn-revisar" @click="abrirConfiguracaoRevisao" :disabled="flashcards.length === 0">▶ Iniciar Revisão</button>
+        <button class="btn-danger" @click="reiniciarFlashcards" :disabled="flashcards.length === 0" style="margin-left:auto;">⟳ Reiniciar</button>
       </div>
 
       <div v-if="configurandoRevisao" class="config-revisao">
