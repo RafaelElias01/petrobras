@@ -31,6 +31,10 @@ body {
   min-height: 100vh;
 }
 
+#app {
+  width: 100%;
+}
+
 .sidebar {
   width: 240px;
   background: var(--sidebar);
