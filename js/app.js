@@ -151,36 +151,60 @@ function useCiclo(cicloEstudosData) {
   const ciclo = ref({ posicao: 0, concluido: {} });
   const cicloExpandido = ref(false);
 
-  const materiaAtual = computed(() => {
-    return cicloEstudosData[ciclo.value.posicao] || cicloEstudosData[0];
+  const cicloPonderado = computed(() => {
+    const arr = [];
+    cicloEstudosData.forEach((item, idx) => {
+      for (let w = 0; w < item.peso; w++) {
+        arr.push({ ...item, idxOriginal: idx });
+      }
+    });
+    return arr;
   });
 
+  const totalPonderado = computed(() => cicloPonderado.value.length);
+
+  const materiaAtual = computed(() => {
+    const pond = cicloPonderado.value;
+    if (pond.length === 0) return cicloEstudosData[0] || {};
+    return pond[ciclo.value.posicao] || pond[0];
+  });
+
+  const idxOriginalAtual = computed(() => materiaAtual.value.idxOriginal ?? 0);
+
   const cicloCompleto = computed(() => {
-    const total = cicloEstudosData.length;
+    const total = totalPonderado.value;
     if (total === 0) return 0;
-    const concluidos = Object.keys(ciclo.value.concluido || {}).length;
-    return Math.round(concluidos / total * 100);
+    const totalCompletions = Object.values(ciclo.value.concluido || {}).reduce((a, b) => a + b, 0);
+    return Math.min(100, Math.round(totalCompletions / total * 100));
+  });
+
+  const completosPorItem = computed(() => {
+    const map = {};
+    cicloEstudosData.forEach((_, i) => {
+      map[i] = ciclo.value.concluido[`item-${i}`] || 0;
+    });
+    return map;
   });
 
   async function avancarCiclo() {
-    const novoCiclo = { ...ciclo.value };
-    const materia = cicloEstudosData[novoCiclo.posicao];
-    const chave = `${materia.materia}-c${novoCiclo.posicao}`;
-    novoCiclo.concluido = { ...(novoCiclo.concluido || {}), [chave]: true };
-    novoCiclo.posicao = (novoCiclo.posicao + 1) % cicloEstudosData.length;
-    
-    ciclo.value = novoCiclo; // Atualização reativa imediata
+    const item = cicloPonderado.value[ciclo.value.posicao];
+    const novoCiclo = { ...ciclo.value, concluido: { ...(ciclo.value.concluido || {}) } };
+    const chave = `item-${item.idxOriginal}`;
+    novoCiclo.concluido[chave] = (novoCiclo.concluido[chave] || 0) + 1;
+    novoCiclo.posicao = (ciclo.value.posicao + 1) % totalPonderado.value;
+    ciclo.value = novoCiclo;
     await Armazenamento.salvarCiclo(novoCiclo);
   }
 
   async function reiniciarCiclo() {
     const novoCiclo = { posicao: 0, concluido: {} };
-    ciclo.value = novoCiclo; // Atualização reativa imediata
+    ciclo.value = novoCiclo;
     await Armazenamento.salvarCiclo(novoCiclo);
   }
 
   return {
-    ciclo, cicloExpandido, materiaAtual, cicloCompleto, avancarCiclo, reiniciarCiclo
+    ciclo, cicloExpandido, materiaAtual, idxOriginalAtual,
+    cicloCompleto, completosPorItem, avancarCiclo, reiniciarCiclo
   };
 }
 
@@ -569,7 +593,943 @@ function useFlashcards() {
     configurandoRevisao.value = false;
   }
 
-  return { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao };
+  return { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao };
+}
+
+function useAdmin() {
+  const usuarios = ref([]);
+  const editandoUsuario = ref(null);
+
+  const totalUsuarios = computed(() => usuarios.value.length);
+  const admins = computed(() => usuarios.value.filter(u => u.role === 'admin'));
+  const usuariosComuns = computed(() => usuarios.value.filter(u => u.role !== 'admin'));
+
+  async function carregarAdmin() {
+    if (usuarios.value.length > 0) return;
+    usuarios.value = await Armazenamento.getAdminUsuarios();
+  }
+
+  function novoUsuario() {
+    editandoUsuario.value = { usuario: '', senha: '', nome: '', role: 'user' };
+  }
+
+  function editarUsuario(u) {
+    editandoUsuario.value = { ...u };
+  }
+
+  async function salvarUsuario() {
+    if (!editandoUsuario.value) return;
+    const u = editandoUsuario.value;
+    if (!u.usuario || !u.senha || u.senha.length < 3 || !u.nome) return;
+
+    const idx = usuarios.value.findIndex(x => x.usuario === u.usuario);
+    if (idx >= 0) {
+      usuarios.value.splice(idx, 1, { ...u });
+    } else {
+      usuarios.value.push({ ...u });
+    }
+    await Armazenamento.salvarAdminUsuarios([...usuarios.value]);
+    editandoUsuario.value = null;
+  }
+
+  async function removerUsuario(usuario) {
+    const idx = usuarios.value.findIndex(u => u.usuario === usuario);
+    if (idx >= 0) {
+      usuarios.value.splice(idx, 1);
+      await Armazenamento.salvarAdminUsuarios([...usuarios.value]);
+    }
+  }
+
+  function cancelarEdicao() {
+    editandoUsuario.value = null;
+  }
+
+  return {
+    usuarios, editandoUsuario, totalUsuarios, admins, usuariosComuns,
+    novoUsuario, editarUsuario, salvarUsuario, removerUsuario, cancelarEdicao, carregarAdmin
+  };
+}
+
+function useCronograma(cronogramaData) {
+  const progresso = ref({});
+  const carregado = ref(false);
+
+  const cronChave = (semana, dia, periodo) => `s${semana}_${dia}_${periodo}`;
+
+  function slotConcluido(semana, dia, periodo) {
+    return !!progresso.value[cronChave(semana, dia, periodo)];
+  }
+
+  const totalSlots = computed(() => {
+    let total = 0;
+    cronogramaData.forEach(sem => { sem.dias.forEach(d => { total += d.slots.length; }); });
+    return total;
+  });
+
+  const totalConcluidos = computed(() => {
+    return Object.values(progresso.value).filter(Boolean).length;
+  });
+
+  const progressoGeralCron = computed(() => {
+    if (totalSlots.value === 0) return 0;
+    return Math.round(totalConcluidos.value / totalSlots.value * 100);
+  });
+
+  const progressoSemana = (semana) => {
+    const sem = cronogramaData[semana - 1];
+    if (!sem) return 0;
+    let total = 0, concluidos = 0;
+    sem.dias.forEach(d => {
+      d.slots.forEach(s => {
+        total++;
+        if (slotConcluido(semana, d.dia, s.periodo)) concluidos++;
+      });
+    });
+    return total > 0 ? Math.round(concluidos / total * 100) : 0;
+  };
+
+  const totalSlotsSemana = (semana) => {
+    const sem = cronogramaData[semana - 1];
+    if (!sem) return 0;
+    let total = 0;
+    sem.dias.forEach(d => { total += d.slots.length; });
+    return total;
+  };
+
+  const concluidosSemana = (semana) => {
+    const sem = cronogramaData[semana - 1];
+    if (!sem) return 0;
+    let concluidos = 0;
+    sem.dias.forEach(d => {
+      d.slots.forEach(s => {
+        if (slotConcluido(semana, d.dia, s.periodo)) concluidos++;
+      });
+    });
+    return concluidos;
+  };
+
+  async function alternarSlot(semana, dia, periodo) {
+    const chave = cronChave(semana, dia, periodo);
+    const novoValor = !progresso.value[chave];
+    progresso.value[chave] = novoValor;
+    await Armazenamento.alternarCronograma(chave, novoValor);
+  }
+
+  async function carregarProgresso() {
+    if (carregado.value) return;
+    const dados = await Armazenamento.getCronograma();
+    progresso.value = dados;
+    carregado.value = true;
+  }
+
+  return {
+    progresso, carregado,
+    slotConcluido, alternarSlot,
+    totalSlots, totalConcluidos, progressoGeralCron,
+    progressoSemana, totalSlotsSemana, concluidosSemana,
+    carregarProgresso
+  };
+}
+
+// ===================================================================
+//  BANCO DE QUESTÕES (Cesgranrio-style)
+// ===================================================================
+
+const EXERCICIOS = [
+  // ---- PORTUGUÊS (12) ----
+  { id: 1, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Fácil',
+    enunciado: 'No trecho "A ciência avança a passos largos, mas a humanidade nem sempre a acompanha", a conjunção "mas" estabelece uma relação de:',
+    alternativas: ['A) Adição', 'B) Oposição', 'C) Alternância', 'D) Conclusão', 'E) Explicação'],
+    correta: 1, explicacao: '"Mas" é uma conjunção adversativa que expressa oposição ou contraste entre as ideias apresentadas.' },
+  { id: 2, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Médio',
+    enunciado: 'Assinale a opção em que a palavra destacada NÃO é um advérbio:',
+    alternativas: ['A) Ela falou BASTANTE durante a reunião.', 'B) Ele chegou CEDO ao trabalho.', 'C) O professor é MUITO dedicado.', 'D) A prova será AMANHÃ.', 'E) Este é um livro MEU.'],
+    correta: 4, explicacao: '"Meu" é um pronome possessivo, não um advérbio. As demais palavras são advérbios (de intensidade, tempo, etc.).' },
+  { id: 3, materia: 'Português', grupo: 'Ortografia e Acentuação', dificuldade: 'Fácil',
+    enunciado: 'Assinale a palavra que deve receber acento gráfico:',
+    alternativas: ['A) Feira', 'B) Grama', 'C) Rubrica', 'D) Item', 'E) Ideia'],
+    correta: 2, explicacao: '"Rubrica" é uma paroxítona terminada em "a", mas não leva acento. No entanto, segundo o novo acordo ortográfico, "ideia" perdeu o acento. "Rubrica" é pronunciada como paroxítona (ru-BRI-ca), sem acento. Nenhuma das palavras da lista exige acento gráfico.' },
+  { id: 4, materia: 'Português', grupo: 'Morfologia', dificuldade: 'Médio',
+    enunciado: 'Em "Os alunos ESTUDAVAM com dedicação", a forma verbal destacada indica:',
+    alternativas: ['A) Pretérito perfeito do indicativo', 'B) Pretérito imperfeito do indicativo', 'C) Pretérito mais-que-perfeito do indicativo', 'D) Futuro do pretérito do indicativo', 'E) Presente do indicativo'],
+    correta: 1, explicacao: '"Estudavam" está no pretérito imperfeito do indicativo (3ª pessoa do plural), indicando uma ação contínua no passado.' },
+  { id: 5, materia: 'Português', grupo: 'Sintaxe', dificuldade: 'Médio',
+    enunciado: 'Na oração "O técnico responsável analisou as amostras", o termo "as amostras" exerce função sintática de:',
+    alternativas: ['A) Sujeito', 'B) Predicativo do sujeito', 'C) Objeto direto', 'D) Objeto indireto', 'E) Adjunto adverbial'],
+    correta: 2, explicacao: '"as amostras" complementa o verbo "analisou" sem preposição obrigatória, funcionando como objeto direto.' },
+  { id: 6, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Difícil',
+    enunciado: 'Leia: "O petróleo é uma fonte de energia não renovável cuja exploração requer tecnologias cada vez mais sofisticadas." O pronome "cuja" estabelece relação de:',
+    alternativas: ['A) Posse entre "exploração" e "tecnologias"', 'B) Posse entre "petróleo" e "exploração"', 'C) Posse entre "fonte de energia" e "tecnologias"', 'D) Explicação entre "petróleo" e "fonte de energia"', 'E) Consequência entre "exploração" e "tecnologias"'],
+    correta: 1, explicacao: '"Cuja" é pronome relativo que indica posse. Refere-se a "petróleo" e estabelece relação de posse com "exploração" (exploração do petróleo).' },
+  { id: 7, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Fácil',
+    enunciado: 'O texto dissertativo-argumentativo tem como principal característica:',
+    alternativas: ['A) Narração de fatos em sequência cronológica', 'B) Apresentação de uma tese com argumentos', 'C) Descrição detalhada de pessoas e lugares', 'D) Instruções para execução de tarefas', 'E) Diálogo entre personagens'],
+    correta: 1, explicacao: 'O texto dissertativo-argumentativo visa defender um ponto de vista (tese) por meio de argumentos lógicos.' },
+  { id: 8, materia: 'Português', grupo: 'Ortografia e Acentuação', dificuldade: 'Médio',
+    enunciado: 'Segundo o Novo Acordo Ortográfico, assinale a palavra grafada INCORRETAMENTE:',
+    alternativas: ['A) Autoavaliação', 'B) Contra-ataque', 'C) Micro-ondas', 'D) Antessala', 'E) Paraquedas'],
+    correta: 2, explicacao: 'O correto é "micro-ondas" (com hífen) pois o segundo elemento começa com "o", mesma vogal do prefixo. Todas as demais estão corretas.' },
+  { id: 9, materia: 'Português', grupo: 'Morfologia', dificuldade: 'Difícil',
+    enunciado: 'Na frase "Ela mesma resolveu o problema", a palavra "mesma" classifica-se como:',
+    alternativas: ['A) Adjetivo', 'B) Advérbio', 'C) Pronome demonstrativo', 'D) Pronome de tratamento', 'E) Pronome reflexivo'],
+    correta: 2, explicacao: '"Mesma" é um pronome demonstrativo (reforço), equivalendo a "própria". Indica identidade ou ênfase.' },
+  { id: 10, materia: 'Português', grupo: 'Sintaxe', dificuldade: 'Médio',
+    enunciado: 'Em "Necessitamos DE PROFISSIONAIS qualificados", o termo destacado é:',
+    alternativas: ['A) Objeto direto', 'B) Objeto indireto', 'C) Complemento nominal', 'D) Adjunto adnominal', 'E) Agente da passiva'],
+    correta: 1, explicacao: '"Necessitar" exige preposição "de", logo "de profissionais" é objeto indireto. O verbo "necessitar" é transitivo indireto.' },
+  { id: 11, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Fácil',
+    enunciado: 'A figura de linguagem presente em "O céu está chorando" é:',
+    alternativas: ['A) Metáfora', 'B) Prosopopeia', 'C) Hipérbole', 'D) Eufemismo', 'E) Antítese'],
+    correta: 1, explicacao: 'Prosopopeia (ou personificação) atribui ações humanas a seres inanimados. "Chorar" é ação humana atribuída ao céu.' },
+  { id: 12, materia: 'Português', grupo: 'Sintaxe', dificuldade: 'Difícil',
+    enunciado: 'Assinale a alternativa em que a concordância verbal está INCORRETA:',
+    alternativas: ['A) Haviam muitos candidatos na sala.', 'B) Faz dois anos que trabalhamos aqui.', 'C) Mais de um técnico participou da análise.', 'D) Os Estados Unidos é um país desenvolvido.', 'E) 40% dos funcionários aprovaram a mudança.'],
+    correta: 0, explicacao: '"Haver" no sentido de "existir" é impessoal e permanece no singular: "Havia muitos candidatos na sala."' },
+
+  // ---- MATEMÁTICA (12) ----
+  { id: 13, materia: 'Matemática', grupo: 'Aritmética', dificuldade: 'Fácil',
+    enunciado: 'Uma refinaria produz 2.400 barris de petróleo por dia. Se a produção aumentar 15%, quantos barris serão produzidos diariamente?',
+    alternativas: ['A) 2.520', 'B) 2.640', 'C) 2.760', 'D) 2.840', 'E) 3.000'],
+    correta: 2, explicacao: '15% de 2.400 = 360. Total = 2.400 + 360 = 2.760 barris.' },
+  { id: 14, materia: 'Matemática', grupo: 'Aritmética', dificuldade: 'Médio',
+    enunciado: 'Em uma prova de 60 questões, um candidato acertou 42. Qual foi seu percentual de acertos?',
+    alternativas: ['A) 60%', 'B) 65%', 'C) 70%', 'D) 75%', 'E) 80%'],
+    correta: 2, explicacao: '42/60 = 0,70 = 70% de acertos.' },
+  { id: 15, materia: 'Matemática', grupo: 'Geometria', dificuldade: 'Médio',
+    enunciado: 'Um tanque cilíndrico tem 2 m de raio e 5 m de altura. Qual é o seu volume em m³? (Considere π = 3,14)',
+    alternativas: ['A) 31,4', 'B) 62,8', 'C) 78,5', 'D) 125,6', 'E) 157,0'],
+    correta: 1, explicacao: 'V = π·r²·h = 3,14 × 4 × 5 = 62,8 m³.' },
+  { id: 16, materia: 'Matemática', grupo: 'Geometria', dificuldade: 'Fácil',
+    enunciado: 'A área de um triângulo com base 12 cm e altura 8 cm é:',
+    alternativas: ['A) 24 cm²', 'B) 36 cm²', 'C) 48 cm²', 'D) 60 cm²', 'E) 96 cm²'],
+    correta: 2, explicacao: 'Área = (base × altura) / 2 = (12 × 8) / 2 = 48 cm².' },
+  { id: 17, materia: 'Matemática', grupo: 'Estatística', dificuldade: 'Fácil',
+    enunciado: 'A média aritmética dos números 8, 10, 12, 15 e 20 é:',
+    alternativas: ['A) 11', 'B) 12', 'C) 13', 'D) 14', 'E) 15'],
+    correta: 2, explicacao: 'Soma = 8+10+12+15+20 = 65. Média = 65/5 = 13.' },
+  { id: 18, materia: 'Matemática', grupo: 'Estatística', dificuldade: 'Médio',
+    enunciado: 'Em um conjunto de dados, a mediana dos valores {3, 7, 8, 12, 15, 18, 21} é:',
+    alternativas: ['A) 7', 'B) 8', 'C) 12', 'D) 15', 'E) 18'],
+    correta: 2, explicacao: 'O conjunto tem 7 elementos (ímpar). A mediana é o 4º elemento (posição central): 12.' },
+  { id: 19, materia: 'Matemática', grupo: 'Probabilidade', dificuldade: 'Médio',
+    enunciado: 'Uma urna contém 6 bolas vermelhas e 4 azuis. Retirando-se uma bola ao acaso, qual a probabilidade de ela ser azul?',
+    alternativas: ['A) 10%', 'B) 20%', 'C) 30%', 'D) 40%', 'E) 50%'],
+    correta: 3, explicacao: 'Total = 10 bolas. Azuis = 4. P = 4/10 = 0,40 = 40%.' },
+  { id: 20, materia: 'Matemática', grupo: 'Aritmética', dificuldade: 'Difícil',
+    enunciado: 'Uma empresa investiu R$ 50.000,00 a juros simples de 1,5% ao mês. Após 8 meses, o montante será:',
+    alternativas: ['A) R$ 54.000,00', 'B) R$ 55.000,00', 'C) R$ 56.000,00', 'D) R$ 57.000,00', 'E) R$ 58.000,00'],
+    correta: 2, explicacao: 'J = C·i·t = 50.000 × 0,015 × 8 = 6.000. M = 50.000 + 6.000 = 56.000.' },
+  { id: 21, materia: 'Matemática', grupo: 'Aritmética', dificuldade: 'Fácil',
+    enunciado: 'Se 3 operários realizam um serviço em 8 dias, em quantos dias 6 operários, com a mesma eficiência, realizarão o mesmo serviço?',
+    alternativas: ['A) 2 dias', 'B) 3 dias', 'C) 4 dias', 'D) 6 dias', 'E) 16 dias'],
+    correta: 2, explicacao: 'Grandezas inversamente proporcionais: 3 × 8 = 6 × d → d = 24/6 = 4 dias.' },
+  { id: 22, materia: 'Matemática', grupo: 'Funções', dificuldade: 'Médio',
+    enunciado: 'O zero da função f(x) = 2x - 8 é:',
+    alternativas: ['A) -4', 'B) -2', 'C) 2', 'D) 4', 'E) 8'],
+    correta: 3, explicacao: '2x - 8 = 0 → 2x = 8 → x = 4.' },
+  { id: 23, materia: 'Matemática', grupo: 'Geometria', dificuldade: 'Difícil',
+    enunciado: 'Um hexágono regular tem lado igual a 4 cm. Qual é a sua área? (Considere √3 = 1,73)',
+    alternativas: ['A) 20,76 cm²', 'B) 24,48 cm²', 'C) 41,52 cm²', 'D) 48,32 cm²', 'E) 82,56 cm²'],
+    correta: 2, explicacao: 'Área do hexágono regular = (3·L²·√3)/2 = (3 × 16 × 1,73)/2 = (83,04)/2 = 41,52 cm².' },
+  { id: 24, materia: 'Matemática', grupo: 'Probabilidade', dificuldade: 'Difícil',
+    enunciado: 'Uma moeda é lançada 4 vezes. Qual a probabilidade de obter exatamente 3 caras?',
+    alternativas: ['A) 1/4', 'B) 1/8', 'C) 3/16', 'D) 1/6', 'E) 5/16'],
+    correta: 0, explicacao: 'P = C(4,3) × (1/2)⁴ = 4 × 1/16 = 4/16 = 1/4.' },
+
+  // ---- QUÍMICA GERAL (14) ----
+  { id: 25, materia: 'Química', grupo: 'Estequiometria', dificuldade: 'Fácil',
+    enunciado: 'Quantos mols de H₂O existem em 36 gramas de água? (Massas molares: H=1, O=16)',
+    alternativas: ['A) 1 mol', 'B) 2 mols', 'C) 3 mols', 'D) 4 mols', 'E) 0,5 mol'],
+    correta: 1, explicacao: 'Massa molar da H₂O = 18 g/mol. n = 36/18 = 2 mols.' },
+  { id: 26, materia: 'Química', grupo: 'Estequiometria', dificuldade: 'Médio',
+    enunciado: 'Na reação 2 H₂ + O₂ → 2 H₂O, quantos gramas de água são produzidos a partir de 4 g de H₂? (Massas molares: H=1, O=16)',
+    alternativas: ['A) 18 g', 'B) 24 g', 'C) 30 g', 'D) 36 g', 'E) 48 g'],
+    correta: 3, explicacao: '2 mol H₂ (4g) → 2 mol H₂O (36g). Proporção 1:1 em mols. 4g H₂ = 2 mol H₂ → 2 mol H₂O = 36g.' },
+  { id: 27, materia: 'Química', grupo: 'Soluções', dificuldade: 'Fácil',
+    enunciado: 'Qual é a concentração em g/L de uma solução contendo 20 g de NaCl dissolvidos em 500 mL de água?',
+    alternativas: ['A) 10 g/L', 'B) 20 g/L', 'C) 30 g/L', 'D) 40 g/L', 'E) 50 g/L'],
+    correta: 1, explicacao: 'C = massa/volume(L) = 20g/0,5L = 40 g/L.' },
+  { id: 28, materia: 'Química', grupo: 'Soluções', dificuldade: 'Médio',
+    enunciado: 'O pH de uma solução 0,001 mol/L de HCl (ácido forte) é:',
+    alternativas: ['A) 1', 'B) 2', 'C) 3', 'D) 4', 'E) 5'],
+    correta: 2, explicacao: 'pH = -log[H⁺] = -log(10⁻³) = 3.' },
+  { id: 29, materia: 'Química', grupo: 'Termoquímica', dificuldade: 'Médio',
+    enunciado: 'Em uma reação exotérmica, a entalpia dos produtos é:',
+    alternativas: ['A) Maior que a dos reagentes', 'B) Menor que a dos reagentes', 'C) Igual à dos reagentes', 'D) Zero', 'E) Inversamente proporcional à temperatura'],
+    correta: 1, explicacao: 'Em reações exotérmicas, ΔH < 0, ou seja, a entalpia dos produtos é menor que a dos reagentes, liberando calor.' },
+  { id: 30, materia: 'Química', grupo: 'Tabela Periódica', dificuldade: 'Fácil',
+    enunciado: 'O elemento químico de número atômico 17 pertence à família dos:',
+    alternativas: ['A) Metais alcalinos', 'B) Metais alcalino-terrosos', 'C) Halogênios', 'D) Gases nobres', 'E) Calcogênios'],
+    correta: 2, explicacao: 'O elemento de Z=17 é o cloro (Cl), pertencente à família 17 (halogênios).' },
+  { id: 31, materia: 'Química', grupo: 'Ligações Químicas', dificuldade: 'Fácil',
+    enunciado: 'Qual tipo de ligação química ocorre entre átomos de sódio e cloro?',
+    alternativas: ['A) Ligação covalente pura', 'B) Ligação covalente polar', 'C) Ligação iônica', 'D) Ligação metálica', 'E) Ligação de hidrogênio'],
+    correta: 2, explicacao: 'Na (metal) doa um elétron para Cl (não-metal), formando cátion Na⁺ e ânion Cl⁻. A ligação iônica ocorre por atração eletrostática.' },
+  { id: 32, materia: 'Química', grupo: 'Reações Inorgânicas', dificuldade: 'Médio',
+    enunciado: 'Na reação HCl + NaOH → NaCl + H₂O, qual tipo de reação inorgânica está representado?',
+    alternativas: ['A) Síntese', 'B) Análise', 'C) Simples troca', 'D) Dupla troca (neutralização)', 'E) Oxirredução'],
+    correta: 3, explicacao: 'É uma reação de neutralização (ácido + base → sal + água), que é um tipo de dupla troca.' },
+  { id: 33, materia: 'Química', grupo: 'Gases Ideais', dificuldade: 'Difícil',
+    enunciado: 'Um gás ideal ocupa 10 L a 27°C e 2 atm. Se a temperatura for elevada para 127°C e a pressão reduzida para 1 atm, o novo volume será:',
+    alternativas: ['A) 10,0 L', 'B) 13,3 L', 'C) 20,0 L', 'D) 26,7 L', 'E) 30,0 L'],
+    correta: 3, explicacao: 'P₁V₁/T₁ = P₂V₂/T₂. T₁ = 300K, T₂ = 400K. 2×10/300 = 1×V₂/400 → V₂ = 20×400/300 = 26,7 L.' },
+  { id: 34, materia: 'Química', grupo: 'Eletroquímica', dificuldade: 'Médio',
+    enunciado: 'Em uma pilha galvânica, o eletrodo onde ocorre a oxidação é chamado de:',
+    alternativas: ['A) Cátodo', 'B) Ânodo', 'C) Eletrólito', 'D) Ponte salina', 'E) Dreno'],
+    correta: 1, explicacao: 'No ânodo ocorre a oxidação (perda de elétrons). No cátodo ocorre a redução (ganho de elétrons).' },
+  { id: 35, materia: 'Química', grupo: 'Cinética Química', dificuldade: 'Médio',
+    enunciado: 'Um catalisador atua em uma reação química:',
+    alternativas: ['A) Aumentando a energia de ativação', 'B) Diminuindo a energia de ativação', 'C) Aumentando a entalpia dos produtos', 'D) Alterando o equilíbrio da reação', 'E) Consumindo-se durante a reação'],
+    correta: 1, explicacao: 'O catalisador diminui a energia de ativação, acelerando a reação sem ser consumido e sem alterar o equilíbrio.' },
+  { id: 36, materia: 'Química', grupo: 'Estequiometria', dificuldade: 'Difícil',
+    enunciado: 'Na combustão completa do metano (CH₄ + 2 O₂ → CO₂ + 2 H₂O), quantos litros de CO₂ são produzidos nas CNTP a partir de 32 g de CH₄? (Massa molar CH₄ = 16 g/mol, volume molar = 22,4 L/mol)',
+    alternativas: ['A) 11,2 L', 'B) 22,4 L', 'C) 33,6 L', 'D) 44,8 L', 'E) 67,2 L'],
+    correta: 3, explicacao: '32g CH₄ = 2 mols. Proporção 1:1 com CO₂ → 2 mol CO₂ = 2×22,4 = 44,8 L nas CNTP.' },
+  { id: 37, materia: 'Química', grupo: 'Termoquímica', dificuldade: 'Fácil',
+    enunciado: 'Uma reação que absorve calor do ambiente é classificada como:',
+    alternativas: ['A) Exotérmica', 'B) Endotérmica', 'C) Isotérmica', 'D) Adiabática', 'E) Isobárica'],
+    correta: 1, explicacao: 'Reação endotérmica absorve calor (ΔH > 0). Exotérmica libera calor (ΔH < 0).' },
+  { id: 38, materia: 'Química', grupo: 'Ligações Químicas', dificuldade: 'Difícil',
+    enunciado: 'A molécula de CO₂ apresenta geometria molecular:',
+    alternativas: ['A) Angular', 'B) Trigonal plana', 'C) Tetraédrica', 'D) Linear', 'E) Piramidal'],
+    correta: 3, explicacao: 'CO₂ tem duas ligações duplas C=O e nenhum par de elétrons livre no carbono central, resultando em geometria linear.' },
+
+  // ---- QUÍMICA ORGÂNICA (8) ----
+  { id: 39, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Fácil',
+    enunciado: 'Qual a fórmula molecular do propano?',
+    alternativas: ['A) C₂H₆', 'B) C₃H₈', 'C) C₄H₁₀', 'D) C₃H₆', 'E) C₂H₄'],
+    correta: 1, explicacao: 'Alcanos seguem a fórmula geral CₙH₂ₙ₊₂. Para n=3: C₃H₈.' },
+  { id: 40, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Médio',
+    enunciado: 'A função orgânica presente nos álcoois é caracterizada pelo grupo:',
+    alternativas: ['A) C=O', 'B) OH ligado a carbono saturado', 'C) COOH', 'D) NH₂', 'E) CHO'],
+    correta: 1, explicacao: 'O grupo funcional dos álcoois é a hidroxila (-OH) ligada a um carbono com hibridação sp³ (saturado).' },
+  { id: 41, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Médio',
+    enunciado: 'Isômeros são compostos que apresentam:',
+    alternativas: ['A) Mesma fórmula molecular e mesma estrutura', 'B) Mesma fórmula estrutural e diferentes massas', 'C) Mesma fórmula molecular e diferentes estruturas', 'D) Diferentes fórmulas moleculares', 'E) Mesma massa molar e mesma estrutura'],
+    correta: 2, explicacao: 'Isômeros possuem a mesma fórmula molecular, mas diferentes arranjos estruturais (isomeria plana) ou espaciais (estereoisomeria).' },
+  { id: 42, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Difícil',
+    enunciado: 'Na reação de substituição eletrofílica aromática do benzeno com HNO₃ na presença de H₂SO₄, o produto formado é:',
+    alternativas: ['A) Fenol', 'B) Anilina', 'C) Nitrobenzeno', 'D) Ácido benzoico', 'E) Clorobenzeno'],
+    correta: 2, explicacao: 'A nitração do benzeno (HNO₃/H₂SO₄) produz nitrobenzeno (C₆H₅NO₂) por substituição eletrofílica aromática.' },
+  { id: 43, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Fácil',
+    enunciado: 'O petróleo é separado em suas frações através do processo de:',
+    alternativas: ['A) Filtração', 'B) Destilação fracionada', 'C) Extração por solvente', 'D) Cristalização', 'E) Centrifugação'],
+    correta: 1, explicacao: 'O petróleo é separado por destilação fracionada, onde os componentes são separados com base em seus diferentes pontos de ebulição.' },
+  { id: 44, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Fácil',
+    enunciado: 'O nome oficial (IUPAC) do composto CH₃CH₂CH₂CH₃ é:',
+    alternativas: ['A) Butano', 'B) Propano', 'C) Pentano', 'D) Hexano', 'E) Metano'],
+    correta: 0, explicacao: 'Cadeia com 4 carbonos saturada → butano.' },
+  { id: 45, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Médio',
+    enunciado: 'Qual dos seguintes compostos é um hidrocarboneto aromático?',
+    alternativas: ['A) Hexano', 'B) Benzeno', 'C) Etanol', 'D) Ácido acético', 'E) Cloreto de sódio'],
+    correta: 1, explicacao: 'O benzeno (C₆H₆) é o hidrocarboneto aromático mais simples, caracterizado pelo anel com ligações conjugadas.' },
+  { id: 46, materia: 'Química', grupo: 'Química Orgânica', dificuldade: 'Difícil',
+    enunciado: 'Na reação de adição de HBr ao propeno, seguindo a regra de Markovnikov, o produto principal é:',
+    alternativas: ['A) 1-bromopropano', 'B) 2-bromopropano', 'C) 1,2-dibromopropano', 'D) 1,3-dibromopropano', 'E) Brometo de propila'],
+    correta: 1, explicacao: 'Pela regra de Markovnikov, o H se liga ao carbono mais hidrogenado e o Br ao carbono menos hidrogenado, formando 2-bromopropano.' },
+
+  // ---- FÍSICO-QUÍMICA (8) ----
+  { id: 47, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Médio',
+    enunciado: 'Para a reação A + B ⇌ C + D, o Kc é 4,0 a certa temperatura. Se [A] = [B] = 1,0 M, qual a concentração de C no equilíbrio?',
+    alternativas: ['A) 0,5 M', 'B) 1,0 M', 'C) 2,0 M', 'D) 0,67 M', 'E) 1,5 M'],
+    correta: 3, explicacao: 'Kc = [C][D]/[A][B] = 4. Se x reage: (x·x)/((1-x)(1-x)) = 4 → x/(1-x) = 2 → x = 2/3 ≈ 0,67 M.' },
+  { id: 48, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Fácil',
+    enunciado: 'O Princípio de Le Chatelier afirma que, quando um sistema em equilíbrio sofre uma perturbação, ele se desloca para:',
+    alternativas: ['A) Aumentar a perturbação', 'B) Minimizar o efeito da perturbação', 'C) Permanecer inalterado', 'D) Atingir o equilíbrio instantaneamente', 'E) Formar sempre mais produtos'],
+    correta: 1, explicacao: 'Le Chatelier: o sistema busca minimizar o efeito da perturbação, deslocando-se no sentido que contrarie a alteração.' },
+  { id: 49, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Difícil',
+    enunciado: 'O produto de solubilidade (Kps) do CaF₂ é 3,2 × 10⁻¹¹. Qual a solubilidade molar do sal em água pura?',
+    alternativas: ['A) 1,0 × 10⁻⁴ M', 'B) 2,0 × 10⁻⁴ M', 'C) 3,0 × 10⁻⁴ M', 'D) 4,0 × 10⁻⁴ M', 'E) 5,0 × 10⁻⁴ M'],
+    correta: 1, explicacao: 'CaF₂ ⇌ Ca²⁺ + 2F⁻. Kps = s·(2s)² = 4s³. s³ = 3,2×10⁻¹¹/4 = 8×10⁻¹². s = 2×10⁻⁴ M.' },
+  { id: 50, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Médio',
+    enunciado: 'Em uma célula eletrolítica, a redução ocorre no:',
+    alternativas: ['A) Ânodo', 'B) Cátodo', 'C) Eletrólito', 'D) Ponte salina', 'E) Circuito externo'],
+    correta: 1, explicacao: 'Na eletrólise, o cátodo é o polo negativo onde ocorre a redução. O ânodo é o polo positivo onde ocorre a oxidação.' },
+  { id: 51, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Médio',
+    enunciado: 'A pressão osmótica de uma solução 0,1 M de NaCl a 27°C (considerando dissociação total e R=0,082 L·atm/mol·K) é aproximadamente:',
+    alternativas: ['A) 2,46 atm', 'B) 4,92 atm', 'C) 3,28 atm', 'D) 1,23 atm', 'E) 6,56 atm'],
+    correta: 1, explicacao: 'π = i·M·R·T. NaCl dissocia em 2 íons: i=2. π = 2 × 0,1 × 0,082 × 300 = 4,92 atm.' },
+  { id: 52, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Fácil',
+    enunciado: 'A velocidade de uma reação química é influenciada por todos os fatores EXCETO:',
+    alternativas: ['A) Temperatura', 'B) Concentração dos reagentes', 'C) Pressão (para gases)', 'D) Superfície de contato', 'E) Cor da solução'],
+    correta: 4, explicacao: 'A cor não afeta a velocidade da reação. Temperatura, concentração, pressão e superfície de contato são fatores que influenciam a cinética.' },
+  { id: 53, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Difícil',
+    enunciado: 'Para uma reação de primeira ordem com constante de velocidade k=0,693 h⁻¹, o tempo de meia-vida é:',
+    alternativas: ['A) 0,5 h', 'B) 1,0 h', 'C) 1,5 h', 'D) 2,0 h', 'E) 3,0 h'],
+    correta: 1, explicacao: 't₁/₂ = ln2/k = 0,693/0,693 = 1,0 h.' },
+  { id: 54, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Médio',
+    enunciado: 'O abaixamento da temperatura de solidificação de um solvente puro pela adição de um soluto é explicado pela propriedade coligativa chamada:',
+    alternativas: ['A) Tonoscopia', 'B) Ebulioscopia', 'C) Crioscopia', 'D) Osmose', 'E) Pressão de vapor'],
+    correta: 2, explicacao: 'Crioscopia é o estudo do abaixamento da temperatura de congelamento (solidificação) causado pela adição de soluto não volátil.' },
+
+  // ---- QUÍMICA ANALÍTICA (6) ----
+  { id: 55, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Fácil',
+    enunciado: 'Na volumetria de neutralização, o ponto onde a quantidade de titulante adicionada é exatamente a necessária para reagir com o titulado é chamado de:',
+    alternativas: ['A) Ponto final', 'B) Ponto de equivalência', 'C) Ponto de inflexão', 'D) Ponto de viragem', 'E) Ponto de saturação'],
+    correta: 1, explicacao: 'O ponto de equivalência é quando titulante e titulado estão em proporção estequiométrica. O ponto final é quando o indicador muda de cor.' },
+  { id: 56, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Médio',
+    enunciado: 'Em uma titulação de 50 mL de HCl 0,1 M com NaOH 0,1 M, o pH no ponto de equivalência será:',
+    alternativas: ['A) 1', 'B) 3', 'C) 5', 'D) 7', 'E) 9'],
+    correta: 3, explicacao: 'Ácido forte + base forte → pH = 7 no ponto de equivalência, pois o sal formado (NaCl) não sofre hidrólise.' },
+  { id: 57, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Difícil',
+    enunciado: 'Qual indicador ácido-base é mais adequado para titular ácido acético (Ka=1,8×10⁻⁵) com NaOH?',
+    alternativas: ['A) Azul de bromotimol (faixa 6,0-7,6)', 'B) Fenolftaleína (faixa 8,2-10,0)', 'C) Alaranjado de metila (faixa 3,1-4,4)', 'D) Vermelho de metila (faixa 4,4-6,2)', 'E) Azul de timol (faixa 8,0-9,6)'],
+    correta: 1, explicacao: 'Titulação de ácido fraco/base forte tem ponto de equivalência em pH > 7 (≈8,7). Fenolftaleína (8,2-10,0) é o indicador adequado.' },
+  { id: 58, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Fácil',
+    enunciado: 'Na análise gravimétrica, o processo de aquecimento do precipitado até massa constante é chamado de:',
+    alternativas: ['A) Digestão', 'B) Calcinação', 'C) Filtração', 'D) Secagem', 'E) Precipitação'],
+    correta: 1, explicacao: 'A calcinação é o aquecimento do precipitado até massa constante para determinar sua massa exata na gravimetria.' },
+  { id: 59, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Médio',
+    enunciado: 'Para preparar 500 mL de uma solução 0,2 M de H₂SO₄ a partir de ácido concentrado (18 M), o volume necessário é:',
+    alternativas: ['A) 2,78 mL', 'B) 5,56 mL', 'C) 11,1 mL', 'D) 16,7 mL', 'E) 22,2 mL'],
+    correta: 1, explicacao: 'C₁V₁ = C₂V₂ → 18 × V₁ = 0,2 × 500 → V₁ = 100/18 = 5,56 mL.' },
+  { id: 60, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Difícil',
+    enunciado: 'Na volumetria de complexação com EDTA, qual dos seguintes metais pode ser titulado diretamente?',
+    alternativas: ['A) Na⁺', 'B) K⁺', 'C) Ca²⁺', 'D) Li⁺', 'E) Cs⁺'],
+    correta: 2, explicacao: 'O EDTA forma complexos estáveis com cátions divalentes e trivalentes como Ca²⁺, Mg²⁺, Zn²⁺, etc. Metais alcalinos formam complexos instáveis.' },
+
+  // ---- ANÁLISE INSTRUMENTAL (4) ----
+  { id: 61, materia: 'Química', grupo: 'Análise Instrumental', dificuldade: 'Fácil',
+    enunciado: 'A espectrofotometria UV-Vis baseia-se na:',
+    alternativas: ['A) Absorção de radiação eletromagnética por átomos no estado gasoso', 'B) Absorção de luz visível e ultravioleta por moléculas em solução', 'C) Emissão de radiação por amostras aquecidas', 'D) Difração de raios X por cristais', 'E) Separação de íons por campo elétrico'],
+    correta: 1, explicacao: 'A espectrofotometria UV-Vis mede a absorbância de luz na faixa UV-Visível por moléculas em solução, seguindo a Lei de Beer-Lambert.' },
+  { id: 62, materia: 'Química', grupo: 'Análise Instrumental', dificuldade: 'Médio',
+    enunciado: 'Na cromatografia gasosa, a separação dos componentes de uma mistura baseia-se principalmente na diferença de:',
+    alternativas: ['A) Carga elétrica', 'B) Polaridade e ponto de ebulição', 'C) Tamanho molecular', 'D) pH', 'E) Condutividade'],
+    correta: 1, explicacao: 'A separação em CG depende da volatilidade (ponto de ebulição) e da interação diferencial dos analitos com a fase estacionária (polaridade).' },
+  { id: 63, materia: 'Química', grupo: 'Análise Instrumental', dificuldade: 'Fácil',
+    enunciado: 'O eletrodo de vidro é utilizado em qual técnica instrumental?',
+    alternativas: ['A) Condutometria', 'B) Potenciometria', 'C) Voltametria', 'D) Cromatografia', 'E) Espectrometria'],
+    correta: 1, explicacao: 'A potenciometria utiliza eletrodos seletivos (como o eletrodo de vidro para pH) para medir o potencial elétrico de uma solução.' },
+  { id: 64, materia: 'Química', grupo: 'Análise Instrumental', dificuldade: 'Médio',
+    enunciado: 'A condutimetria mede:',
+    alternativas: ['A) A absorbância de luz pela amostra', 'B) A capacidade da solução em conduzir corrente elétrica', 'C) O potencial de um eletrodo seletivo', 'D) A massa de íons precipitados', 'E) O volume de gás produzido em uma reação'],
+    correta: 1, explicacao: 'A condutimetria mede a condutividade elétrica de soluções iônicas, relacionada à concentração e mobilidade dos íons presentes.' },
+  { id: 65, materia: 'Química', grupo: 'Reações Inorgânicas', dificuldade: 'Médio',
+    enunciado: 'Na reação 2 Mg + O₂ → 2 MgO, o magnésio (Mg) sofre:',
+    alternativas: ['Redução, pois ganha elétrons', 'Oxidação, pois perde elétrons', 'Redução, pois perde oxigênio', 'Oxidação, pois ganha hidrogênio', 'Neutralização'],
+    correta: 1, explicacao: 'O magnésio metálico (Mg⁰) perde dois elétrons para se tornar Mg²⁺ no MgO. Perda de elétrons = oxidação. O magnésio é o agente redutor, e o oxigênio é o agente oxidante.' },
+  { id: 66, materia: 'Química', grupo: 'Estequiometria', dificuldade: 'Fácil',
+    enunciado: 'Quantas moléculas de água existem em 18 g de H₂O? (Dado: Número de Avogadro = 6,02×10²³, massas molares: H=1, O=16)',
+    alternativas: ['3,01×10²³', '6,02×10²³', '9,03×10²³', '1,20×10²⁴', '1,80×10²⁴'],
+    correta: 1, explicacao: 'Massa molar da H₂O = 18 g/mol. 18 g = 1 mol. 1 mol contém 6,02×10²³ moléculas (Número de Avogadro).' },
+  { id: 67, materia: 'Química', grupo: 'Estequiometria', dificuldade: 'Fácil',
+    enunciado: 'Na reação 2 H₂ + O₂ → 2 H₂O, se 4 g de H₂ reagem com 32 g de O₂, qual é a massa de água formada? (Massas molares: H=1, O=16)',
+    alternativas: ['18 g', '36 g', '40 g', '64 g', '72 g'],
+    correta: 1, explicacao: 'Pela lei de conservação das massas (Lavoisier): massa total dos reagentes = massa total dos produtos. 4 g + 32 g = 36 g de H₂O.' },
+  { id: 68, materia: 'Química', grupo: 'Soluções', dificuldade: 'Médio',
+    enunciado: 'Um técnico preparou 250 mL de uma solução aquosa de NaCl 0,5 mol/L. A massa de NaCl utilizada foi de aproximadamente: (Dado: massa molar NaCl = 58,5 g/mol)',
+    alternativas: ['7,31 g', '14,63 g', '29,25 g', '58,50 g', '117,0 g'],
+    correta: 0, explicacao: 'M = n/V → n = M × V = 0,5 × 0,25 = 0,125 mol. Massa = n × MM = 0,125 × 58,5 = 7,3125 g ≈ 7,31 g.' },
+  { id: 69, materia: 'Química', grupo: 'Soluções', dificuldade: 'Médio',
+    enunciado: 'Para diluir uma solução de HCl 2,0 mol/L para 0,5 mol/L, um técnico precisa preparar 500 mL da solução diluída. O volume de solução concentrada necessário é:',
+    alternativas: ['50 mL', '75 mL', '100 mL', '125 mL', '150 mL'],
+    correta: 2, explicacao: 'Usando C₁V₁ = C₂V₂: 2,0 × V₁ = 0,5 × 500 → V₁ = 250/2 = 125 mL.' },
+  { id: 70, materia: 'Química', grupo: 'Termoquímica', dificuldade: 'Fácil',
+    enunciado: 'Em uma reação química, a variação de entalpia (ΔH) é negativa. Isso significa que a reação é:',
+    alternativas: ['Endotérmica, absorve calor', 'Exotérmica, libera calor', 'Isotérmica, não troca calor', 'Adiabática, sem troca com o meio', 'Espontânea em qualquer temperatura'],
+    correta: 1, explicacao: 'ΔH < 0 indica reação exotérmica, onde há liberação de calor para o ambiente. A entalpia dos produtos é menor que a dos reagentes.' },
+  { id: 71, materia: 'Química', grupo: 'Termoquímica', dificuldade: 'Médio',
+    enunciado: 'A entalpia de combustão do metano (CH₄) é -890 kJ/mol. Quantos kJ são liberados na combustão de 32 g de metano? (Massa molar CH₄ = 16 g/mol)',
+    alternativas: ['-890 kJ', '-1.780 kJ', '-2.670 kJ', '-3.560 kJ', '-4.450 kJ'],
+    correta: 1, explicacao: '32 g de CH₄ = 2 mols (32/16 = 2). Energia liberada = 2 × (-890) = -1.780 kJ.' },
+  { id: 72, materia: 'Química', grupo: 'Cinética Química', dificuldade: 'Médio',
+    enunciado: 'A velocidade de uma reação química depende de vários fatores. Assinale a alternativa que NÃO influencia a velocidade da reação:',
+    alternativas: ['Temperatura', 'Concentração dos reagentes', 'Superfície de contato', 'Entalpia dos produtos', 'Presença de catalisador'],
+    correta: 3, explicacao: 'A entalpia dos produtos não influencia a velocidade da reação (cinética). Temperatura, concentração, superfície de contato e catalisadores afetam a velocidade.' },
+  { id: 73, materia: 'Química', grupo: 'Cinética Química', dificuldade: 'Médio',
+    enunciado: 'Um catalisador aumenta a velocidade de uma reação porque:',
+    alternativas: ['Aumenta a energia de ativação', 'Diminui a energia de ativação', 'Aumenta a temperatura do sistema', 'Consome-se durante a reação', 'Altera o equilíbrio químico'],
+    correta: 1, explicacao: 'O catalisador diminui a energia de ativação da reação, permitindo que mais moléculas tenham energia suficiente para reagir. Ele não é consumido e não altera o equilíbrio.' },
+  { id: 74, materia: 'Química', grupo: 'Equilíbrio Químico', dificuldade: 'Fácil',
+    enunciado: 'Para a reação H₂(g) + I₂(g) ⇌ 2 HI(g) em equilíbrio, se a concentração de H₂ for aumentada, o sistema:',
+    alternativas: ['Desloca para a direita (forma mais HI)', 'Desloca para a esquerda (forma mais H₂ e I₂)', 'Permanecerá inalterado', 'A temperatura aumenta', 'Formará mais I₂'],
+    correta: 0, explicacao: 'Pelo princípio de Le Chatelier, ao aumentar a concentração de um reagente (H₂), o equilíbrio se desloca no sentido de consumi-lo, ou seja, para a direita, formando mais HI.' },
+  { id: 75, materia: 'Química', grupo: 'Equilíbrio Químico', dificuldade: 'Fácil',
+    enunciado: 'O produto iônico da água (Kw) a 25°C é 1,0×10⁻¹⁴. Em uma solução neutra a 25°C, as concentrações de H⁺ e OH⁻ são:',
+    alternativas: ['[H⁺] = 10⁻⁷ M, [OH⁻] = 10⁻⁷ M', '[H⁺] = 10⁻¹⁴ M, [OH⁻] = 10⁰ M', '[H⁺] = 10⁰ M, [OH⁻] = 10⁻¹⁴ M', '[H⁺] = 10⁻⁵ M, [OH⁻] = 10⁻⁹ M', '[H⁺] = 10⁻¹⁰ M, [OH⁻] = 10⁻⁴ M'],
+    correta: 0, explicacao: 'Em solução neutra, [H⁺] = [OH⁻]. Como Kw = [H⁺][OH⁻] = 1,0×10⁻¹⁴, temos [H⁺]² = 1,0×10⁻¹⁴, logo [H⁺] = [OH⁻] = 10⁻⁷ M.' },
+  { id: 76, materia: 'Química', grupo: 'Eletroquímica', dificuldade: 'Fácil',
+    enunciado: 'Em uma pilha galvânica, a oxidação ocorre no:',
+    alternativas: ['Cátodo', 'Ânodo', 'Ponte salina', 'Eletrólito', 'Circuito externo'],
+    correta: 1, explicacao: 'No ânodo ocorre a oxidação (perda de elétrons). No cátodo ocorre a redução (ganho de elétrons). A ponte salina permite o fluxo de íons entre as semicélulas.' },
+  { id: 77, materia: 'Química', grupo: 'Eletroquímica', dificuldade: 'Médio',
+    enunciado: 'Na eletrólise da água, os gases produzidos no cátodo e no ânodo são, respectivamente:',
+    alternativas: ['Oxigênio e hidrogênio', 'Hidrogênio e oxigênio', 'Hidrogênio e cloro', 'Oxigênio e nitrogênio', 'Nitrogênio e hidrogênio'],
+    correta: 1, explicacao: 'Na eletrólise da água, no cátodo ocorre redução: 2 H₂O + 2e⁻ → H₂ + 2 OH⁻ (produz H₂). No ânodo ocorre oxidação: 2 H₂O → O₂ + 4 H⁺ + 4e⁻ (produz O₂).' },
+  { id: 78, materia: 'Química', grupo: 'Química Orgânica - Nomenclatura', dificuldade: 'Médio',
+    enunciado: 'A fórmula molecular do 2-metilpentano é:',
+    alternativas: ['C₅H₁₂', 'C₆H₁₄', 'C₇H₁₆', 'C₆H₁₂', 'C₅H₁₀'],
+    correta: 1, explicacao: '2-metilpentano é um alcano com 6 carbonos (cadeia principal de 5 + 1 metil). Fórmula geral dos alcanos: CₙH₂ₙ₊₂. Para n=6: C₆H₁₄.' },
+  { id: 79, materia: 'Química', grupo: 'Química Orgânica - Nomenclatura', dificuldade: 'Fácil',
+    enunciado: 'O grupo funcional dos ésteres é caracterizado pelo grupo:',
+    alternativas: ['-OH', '-CHO', '-COO-', '-COOH', '-NH₂'],
+    correta: 2, explicacao: 'O grupo funcional dos ésteres é -COO- (carboxilato de alquila), resultante da reação de esterificação entre ácido carboxílico e álcool.' },
+  { id: 80, materia: 'Química', grupo: 'Química Orgânica - Reações', dificuldade: 'Médio',
+    enunciado: 'A reação de substituição eletrofílica aromática do benzeno com Br₂ na presença de FeBr₃ produz:',
+    alternativas: ['Bromocicloexano', 'Bromobenzeno', '1,2-dibromobenzeno', 'Ácido benzênico', 'Fenol'],
+    correta: 1, explicacao: 'O benzeno reage com Br₂ na presença de catalisador FeBr₃ (halogenação) formando bromobenzeno por substituição eletrofílica aromática.' },
+  { id: 81, materia: 'Química', grupo: 'Química Orgânica - Reações', dificuldade: 'Difícil',
+    enunciado: 'Na reação de oxidação de um álcool primário, o produto formado é:',
+    alternativas: ['Cetona', 'Ácido carboxílico', 'Éster', 'Éter', 'Aldeído (e depois ácido carboxílico)'],
+    correta: 4, explicacao: 'A oxidação de álcool primário produz primeiramente aldeído, que pode ser oxidado posteriormente a ácido carboxílico. Já álcool secundário produz cetona.' },
+  { id: 82, materia: 'Química', grupo: 'Química Orgânica - Isomeria', dificuldade: 'Difícil',
+    enunciado: 'O composto 2-butanol (CH₃-CHOH-CH₂-CH₃) apresenta isomeria óptica porque possui:',
+    alternativas: ['Um carbono quiral (assimétrico)', 'Dupla ligação', 'Ligação dupla conjugada', 'Anel aromático', 'Isomeria geométrica (cis-trans)'],
+    correta: 0, explicacao: 'O carbono 2 do 2-butanol está ligado a quatro grupos diferentes (H, OH, CH₃, C₂H₅), sendo um centro quiral (assimétrico). Moléculas com um carbono quiral apresentam isomeria óptica (enantiômeros).' },
+  { id: 83, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Difícil',
+    enunciado: 'A pressão osmótica de uma solução 0,2 M de glicose (C₆H₁₂O₆) a 27°C é aproximadamente: (R = 0,082 L·atm/mol·K)',
+    alternativas: ['2,46 atm', '4,92 atm', '7,38 atm', '9,84 atm', '12,3 atm'],
+    correta: 1, explicacao: 'π = M·R·T (glicose não dissocia, i=1). T = 27 + 273 = 300 K. π = 0,2 × 0,082 × 300 = 4,92 atm.' },
+  { id: 84, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Médio',
+    enunciado: 'Qual propriedade coligativa é utilizada para determinar a massa molar de macromoléculas?',
+    alternativas: ['Tonoscopia', 'Ebulioscopia', 'Crioscopia', 'Osmoscopia', 'Pressão de vapor'],
+    correta: 3, explicacao: 'A osmoscopia (pressão osmótica) é a propriedade coligativa mais sensível, sendo utilizada para determinar massas molares de macromoléculas como proteínas e polímeros.' },
+  { id: 85, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Médio',
+    enunciado: 'Em uma titulação de oxirredução, o ponto final é detectado por:',
+    alternativas: ['Mudança de cor do indicador ácido-base', 'Mudança de cor do indicador redox', 'Formação de precipitado', 'Mudança de pH', 'Condutividade elétrica'],
+    correta: 1, explicacao: 'Titulações de oxirredução utilizam indicadores redox, que mudam de cor quando o potencial do sistema atinge o potencial de equivalência. Ex: difenilamina, ferroína.' },
+  { id: 86, materia: 'Química', grupo: 'Química Analítica', dificuldade: 'Médio',
+    enunciado: 'Na gravimetria, o processo de aquecer o precipitado até massa constante para remover água e compostos voláteis é chamado de:',
+    alternativas: ['Digestão', 'Filtração', 'Calcinação', 'Secagem', 'Precipitação'],
+    correta: 2, explicacao: 'A calcinação é o aquecimento do precipitado a altas temperaturas até massa constante, eliminando água e componentes voláteis, antes da pesagem final.' },
+  { id: 87, materia: 'Química', grupo: 'Análise Instrumental', dificuldade: 'Médio',
+    enunciado: 'Em espectroscopia de absorção atômica (AA), a atomização da amostra ocorre geralmente em:',
+    alternativas: ['Chama ou forno de grafite', 'Coluna cromatográfica', 'Célula eletroquímica', 'Cubeta de quartzo', 'Eletrodo de vidro'],
+    correta: 0, explicacao: 'Na absorção atômica, a amostra é atomizada em chama (ar-acetileno, N₂O-acetileno) ou em forno de grafite aquecido eletricamente, transformando os analitos em átomos livres no estado gasoso.' },
+  { id: 88, materia: 'Química', grupo: 'Análise Instrumental', dificuldade: 'Médio',
+    enunciado: 'A cromatografia em fase gasosa (GC) é mais adequada para analisar compostos que:',
+    alternativas: ['São iônicos e polares', 'São voláteis e termicamente estáveis', 'Têm alta massa molecular', 'São insolúveis em solventes orgânicos', 'São sólidos à temperatura ambiente'],
+    correta: 1, explicacao: 'A GC é adequada para compostos voláteis (ou que podem ser volatilizados sem decomposição) e termicamente estáveis. Compostos não voláteis ou termolábeis requerem HPLC.' },
+  { id: 89, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Fácil',
+    enunciado: 'Texto: \'A química analítica é fundamental para o controle de qualidade na indústria do petróleo. Através de técnicas precisas, é possível determinar a composição de amostras e garantir que os produtos atendam às especificações técnicas.\' O texto tem como objetivo principal:',
+    alternativas: ['Criticar os métodos analíticos', 'Explicar a importância da química analítica', 'Descrever técnicas de refino', 'Comparar métodos instrumentais', 'Apresentar dados estatísticos'],
+    correta: 1, explicacao: 'O texto destaca a importância da química analítica no controle de qualidade da indústria do petróleo, afirmando que técnicas precisas permitem determinar a composição e garantir especificações.' },
+  { id: 90, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Fácil',
+    enunciado: 'Considere a frase: \'O técnico em química desempenha um papel crucial na indústria, pois é responsável pela realização de análises que garantem a qualidade dos produtos.\' A palavra \'crucial\' pode ser substituída, sem alteração de sentido, por:',
+    alternativas: ['Opcional', 'Secundário', 'Fundamental', 'Periférico', 'Supérfluo'],
+    correta: 2, explicacao: '\'Crucial\' significa \'decisivo\', \'fundamental\', \'essencial\'. A substituição por \'fundamental\' preserva o sentido original da frase.' },
+  { id: 91, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Médio',
+    enunciado: 'Na frase \'Embora o experimento tenha sido bem planejado, os resultados não foram conclusivos\', a conjunção \'embora\' expressa uma ideia de:',
+    alternativas: ['Causa', 'Consequência', 'Concessão', 'Condição', 'Finalidade'],
+    correta: 2, explicacao: '\'Embora\' é uma conjunção concessiva, indicando um fato que se contrapõe à ideia principal, mas não a impede. Expressa concessão (oposição com quebra de expectativa).' },
+  { id: 92, materia: 'Português', grupo: 'Ortografia e Acentuação', dificuldade: 'Médio',
+    enunciado: 'Assinale a alternativa em que há erro de ortografia:',
+    alternativas: ['Análise', 'Parâmetro', 'Excessão', 'Item', 'Técnico'],
+    correta: 2, explicacao: 'A grafia correta é \'exceção\' (com \'ç\', não \'ss\'). \'Excesso\' é uma palavra diferente (que significa abundância). \'Exceção\' deriva de \'exceção\' do verbo \'exceder\'.' },
+  { id: 93, materia: 'Português', grupo: 'Ortografia e Acentuação', dificuldade: 'Médio',
+    enunciado: 'Assinale a alternativa em que ambas as palavras são acentuadas por serem proparoxítonas:',
+    alternativas: ['Análise e sólido', 'Fácil e caráter', 'Álcool e nível', 'Útil e tórax', 'Próton e nuvem'],
+    correta: 0, explicacao: '\'Análise\' e \'sólido\' são proparoxítonas (antepenúltima sílaba tônica). \'Fácil\' e \'caráter\' são paroxítonas. \'Álcool\' é paroxítona. \'Útil\' é paroxítona. \'Próton\' é paroxítona. \'Nuvem\' não recebe acento.' },
+  { id: 94, materia: 'Português', grupo: 'Morfologia', dificuldade: 'Fácil',
+    enunciado: 'Na frase \'O trabalho do técnico é muito importante para a segurança do processo\', a palavra \'importante\' é classificada como:',
+    alternativas: ['Substantivo', 'Advérbio', 'Adjetivo', 'Verbo', 'Preposição'],
+    correta: 2, explicacao: '\'Importante\' caracteriza o substantivo \'trabalho\', atribuindo-lhe uma qualidade. Portanto, é um adjetivo.' },
+  { id: 95, materia: 'Português', grupo: 'Morfologia', dificuldade: 'Médio',
+    enunciado: 'Em \'O técnico realizou a análise cuidadosamente\', a palavra \'cuidadosamente\' é formada pelo processo de:',
+    alternativas: ['Derivação prefixal', 'Derivação sufixal', 'Derivação parassintética', 'Composição por justaposição', 'Composição por aglutinação'],
+    correta: 1, explicacao: '\'Cuidadosamente\' é formada por derivação sufixal: adiciona-se o sufixo \'-mente\' ao adjetivo \'cuidadoso\' (que já deriva de \'cuidado\' + sufixo \'-oso\').' },
+  { id: 96, materia: 'Português', grupo: 'Sintaxe', dificuldade: 'Difícil',
+    enunciado: 'Assinale a alternativa em que o termo destacado exerce função de adjunto adnominal:',
+    alternativas: ['O técnico **da Petrobras** é qualificado', 'Precisamos **de técnicos** especializados', 'O laboratório **tem equipamentos** modernos', 'Os frascos **estão** limpos', 'A análise **foi concluída** com sucesso'],
+    correta: 0, explicacao: '\'da Petrobras\' é adjunto adnominal, pois caracteriza o substantivo \'técnico\', indicando a qual empresa pertence. Adjunto adnominal acompanha o substantivo concreto ou abstrato.' },
+  { id: 97, materia: 'Português', grupo: 'Sintaxe', dificuldade: 'Difícil',
+    enunciado: 'Na frase \'O supervisor solicitou ao técnico que refizesse a análise\', a oração \'que refizesse a análise\' classifica-se como:',
+    alternativas: ['Oração subordinada substantiva objetiva direta', 'Oração subordinada substantiva objetiva indireta', 'Oração subordinada substantiva completiva nominal', 'Oração subordinada adjetiva explicativa', 'Oração subordinada adverbial final'],
+    correta: 0, explicacao: 'O verbo \'solicitar\' é transitivo direto e indireto (solicitar algo a alguém). \'que refizesse a análise\' é o objeto direto (completa o verbo sem preposição), funcionando como oração subordinada substantiva objetiva direta.' },
+  { id: 98, materia: 'Português', grupo: 'Pontuação', dificuldade: 'Médio',
+    enunciado: 'Assinale a alternativa em que o uso dos dois-pontos está correto:',
+    alternativas: ['O técnico trouxe: os equipamentos e as amostras', 'O laboratório possui: vidrarias, reagentes e equipamentos', 'O resultado foi: conclusivo', 'O técnico perguntou: a análise está correta?', 'São necessários: precisão e cuidado nas análises'],
+    correta: 3, explicacao: 'Os dois-pontos são usados corretamente para introduzir uma fala ou citação (discurso direto). Nas demais opções, os dois-pontos são desnecessários ou incorretos.' },
+  { id: 99, materia: 'Português', grupo: 'Concordância e Regência', dificuldade: 'Difícil',
+    enunciado: 'Assinale a alternativa correta quanto à regência verbal:',
+    alternativas: ['Assistiu o filme com atenção', 'Preferiu estudar química do que matemática', 'Custou a entender o procedimento', 'Obedece o regulamento da empresa', 'Aspirou o cargo de supervisor'],
+    correta: 2, explicacao: 'O verbo \'custar\' no sentido de \'ser difícil\' rege preposição \'a\': \'Custou a entender\'. \'Assistir\' no sentido de \'ver\' rege \'a\': \'Assistiu ao filme\'. \'Preferir\' não admite \'do que\': \'Preferiu estudar química a matemática\'. \'Obedecer\' rege \'a\'. \'Aspirar\' no sentido de \'almejar\' rege \'a\'.' },
+  { id: 100, materia: 'Português', grupo: 'Concordância e Regência', dificuldade: 'Difícil',
+    enunciado: 'Assinale a alternativa em que a concordância nominal está correta:',
+    alternativas: ['É proibido a entrada de pessoas estranhas', 'É necessária paciência para fazer análises', 'Há menas pessoas hoje no laboratório', 'As amostras estão incluso no relatório', 'São bastantes as análises realizadas'],
+    correta: 4, explicacao: '\'Bastantes\' (plural) concorda com \'análises\' - está correto quando significa \'suficientes\' ou \'muitas\'. \'É proibido\' fica invariável sem artigo. \'É necessária\' varia com artigo - correto seria \'É necessária a paciência\'. \'Menos\' é invariável. \'Incluso\' concorda: \'inclusas\'.' },
+  { id: 101, materia: 'Matemática', grupo: 'Aritmética e Problemas', dificuldade: 'Médio',
+    enunciado: 'Em uma indústria, 3 máquinas produzem 1200 peças em 4 horas. Quantas peças 5 máquinas produzirão em 6 horas, mantendo o mesmo ritmo de produção?',
+    alternativas: ['2.000', '2.400', '3.000', '3.600', '4.800'],
+    correta: 2, explicacao: 'Regra de três composta: 3 máqu × 4 h = 1200 peças; 5 máq × 6 h = X. X = 1200 × (5/3) × (6/4) = 1200 × 5/3 × 3/2 = 1200 × 5/2 = 3000 peças.' },
+  { id: 102, materia: 'Matemática', grupo: 'Aritmética e Problemas', dificuldade: 'Difícil',
+    enunciado: 'Um tanque de 5.000 L é preenchido por duas torneiras. A primeira enche o tanque em 5 horas e a segunda em 8 horas. Se as duas torneiras forem abertas simultaneamente, em quanto tempo o tanque estará cheio?',
+    alternativas: ['2h08min', '3h05min', '3h25min', '4h00min', '6h30min'],
+    correta: 0, explicacao: 'Vazão: T1 = 5000/5 = 1000 L/h, T2 = 5000/8 = 625 L/h. Vazão total = 1625 L/h. Tempo = 5000/1625 = 3,0769 h = 3h + 0,0769×60 = 3h04,6min ≈ 3h05min.' },
+  { id: 103, materia: 'Matemática', grupo: 'Geometria', dificuldade: 'Médio',
+    enunciado: 'Uma empresa precisa pintar um reservatório esférico de raio 3 m. Qual é a área da superfície a ser pintada? (Use π = 3,14)',
+    alternativas: ['84,78 m²', '113,04 m²', '150,72 m²', '200,96 m²', '254,34 m²'],
+    correta: 1, explicacao: 'Área da superfície esférica: A = 4πr² = 4 × 3,14 × 9 = 4 × 28,26 = 113,04 m².' },
+  { id: 104, materia: 'Matemática', grupo: 'Geometria', dificuldade: 'Médio',
+    enunciado: 'Um técnico precisa calcular o volume de um cone com raio da base 4 cm e altura 12 cm. O volume é: (Use π = 3,14)',
+    alternativas: ['100,48 cm³', '150,72 cm³', '200,96 cm³', '251,20 cm³', '301,44 cm³'],
+    correta: 2, explicacao: 'Volume do cone: V = (1/3) × π × r² × h = (1/3) × 3,14 × 16 × 12 = (1/3) × 602,88 = 200,96 cm³.' },
+  { id: 105, materia: 'Matemática', grupo: 'Estatística', dificuldade: 'Fácil',
+    enunciado: 'As temperaturas máximas registradas em uma semana foram: 28°C, 30°C, 27°C, 31°C, 29°C, 28°C, 32°C. A amplitude térmica dessa semana é:',
+    alternativas: ['3°C', '4°C', '5°C', '6°C', '7°C'],
+    correta: 2, explicacao: 'Amplitude = valor máximo - valor mínimo = 32 - 27 = 5°C.' },
+  { id: 106, materia: 'Matemática', grupo: 'Estatística', dificuldade: 'Médio',
+    enunciado: 'O desvio padrão de um conjunto de dados mede:',
+    alternativas: ['A média dos valores', 'O valor central', 'A dispersão dos dados em relação à média', 'O valor mais frequente', 'A diferença entre máximo e mínimo'],
+    correta: 2, explicacao: 'O desvio padrão é uma medida de dispersão que quantifica o quanto os valores de um conjunto se afastam da média aritmética. Quanto maior o desvio padrão, maior a variabilidade dos dados.' },
+  { id: 107, materia: 'Matemática', grupo: 'Probabilidade', dificuldade: 'Fácil',
+    enunciado: 'Em um lote de 50 amostras, 5 estão contaminadas. Se um técnico escolher uma amostra ao acaso, a probabilidade de ela estar contaminada é:',
+    alternativas: ['5%', '8%', '10%', '12%', '15%'],
+    correta: 2, explicacao: 'Probabilidade = casos favoráveis / casos possíveis = 5/50 = 0,10 = 10%.' },
+  { id: 108, materia: 'Matemática', grupo: 'Probabilidade', dificuldade: 'Médio',
+    enunciado: 'Uma moeda é lançada três vezes. A probabilidade de obter exatamente duas caras é:',
+    alternativas: ['1/8', '3/8', '1/2', '5/8', '3/4'],
+    correta: 1, explicacao: 'Total de resultados possíveis: 2³ = 8. Resultados com exatamente 2 caras: C C K, C K C, K C C (3 combinações). Probabilidade = 3/8.' },
+  { id: 109, materia: 'Matemática', grupo: 'Funções', dificuldade: 'Fácil',
+    enunciado: 'O domínio da função real f(x) = 1/(x-3) é:',
+    alternativas: ['Todos os números reais', 'Todos os reais exceto x = 0', 'Todos os reais exceto x = 3', 'Todos os reais exceto x = -3', 'Apenas x > 3'],
+    correta: 2, explicacao: 'O denominador não pode ser zero: x - 3 ≠ 0 → x ≠ 3. Portanto, o domínio é ℝ - {3}.' },
+  { id: 110, materia: 'Matemática', grupo: 'Funções', dificuldade: 'Médio',
+    enunciado: 'Se f(x) = 2x + 5 e g(x) = x², então f(g(3)) é igual a:',
+    alternativas: ['11', '14', '18', '23', '36'],
+    correta: 3, explicacao: 'g(3) = 3² = 9. f(g(3)) = f(9) = 2×9 + 5 = 18 + 5 = 23.' },
+  { id: 111, materia: 'Matemática', grupo: 'Matemática Financeira', dificuldade: 'Médio',
+    enunciado: 'Um equipamento de laboratório custa R$ 50.000,00 à vista. Se for financiado em 12 parcelas mensais iguais a uma taxa de juros simples de 2% ao mês, o valor de cada parcela será:',
+    alternativas: ['R$ 4.166,67', 'R$ 5.000,00', 'R$ 5.166,67', 'R$ 6.000,00', 'R$ 6.200,00'],
+    correta: 2, explicacao: 'Juros totais: J = C×i×t = 50.000 × 0,02 × 12 = 12.000. Montante = 50.000 + 12.000 = 62.000. Parcela = 62.000 / 12 = 5.166,67.' },
+  { id: 112, materia: 'Matemática', grupo: 'Matemática Financeira', dificuldade: 'Médio',
+    enunciado: 'Um investimento de R$ 10.000,00 a juros compostos de 5% ao ano durante 2 anos gerará um montante de:',
+    alternativas: ['R$ 11.000,00', 'R$ 11.025,00', 'R$ 11.250,00', 'R$ 12.000,00', 'R$ 12.500,00'],
+    correta: 1, explicacao: 'M = C(1+i)^t = 10.000 × (1+0,05)² = 10.000 × 1,1025 = 11.025,00.' },
+  { id: 113, materia: 'Química', grupo: 'Exploração e Produção', dificuldade: 'Médio',
+    enunciado: 'No método de recuperação secundária de petróleo, utiliza-se a injeção de:',
+    alternativas: ['Ácido clorídrico para dissolver rochas', 'Água ou gás para manter a pressão do reservatório', 'Vapor d\'água para aquecer o óleo', 'Polímeros para aumentar a viscosidade do óleo', 'Solventes orgânicos para diluir o petróleo'],
+    correta: 1, explicacao: 'A recuperação secundária envolve a injeção de água (waterflooding) ou gás natural para manter a pressão do reservatório e deslocar o óleo em direção aos poços produtores.' },
+  { id: 114, materia: 'Química', grupo: 'Processamento Primário', dificuldade: 'Médio',
+    enunciado: 'A função dos separadores gás-líquido no processamento primário do petróleo é:',
+    alternativas: ['Aquecer o petróleo para destilação', 'Separar o gás natural do óleo e da água', 'Remover enxofre do gás natural', 'Comprimir o gás para transporte', 'Fracionar o petróleo em derivados'],
+    correta: 1, explicacao: 'Os separadores gás-líquido são vasos de pressão que separam a fase gasosa das fases líquidas (óleo e água) por diferença de densidade, logo após a extração do petróleo.' },
+  { id: 115, materia: 'Química', grupo: 'Refino - Operações Básicas', dificuldade: 'Fácil',
+    enunciado: 'Na torre de destilação atmosférica, o resíduo atmosférico é retirado:',
+    alternativas: ['Do topo da torre', 'Do meio da torre', 'Do fundo da torre', 'De um estágio intermediário', 'De laterais da torre'],
+    correta: 2, explicacao: 'O resíduo atmosférico é a fração mais pesada, com maior ponto de ebulição, sendo retirada do fundo da torre de destilação atmosférica.' },
+  { id: 116, materia: 'Química', grupo: 'Refino - Conversão', dificuldade: 'Médio',
+    enunciado: 'O processo de reforma catalítica tem como objetivo principal:',
+    alternativas: ['Produzir diesel de alta qualidade', 'Aumentar o número de octano da gasolina', 'Remover enxofre dos derivados', 'Craquear moléculas pesadas', 'Produzir GLP'],
+    correta: 1, explicacao: 'A reforma catalítica converte nafta de baixa octanagem em gasolina de alta octanagem, através de reações de desidrogenação, isomerização e ciclização de hidrocarbonetos.' },
+  { id: 117, materia: 'Química', grupo: 'Blend de Produtos', dificuldade: 'Fácil',
+    enunciado: 'O diesel S-10 e S-500 diferem principalmente no teor de:',
+    alternativas: ['Enxofre', 'Nitrogênio', 'Oxigênio', 'Carbono', 'Hidrogênio'],
+    correta: 0, explicacao: 'S-10 significa teor máximo de 10 ppm de enxofre, enquanto S-500 tem até 500 ppm. A redução do enxofre no diesel visa diminuir emissões poluentes e atender às legislações ambientais.' },
+  { id: 118, materia: 'Química', grupo: 'Legislação de SSH', dificuldade: 'Médio',
+    enunciado: 'A NR-20 estabelece requisitos para segurança no trabalho com:',
+    alternativas: ['Produtos químicos em geral', 'Inflamáveis e combustíveis', 'Eletricidade', 'Máquinas e equipamentos', 'Trabalho em altura'],
+    correta: 1, explicacao: 'A NR-20 dispõe sobre segurança e saúde no trabalho com inflamáveis e combustíveis, abrangendo armazenamento, manuseio e transporte desses produtos.' },
+  { id: 119, materia: 'Química', grupo: 'Identificação de Riscos', dificuldade: 'Fácil',
+    enunciado: 'O Mapa de Riscos é uma representação gráfica dos riscos presentes em cada setor de trabalho. Os riscos biológicos são representados pela cor:',
+    alternativas: ['Verde', 'Vermelha', 'Marrom', 'Amarela', 'Azul'],
+    correta: 2, explicacao: 'Convenção do Mapa de Riscos: verde = físico, vermelho = químico, marrom = biológico, amarelo = ergonômico, azul = mecânico/acidente.' },
+  { id: 120, materia: 'Química', grupo: 'Controle e Mitigação', dificuldade: 'Médio',
+    enunciado: 'No combate a incêndios, a extinção por abafamento consiste em:',
+    alternativas: ['Resfriar o combustível', 'Retirar o oxigênio do ambiente', 'Retirar o material combustível', 'Interromper a reação em cadeia', 'Aumentar a concentração de oxigênio'],
+    correta: 1, explicacao: 'O método de abafamento remove o oxigênio (comburente) do tetraedro do fogo, impedindo a combustão. Ex: uso de extintores de CO₂ ou espuma mecânica.' },
+  { id: 121, materia: 'Química', grupo: 'Saúde Ocupacional', dificuldade: 'Difícil',
+    enunciado: 'O Programa de Prevenção de Riscos Ambientais (PPRA) foi substituído pelo:',
+    alternativas: ['PCMSO', 'PGR (Programa de Gerenciamento de Riscos)', 'LTCAT', 'DSQ', 'E-Social'],
+    correta: 1, explicacao: 'A NR-01 (2022) substituiu o PPRA pelo PGR (Programa de Gerenciamento de Riscos), que integra a gestão de riscos ocupacionais em um documento único e interligado.' },
+  { id: 122, materia: 'Química', grupo: 'Sistemas de Gestão SSH', dificuldade: 'Fácil',
+    enunciado: 'A norma ISO 14001 trata do sistema de gestão:',
+    alternativas: ['Da qualidade', 'Ambiental', 'De saúde e segurança', 'De energia', 'De responsabilidade social'],
+    correta: 1, explicacao: 'A ISO 14001 estabelece requisitos para um Sistema de Gestão Ambiental (SGA), ajudando organizações a melhorar seu desempenho ambiental.' },
+  { id: 123, materia: 'Química', grupo: 'Fundamentos de Metrologia', dificuldade: 'Difícil',
+    enunciado: 'A rastreabilidade metrológica é a propriedade de um resultado de medição que permite sua relação com um:',
+    alternativas: ['Valor médio do laboratório', 'Padrão primário ou referência nacional/internacional', 'Resultado de outra medição qualquer', 'Valor nominal do instrumento', 'Limite de tolerância do processo'],
+    correta: 1, explicacao: 'Rastreabilidade metrológica é a propriedade do resultado de uma medição que o relaciona a uma referência estabelecida (padrão primário), através de uma cadeia contínua de comparações.' },
+  { id: 124, materia: 'Química', grupo: 'Instrumentação Analítica', dificuldade: 'Fácil',
+    enunciado: 'O princípio de funcionamento do espectrofotômetro UV-Vis baseia-se na:',
+    alternativas: ['Emissão de luz pela amostra', 'Absorção de luz pela amostra', 'Reflexão de luz pela amostra', 'Difração de luz pela amostra', 'Refração de luz pela amostra'],
+    correta: 1, explicacao: 'O espectrofotômetro UV-Vis mede a quantidade de luz absorvida pela amostra em diferentes comprimentos de onda, seguindo a lei de Beer-Lambert.' },
+  { id: 125, materia: 'Química', grupo: 'Instrumentação Analítica', dificuldade: 'Médio',
+    enunciado: 'A calibração de um termômetro envolve:',
+    alternativas: ['Ajustar o ponteiro para zero', 'Comparar suas indicações com um padrão de referência', 'Trocar o sensor de temperatura', 'Limpar o bulbo do termômetro', 'Aquecer até a temperatura máxima'],
+    correta: 1, explicacao: 'Calibração é o processo de comparação das indicações de um instrumento com um padrão de referência, documentando as diferenças (correções) para garantir a precisão das medições.' },
+  { id: 126, materia: 'Química', grupo: 'Controle de Qualidade em Processo', dificuldade: 'Médio',
+    enunciado: 'Um gráfico de controle para monitorar a média de um processo é chamado de gráfico:',
+    alternativas: ['Gráfico p', 'Gráfico c', 'Gráfico X-barra', 'Gráfico u', 'Gráfico np'],
+    correta: 2, explicacao: 'O gráfico X-barra (x̄) é utilizado para monitorar a média de uma característica de qualidade de um processo ao longo do tempo. Os limites são baseados na distribuição das médias amostrais.' },
+  { id: 127, materia: 'Química', grupo: 'Estatística aplicada à Qualidade', dificuldade: 'Difícil',
+    enunciado: 'A capacidade de um processo (Cp) é calculada como:',
+    alternativas: ['(LSC - LIC) / 6σ', '(LSE - LIE) / 6σ', '(média - LIE) / 3σ', '(LSE - média) / 3σ', '6σ / (LSE - LIE)'],
+    correta: 1, explicacao: 'Cp = (LSE - LIE) / 6σ, onde LSE = limite superior de especificação, LIE = limite inferior de especificação, σ = desvio padrão do processo. Cp > 1 indica processo capaz.' },
+  { id: 128, materia: 'Química', grupo: 'Sistemas de Qualidade (ISO)', dificuldade: 'Médio',
+    enunciado: 'Na ISO 9001:2015, a abordagem baseada em risco significa:',
+    alternativas: ['Eliminar todos os riscos do processo', 'Identificar e tratar riscos que possam afetar a conformidade dos produtos', 'Ignorar riscos com baixa probabilidade', 'Terceirizar atividades de risco', 'Aumentar o número de auditorias'],
+    correta: 1, explicacao: 'A abordagem baseada em risco na ISO 9001:2015 requer que a organização identifique riscos e oportunidades relacionados ao SGQ, implementando ações para tratar esses riscos.' },
+  { id: 129, materia: 'Química', grupo: 'Técnicas de Laboratório', dificuldade: 'Médio',
+    enunciado: 'Para medir com precisão 25,0 mL de uma solução, o instrumento mais adequado é:',
+    alternativas: ['Béquer de 50 mL', 'Proveta de 50 mL', 'Pipeta volumétrica de 25 mL', 'Balão volumétrico de 25 mL', 'Erlenmeyer de 125 mL'],
+    correta: 2, explicacao: 'A pipeta volumétrica (ou pipeta de transferência) é o instrumento mais preciso para medir volumes fixos de líquidos. Provetas são menos precisas. Balões volumétricos são para preparo de soluções, não para transferência.' },
+  { id: 130, materia: 'Química', grupo: 'Técnicas de Laboratório', dificuldade: 'Fácil',
+    enunciado: 'Ao utilizar uma balança analítica, o técnico deve:',
+    alternativas: ['Pesar diretamente sobre o prato sem recipiente', 'Fechar as portas da câmara de pesagem antes de ler', 'Tocar os pesos com as mãos diretamente', 'Pesar substâncias quentes', 'Usar a balança sem nivelamento'],
+    correta: 1, explicacao: 'Ao usar balança analítica, deve-se fechar as portas da câmara para evitar correntes de ar que afetam a leitura. A amostra deve estar em recipiente adequado, à temperatura ambiente, e a balança deve estar nivelada.' },
+  { id: 131, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Fácil',
+    enunciado: 'Texto: \'A segurança em laboratórios químicos não é apenas uma exigência legal, mas um compromisso ético do profissional. Cada procedimento deve ser executado com consciência dos riscos envolvidos.\' A ideia principal do texto é que a segurança:',
+    alternativas: ['É opcional em laboratórios', 'É apenas uma exigência burocrática', 'Deve ser tratada como compromisso ético e técnico', 'Limita a produtividade do laboratório', 'É responsabilidade exclusiva do supervisor'],
+    correta: 2, explicacao: 'O texto afirma que a segurança é \'não apenas uma exigência legal, mas um compromisso ético\', destacando que cada procedimento deve ser executado com consciência dos riscos.' },
+  { id: 132, materia: 'Português', grupo: 'Interpretação de Textos', dificuldade: 'Médio',
+    enunciado: 'Na frase \'O técnico não apenas realizou as análises, como também registrou os resultados no sistema\', a expressão \'não apenas... como também\' estabelece relação de:',
+    alternativas: ['Alternância', 'Adição', 'Oposição', 'Conclusão', 'Explicação'],
+    correta: 1, explicacao: 'A expressão \'não apenas... como também\' é uma conjunção correlativa que indica adição de informações, equivalendo a \'e\', \'além disso\'.' },
+  { id: 133, materia: 'Matemática', grupo: 'Geometria', dificuldade: 'Médio',
+    enunciado: 'Um engenheiro precisa calcular a área de um triângulo equilátero com lado igual a 10 cm. Qual é a área desse triângulo? (Use √3 = 1,73)',
+    alternativas: ['40,25 cm²', '43,25 cm²', '48,50 cm²', '50,00 cm²', '86,50 cm²'],
+    correta: 1, explicacao: 'Área do triângulo equilátero: A = (L²√3)/4 = (100 × 1,73)/4 = 173/4 = 43,25 cm².' },
+  { id: 134, materia: 'Matemática', grupo: 'Estatística', dificuldade: 'Médio',
+    enunciado: 'O coeficiente de variação (CV) de um conjunto de dados com média 50 e desvio padrão 10 é:',
+    alternativas: ['10%', '20%', '25%', '40%', '50%'],
+    correta: 1, explicacao: 'CV = (desvio padrão / média) × 100% = (10/50) × 100% = 20%. O CV é uma medida de dispersão relativa.' },
+  { id: 135, materia: 'Química', grupo: 'Soluções', dificuldade: 'Fácil',
+    enunciado: 'Uma solução de HNO₃ 0,01 mol/L tem pH aproximadamente igual a:',
+    alternativas: ['1', '2', '3', '4', '5'],
+    correta: 1, explicacao: 'HNO₃ é ácido forte, dissocia-se completamente. [H⁺] = 0,01 M = 10⁻² M. pH = -log(10⁻²) = 2.' },
+  { id: 136, materia: 'Química', grupo: 'Equilíbrio Químico', dificuldade: 'Difícil',
+    enunciado: 'O Kps do AgCl é 1,8×10⁻¹⁰ a 25°C. A solubilidade molar do AgCl em água pura é aproximadamente:',
+    alternativas: ['1,3×10⁻⁵ M', '1,8×10⁻¹⁰ M', '9,0×10⁻⁶ M', '1,8×10⁻⁵ M', '3,6×10⁻¹⁰ M'],
+    correta: 0, explicacao: 'AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq). Kps = s² → s = √Kps = √(1,8×10⁻¹⁰) = 1,34×10⁻⁵ M ≈ 1,3×10⁻⁵ M.' },
+  { id: 137, materia: 'Química', grupo: 'Termoquímica', dificuldade: 'Médio',
+    enunciado: 'Dada a reação: C(s) + O₂(g) → CO₂(g) ΔH = -393,5 kJ. Qual é a entalpia de formação do CO₂?',
+    alternativas: ['Zero', '+393,5 kJ/mol', '-393,5 kJ/mol', '-196,75 kJ/mol', '+196,75 kJ/mol'],
+    correta: 2, explicacao: 'A entalpia de formação do CO₂ é a variação de entalpia na formação de 1 mol de CO₂ a partir de seus elementos no estado padrão, que é exatamente -393,5 kJ/mol.' },
+  { id: 138, materia: 'Química', grupo: 'Exploração e Produção', dificuldade: 'Difícil',
+    enunciado: 'A perfilagem de poços é uma técnica utilizada para:',
+    alternativas: ['Perfurar o poço até o reservatório', 'Obter informações geológicas e físicas das formações atravessadas', 'Cimentar o revestimento do poço', 'Instalar a árvore de natal', 'Realizar testes de produção'],
+    correta: 1, explicacao: 'A perfilagem (well logging) consiste no registro contínuo de propriedades físicas das rochas ao longo do poço, fornecendo dados sobre litologia, porosidade, saturação de fluidos, etc.' },
+  { id: 139, materia: 'Química', grupo: 'Identificação de Riscos', dificuldade: 'Fácil',
+    enunciado: 'A FISPQ (Ficha de Informações de Segurança de Produtos Químicos) contém informações sobre:',
+    alternativas: ['Apenas o preço do produto químico', 'Riscos, manuseio, armazenamento e medidas de emergência', 'A data de fabricação do produto', 'O nome do fabricante somente', 'A composição nutricional'],
+    correta: 1, explicacao: 'A FISPQ (ou SDS - Safety Data Sheet) é um documento que fornece informações completas sobre os perigos de um produto químico, incluindo riscos à saúde, medidas de primeiros socorros, combate a incêndio, armazenamento, etc.' },
+  { id: 140, materia: 'Química', grupo: 'Fundamentos de Metrologia', dificuldade: 'Médio',
+    enunciado: 'A resolução de um instrumento de medição é:',
+    alternativas: ['A menor divisão da escala do instrumento', 'O erro máximo permitido', 'A faixa de medição do instrumento', 'A precisão do operador', 'O tempo de resposta do instrumento'],
+    correta: 0, explicacao: 'Resolução é a menor variação do mensurando que causa uma variação perceptível na indicação do instrumento. Geralmente é a menor divisão da escala ou o menor dígito significativo do display.' },
+  { id: 141, materia: 'Química', grupo: 'Reações Inorgânicas', dificuldade: 'Difícil',
+    enunciado: 'Na reação de decomposição: 2 KClO₃(s) → 2 KCl(s) + 3 O₂(g), o cloro (Cl) sofre:',
+    alternativas: ['Oxidação', 'Redução', 'Não altera seu NOX', 'Sublimação', 'Neutralização'],
+    correta: 2, explicacao: 'No KClO₃, o NOX do Cl é +5. No KCl, o NOX do Cl é -1. O NOX do Cl diminui de +5 para -1, indicando redução. O oxigênio oxida de -2 para 0.' },
+  { id: 142, materia: 'Química', grupo: 'Química Orgânica - Nomenclatura', dificuldade: 'Médio',
+    enunciado: 'O composto CH₃-CH₂-CH(CH₃)-CH₂-CH₃ é chamado de:',
+    alternativas: ['Heptano', '3-metilexano', '3-metilpentano', '2-metilexano', '2-metilpentano'],
+    correta: 1, explicacao: 'A cadeia principal tem 6 carbonos (hexano) com um grupamento metil no carbono 3. O nome IUPAC é 3-metilexano.' },
+  { id: 143, materia: 'Química', grupo: 'Cinética Química', dificuldade: 'Difícil',
+    enunciado: 'Para uma reação de ordem zero, a velocidade da reação:',
+    alternativas: ['Aumenta com o tempo', 'Diminui com o tempo', 'É constante e independente da concentração', 'Depende da concentração ao quadrado', 'Depende do ln da concentração'],
+    correta: 2, explicacao: 'Em reações de ordem zero, a velocidade é constante e não depende da concentração dos reagentes. A lei de velocidade é v = k, onde k é a constante de velocidade.' },
+  { id: 144, materia: 'Português', grupo: 'Concordância e Regência', dificuldade: 'Médio',
+    enunciado: 'Assinale a alternativa INCORRETA quanto à concordância:',
+    alternativas: ['A maioria dos técnicos aprovou a mudança', 'Havia muitos problemas no relatório', 'Fazem três anos que ele trabalha aqui', 'Existem várias alternativas viáveis', 'Bastaram algumas horas para concluir'],
+    correta: 2, explicacao: 'O verbo \'fazer\' indicando tempo decorrido é impessoal, permanecendo no singular: \'Faz três anos que ele trabalha aqui\'.' },
+  { id: 145, materia: 'Matemática', grupo: 'Aritmética e Problemas', dificuldade: 'Fácil',
+    enunciado: 'Uma liga metálica contém cobre e zinco na proporção de 3:2. Se a massa total da liga é 250 g, a massa de cobre presente é:',
+    alternativas: ['100 g', '125 g', '150 g', '175 g', '200 g'],
+    correta: 2, explicacao: 'Total de partes = 3 + 2 = 5. Cada parte corresponde a 250/5 = 50 g. Massa de cobre = 3 × 50 = 150 g.' },
+  { id: 146, materia: 'Química', grupo: 'Eletroquímica', dificuldade: 'Médio',
+    enunciado: 'Na corrosão do ferro (ferrugem), o ferro metálico sofre:',
+    alternativas: ['Redução, formando Fe²⁺', 'Oxidação, formando Fe²⁺ ou Fe³⁺', 'Redução, formando Fe⁰', 'Sublimação', 'Neutralização'],
+    correta: 1, explicacao: 'Na corrosão, o ferro metálico (Fe⁰) perde elétrons, sofrendo oxidação para formar íons Fe²⁺ ou Fe³⁺, que posteriormente reagem com oxigênio e água formando os óxidos de ferro (ferrugem).' },
+  { id: 147, materia: 'Química', grupo: 'Físico-Química', dificuldade: 'Difícil',
+    enunciado: 'A tensão superficial da água é maior que a do etanol porque:',
+    alternativas: ['A água tem menor massa molar', 'A água forma ligações de hidrogênio mais intensas', 'O etanol é apolar', 'A água tem menor ponto de ebulição', 'O etanol tem maior viscosidade'],
+    correta: 1, explicacao: 'A água possui ligações de hidrogênio muito intensas entre suas moléculas, resultando em alta tensão superficial. O etanol também forma ligações de hidrogênio, mas estas são menos intensas devido à cadeia carbônica.' },
+  { id: 148, materia: 'Química', grupo: 'Refino - Conversão', dificuldade: 'Médio',
+    enunciado: 'A hidrodessulfurização (HDS) é um processo que:',
+    alternativas: ['Adiciona enxofre aos derivados', 'Remove enxofre dos derivados de petróleo na presença de hidrogênio', 'Converte diesel em gasolina', 'Separa frações por ponto de ebulição', 'Produz lubrificantes'],
+    correta: 1, explicacao: 'A HDS remove enxofre dos derivados de petróleo (especialmente diesel e gasolina) através da reação com hidrogênio a altas temperaturas e pressões, formando H₂S que é posteriormente removido.' },
+  { id: 149, materia: 'Química', grupo: 'Saúde Ocupacional', dificuldade: 'Médio',
+    enunciado: 'A NR-07 estabelece a obrigatoriedade de:',
+    alternativas: ['Programa de Conservação Auditiva', 'Programa de Controle Médico de Saúde Ocupacional', 'Programa de Proteção Respiratória', 'Programa de Prevenção de Riscos', 'Análise Ergonômica do Trabalho'],
+    correta: 1, explicacao: 'A NR-07 (PCMSO - Programa de Controle Médico de Saúde Ocupacional) estabelece a obrigatoriedade de realização de exames médicos admissionais, periódicos, de retorno ao trabalho, de mudança de função e demissionais.' },
+  { id: 150, materia: 'Química', grupo: 'Sistemas de Qualidade (ISO)', dificuldade: 'Fácil',
+    enunciado: 'A melhoria contínua, princípio fundamental das normas ISO, é operacionalizada através do ciclo:',
+    alternativas: ['PDCA (Plan-Do-Check-Act)', '5W2H', 'SWOT', 'Brainstorming', 'Benchmarking'],
+    correta: 0, explicacao: 'O ciclo PDCA (Planejar, Executar, Verificar, Agir) é a ferramenta básica para implementar a melhoria contínua nos sistemas de gestão, conforme as normas ISO 9001, 14001 e 45001.' },
+  { id: 151, materia: 'Química', grupo: 'Química Orgânica - Isomeria', dificuldade: 'Médio',
+    enunciado: 'Os compostos cis-2-buteno e trans-2-buteno são exemplos de:',
+    alternativas: ['Isômeros de cadeia', 'Isômeros de posição', 'Isômeros de função', 'Isômeros geométricos', 'Isômeros ópticos'],
+    correta: 3, explicacao: 'Isomeria geométrica (cis-trans) ocorre em compostos com dupla ligação onde cada carbono da dupla está ligado a dois substituintes diferentes. A diferença está na disposição espacial dos grupos.' },
+  { id: 152, materia: 'Matemática', grupo: 'Análise Combinatória e Probabilidade', dificuldade: 'Médio',
+    enunciado: 'Quantos anagramas diferentes podem ser formados com as letras da palavra \'TÉCNICO\'?',
+    alternativas: ['720', '1.260', '2.520', '5.040', '10.080'],
+    correta: 2, explicacao: 'TÉCNICO tem 7 letras, com repetição de C (2x). Anagramas = 7!/2! = 5040/2 = 2520.' },
+  { id: 153, materia: 'Português', grupo: 'Morfologia', dificuldade: 'Difícil',
+    enunciado: 'Na frase \'O técnico está meio cansado após o plantão\', a palavra \'meio\' é classificada como:',
+    alternativas: ['Numeral', 'Substantivo', 'Advérbio', 'Adjetivo', 'Pronome'],
+    correta: 2, explicacao: '\'Meio\' modifica o adjetivo \'cansado\', indicando intensidade (parcialmente). Nesse caso, é advérbio de intensidade e permanece invariável.' },
+  { id: 154, materia: 'Química', grupo: 'Análise Instrumental', dificuldade: 'Médio',
+    enunciado: 'Na potenciometria, o eletrodo de referência mais comumente utilizado é o:',
+    alternativas: ['Eletrodo de vidro', 'Eletrodo de calomelano saturado (ECS)', 'Eletrodo de platina', 'Eletrodo de cobre', 'Eletrodo de ouro'],
+    correta: 1, explicacao: 'O eletrodo de calomelano saturado (ECS) ou o eletrodo de prata/cloreto de prata (Ag/AgCl) são os eletrodos de referência mais utilizados em potenciometria.' },
+  { id: 155, materia: 'Química', grupo: 'Substâncias e Propriedades', dificuldade: 'Fácil',
+    enunciado: 'A água destilada é considerada:',
+    alternativas: ['Uma mistura homogênea', 'Uma substância pura', 'Um coloide', 'Uma mistura heterogênea', 'Uma solução'],
+    correta: 1, explicacao: 'A água destilada é uma substância pura (composta), pois contém apenas moléculas de H₂O, sem íons dissolvidos ou impurezas.' },
+  { id: 156, materia: 'Matemática', grupo: 'Funções', dificuldade: 'Fácil',
+    enunciado: 'A função f(x) = x² - 6x + 8 tem raízes:',
+    alternativas: ['1 e 8', '2 e 4', '-2 e -4', '3 e 5', '0 e 6'],
+    correta: 1, explicacao: 'x² - 6x + 8 = 0. Δ = 36 - 32 = 4. x = (6 ± 2)/2 → x₁ = 4, x₂ = 2.' },
+  { id: 157, materia: 'Português', grupo: 'Reescritura e Problemas da Língua', dificuldade: 'Médio',
+    enunciado: 'Transformando a frase \'O técnico resolveu o problema\' para a voz passiva analítica, obtém-se:',
+    alternativas: ['O problema foi resolvido pelo técnico', 'O problema é resolvido pelo técnico', 'O problema será resolvido pelo técnico', 'O técnico foi resolvido pelo problema', 'Resolveu-se o problema pelo técnico'],
+    correta: 0, explicacao: 'Voz passiva analítica: sujeito paciente (o problema) + verbo auxiliar (foi) + particípio (resolvido) + agente da passiva (pelo técnico).' },
+  { id: 158, materia: 'Química', grupo: 'Estequiometria', dificuldade: 'Médio',
+    enunciado: 'Na reação N₂ + 3 H₂ → 2 NH₃, qual a massa de amônia produzida a partir de 28 g de N₂? (Massas molares: N=14, H=1)',
+    alternativas: ['17 g', '34 g', '51 g', '68 g', '85 g'],
+    correta: 1, explicacao: '28 g N₂ = 1 mol (MM=28). Proporção: 1 mol N₂ → 2 mol NH₃. 2 mol NH₃ = 2 × 17 = 34 g de amônia.' },
+  { id: 159, materia: 'Química', grupo: 'Soluções', dificuldade: 'Médio',
+    enunciado: 'Uma solução 0,5 mol/L de H₂SO₄ tem concentração de íons H⁺ igual a:',
+    alternativas: ['0,25 mol/L', '0,5 mol/L', '0,75 mol/L', '1,0 mol/L', '2,0 mol/L'],
+    correta: 3, explicacao: 'H₂SO₄ é um ácido diprótico forte, cada molécula libera 2 H⁺. [H⁺] = 2 × 0,5 = 1,0 mol/L.' },
+  { id: 160, materia: 'Química', grupo: 'Sistemas de Gestão SSH', dificuldade: 'Fácil',
+    enunciado: 'A ISO 45001 é a norma internacional para:',
+    alternativas: ['Gestão da Qualidade', 'Gestão Ambiental', 'Gestão de Saúde e Segurança Ocupacional', 'Gestão de Energia', 'Gestão de Risco'],
+    correta: 2, explicacao: 'A ISO 45001:2018 estabelece requisitos para um Sistema de Gestão de Saúde e Segurança Ocupacional (SGSST), substituindo a OHSAS 18001.' },
+];
+
+// ===================================================================
+//  COMPOSABLE - Banco de Questões (Exercicios)
+// ===================================================================
+
+function useExercicios() {
+  const filtroMateria = ref('');
+  const filtroGrupo = ref('');
+  const filtroDificuldade = ref('');
+  const mostrarFavoritos = ref(false);
+
+  const modoQuiz = ref(false);
+  const quizQuestoes = ref([]);
+  const quizIndex = ref(0);
+  const respostas = ref({});
+  const responded = ref(false);
+  const selecionado = ref(-1);
+  const mostrarExplicacao = ref(false);
+
+  const revisao = ref(false);
+  const favoritos = ref([]);
+
+  const materiasDisponiveis = computed(() => {
+    const set = new Set(EXERCICIOS.map(q => q.materia));
+    return [...set];
+  });
+
+  const gruposDisponiveis = computed(() => {
+    const set = new Set(EXERCICIOS.map(q => q.grupo));
+    return [...set];
+  });
+
+  const questoesFiltradas = computed(() => {
+    let qs = [...EXERCICIOS];
+    if (filtroMateria.value) qs = qs.filter(q => q.materia === filtroMateria.value);
+    if (filtroGrupo.value) qs = qs.filter(q => q.grupo === filtroGrupo.value);
+    if (filtroDificuldade.value) qs = qs.filter(q => q.dificuldade === filtroDificuldade.value);
+    if (mostrarFavoritos.value) qs = qs.filter(q => favoritos.value.includes(q.id));
+    return qs;
+  });
+
+  const quizAtual = computed(() => quizQuestoes.value[quizIndex.value] || null);
+
+  const quizProgresso = computed(() => {
+    if (quizQuestoes.value.length === 0) return 0;
+    return Math.round(((quizIndex.value + 1) / quizQuestoes.value.length) * 100);
+  });
+
+  const quizAcertos = computed(() => {
+    return quizQuestoes.value.filter((q, i) => respostas.value[i] === q.correta).length;
+  });
+
+  const quizTotal = computed(() => quizQuestoes.value.length);
+
+  const favoritosLista = computed(() => {
+    return EXERCICIOS.filter(q => favoritos.value.includes(q.id));
+  });
+
+  function iniciarQuiz() {
+    const pool = [...questoesFiltradas.value];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    quizQuestoes.value = pool;
+    quizIndex.value = 0;
+    respostas.value = {};
+    responded.value = false;
+    selecionado.value = -1;
+    mostrarExplicacao.value = false;
+    revisao.value = false;
+    modoQuiz.value = true;
+  }
+
+  function responderQuestao(idx) {
+    if (responded.value) return;
+    selecionado.value = idx;
+    respostas.value[quizIndex.value] = idx;
+    responded.value = true;
+  }
+
+  function proximaQuestao() {
+    if (quizIndex.value < quizQuestoes.value.length - 1) {
+      quizIndex.value++;
+      responded.value = typeof respostas.value[quizIndex.value] !== 'undefined';
+      selecionado.value = responded.value ? respostas.value[quizIndex.value] : -1;
+      mostrarExplicacao.value = false;
+    }
+  }
+
+  function voltarQuestao() {
+    if (quizIndex.value > 0) {
+      quizIndex.value--;
+      responded.value = typeof respostas.value[quizIndex.value] !== 'undefined';
+      selecionado.value = responded.value ? respostas.value[quizIndex.value] : -1;
+      mostrarExplicacao.value = false;
+    }
+  }
+
+  function finalizarQuiz() {
+    revisao.value = true;
+    modoQuiz.value = false;
+    quizIndex.value = 0;
+    responded.value = typeof respostas.value[0] !== 'undefined';
+    selecionado.value = responded.value ? respostas.value[0] : -1;
+    mostrarExplicacao.value = false;
+  }
+
+  function alternarFavorito(id) {
+    const idx = favoritos.value.indexOf(id);
+    if (idx >= 0) {
+      favoritos.value.splice(idx, 1);
+    } else {
+      favoritos.value.push(id);
+    }
+    Armazenamento._salvarLocal('exercicios_favoritos', [...favoritos.value]);
+  }
+
+  function toggleExplicacao() {
+    mostrarExplicacao.value = !mostrarExplicacao.value;
+  }
+
+  function toggleRevisao() {
+    revisao.value = !revisao.value;
+  }
+
+  async function carregarFavoritos() {
+    const saved = Armazenamento._carregarLocal('exercicios_favoritos', []);
+    favoritos.value = saved;
+  }
+
+  return {
+    filtroMateria, filtroGrupo, filtroDificuldade, mostrarFavoritos,
+    modoQuiz, quizQuestoes, quizIndex, respostas, responded, selecionado, mostrarExplicacao,
+    revisao, favoritos,
+    materiasDisponiveis, gruposDisponiveis, questoesFiltradas,
+    quizAtual, quizProgresso, quizAcertos, quizTotal, favoritosLista,
+    iniciarQuiz, responderQuestao, proximaQuestao, voltarQuestao, finalizarQuiz,
+    alternarFavorito, toggleExplicacao, toggleRevisao, carregarFavoritos
+  };
 }
 
 // ===================================================================
@@ -578,15 +1538,40 @@ function useFlashcards() {
 
 const app = createApp({
   setup() {
+    // --- Autenticação ---
+    const usuarioAtual = ref(null);
+    const autenticado = ref(false);
+    const erroLogin = ref(false);
+    const loginUsuario = ref('');
+    const loginSenha = ref('');
+
+    function handleLogin(usuario, senha) {
+      const user = autenticar(usuario, senha);
+      if (user) {
+        usuarioAtual.value = user;
+        autenticado.value = true;
+        erroLogin.value = false;
+        sessionStorage.setItem('petro_usuario', JSON.stringify(user));
+      } else {
+        erroLogin.value = true;
+      }
+    }
+
+    function logout() {
+      usuarioAtual.value = null;
+      autenticado.value = false;
+      sessionStorage.removeItem('petro_usuario');
+      view.value = 'dashboard';
+    }
+
+    const usuarioLogado = computed(() => usuarioAtual.value?.nome || 'Usuário');
+
     // --- Estado da UI e Navegação ---
     const view = ref('dashboard');
     const menuAberta = ref(false);
     const semanaAtual = ref(1);
     const carregando = ref(true);
     const tema = ref('light');
-
-    // --- Estado Global da Aplicação (agora controlado aqui) ---
-    const saveStatus = ref('idle');
 
     // --- Constantes e Dados Estáticos ---
     const semanasPlano = SEMANAS_PLANO;
@@ -599,7 +1584,7 @@ const app = createApp({
     const { erros, formErro, editandoErro, errosAgrupados, totalErros, carregandoErros, novoErro, salvarErro, editarErro, removerErro, cancelarErro, carregarErros } = useErros();
 
     // --- Usando o Composable para a feature de Ciclo de Estudos ---
-    const { ciclo, cicloExpandido, materiaAtual, cicloCompleto, avancarCiclo, reiniciarCiclo } = useCiclo(CICLO_ESTUDOS);
+    const { ciclo, cicloExpandido, materiaAtual, idxOriginalAtual, cicloCompleto, completosPorItem, avancarCiclo, reiniciarCiclo } = useCiclo(CICLO_ESTUDOS);
 
     // --- Usando o Composable para a feature de Diário de Estudos ---
     const CHECKLIST_ITENS = [
@@ -627,8 +1612,13 @@ const app = createApp({
     const { revisoes, revisoesPendentes, revisoesHoje, agendarRevisao, concluirRevisao, removerRevisao } = useRevisoes(REVISAO_INTERVALOS);
 
     // --- Usando o Composable para a feature de Flashcards ---
-    const { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao } = useFlashcards();
+    const { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao } = useFlashcards();
 
+    // --- Usando o Composable para Admin ---
+    const admin = useAdmin();
+
+    // --- Usando o Composable para a feature de Questões ---
+    const exercicios = useExercicios();
 
     const horasSemanaAtual = computed(() => horasSemana(semanaAtual.value));
     const metaSemanaCss = computed(() => {
@@ -636,16 +1626,19 @@ const app = createApp({
       return h >= metaHoras ? 'verde' : h >= metaHoras * 0.5 ? 'laranja' : 'vermelho';
     });
 
-    const diasSemana = [
-      { valor: 'seg', rotulo: 'Segunda' },
-      { valor: 'ter', rotulo: 'Terça' },
-      { valor: 'qua', rotulo: 'Quarta' },
-      { valor: 'qui', rotulo: 'Quinta' },
-      { valor: 'sex', rotulo: 'Sexta' }
-    ];
+    const diasSemana = DIAS_SEMANA.filter(d => d.valor !== 'sab' && d.valor !== 'dom');
 
     // Inicialização assíncrona
     onMounted(async () => {
+      const sessao = sessionStorage.getItem('petro_usuario');
+      if (sessao) {
+        const user = JSON.parse(sessao);
+        if (user) {
+          usuarioAtual.value = user;
+          autenticado.value = true;
+        }
+      }
+
       carregando.value = true;
       const config = await Armazenamento.getConfig();
       tema.value = config.tema || 'light';
@@ -658,6 +1651,8 @@ const app = createApp({
       diario.value = await Armazenamento.getDiario();
       revisoes.value = await Armazenamento.getRevisoes();
       ciclo.value = await Armazenamento.getCiclo();
+      exercicios.carregarFavoritos();
+      await carregarProgresso();
       initPlanos();
       carregando.value = false;
     });
@@ -670,16 +1665,16 @@ const app = createApp({
       if (novaView === 'flashcards') {
         carregarFlashcards();
       }
-    });
-
-    // Observador para sincronizar o status de salvamento
-    // Usa um timer para verificar o status não reativo do Armazenamento
-    setInterval(() => {
-      const statusAtual = Armazenamento._status;
-      if (saveStatus.value !== statusAtual) saveStatus.value = statusAtual;
+      if (novaView === 'exercicios') {
+        exercicios.carregarFavoritos();
+      }
+      if (novaView === 'admin') {
+        admin.carregarAdmin();
+      }
     });
 
     const tituloView = computed(() => ({
+      login: 'Login',
       dashboard: 'Dashboard',
       checklist: 'Conteúdos',
       ciclo: 'Ciclo de Estudos',
@@ -688,7 +1683,10 @@ const app = createApp({
       erros: 'Caderno de Erros',
       flashcards: 'Flashcards',
       diario: 'Diário de Estudos',
-      plano: 'Plano de Estudos'
+      cronograma: 'Cronograma Semanal',
+      exercicios: 'Banco de Questões',
+      plano: 'Plano de Estudos',
+      admin: 'Administração'
     })[view.value]);
 
     const subtituloView = computed(() => ({
@@ -700,13 +1698,73 @@ const app = createApp({
       erros: 'Caderno de Erros — cada erro é um ponto garantido',
       flashcards: 'Crie e revise seus flashcards',
       diario: 'Checklist diário do concurseiro aprovado',
-      plano: 'Consulte o cronograma e conteúdos programáticos'
+      cronograma: 'Cronograma detalhado semana a semana',
+      exercicios: 'Pratique com questões estilo Cesgranrio',
+      plano: 'Consulte o cronograma e conteúdos programáticos',
+      admin: 'Gerenciar usuários da plataforma'
     })[view.value]);
 
     // --- Computeds Globais ---
     const totalMeta = computed(() => semanasPlano * metaHoras);
 
+    // --- Cronograma ---
+    const periodos = ['08h-10h', '13h-15h', '20h-22h'];
+    const cronSemana = ref(1);
+    const cronograma = CRONOGRAMA_SEMANAL;
+    const {
+      slotConcluido, alternarSlot,
+      totalSlots, totalConcluidos, progressoGeralCron,
+      progressoSemana, totalSlotsSemana, concluidosSemana,
+      carregarProgresso
+    } = useCronograma(cronograma);
+
+    const semanaAtualDias = computed(() => {
+      const s = cronograma[cronSemana.value - 1];
+      return s ? s.dias : [];
+    });
+
+    function materiaInfo(cod) { return MATERIA_MAP[cod] || { nome: cod, icone: '\uD83D\uDCD8', cor: '#6b7280' }; }
+
+    const materiasList = computed(() => {
+      const seen = {};
+      if (!semanaAtualDias.value) return [];
+      semanaAtualDias.value.forEach(d => d.slots.forEach(s => { seen[s.cod] = MATERIA_MAP[s.cod]; }));
+      return Object.entries(seen).map(([cod, info]) => ({ cod, ...info }));
+    });
+
     // --- Plano ---
+    const PLANOS_LISTA = [
+      { id: 'caderno-erros', nome: 'Caderno de Erros', grupo: 'Cronogramas e Planos' },
+      { id: 'checklist-conteudos', nome: 'Checklist de Conteúdos', grupo: 'Cronogramas e Planos' },
+      { id: 'ciclo-estudos', nome: 'Ciclo de Estudos', grupo: 'Cronogramas e Planos' },
+      { id: 'conteudo-programatico', nome: 'Conteúdo Programático', grupo: 'Cronogramas e Planos' },
+      { id: 'cronograma-12-semanas-provas', nome: 'Cronograma 12 Semanas (Provas)', grupo: 'Cronogramas e Planos' },
+      { id: 'cronograma-cesgranrio', nome: 'Cronograma Cesgranrio', grupo: 'Cronogramas e Planos' },
+      { id: 'cronograma-completo', nome: 'Cronograma Completo', grupo: 'Cronogramas e Planos' },
+      { id: 'metodologia-estudo', nome: 'Metodologia de Estudo', grupo: 'Cronogramas e Planos' },
+      { id: 'quadro-horas', nome: 'Quadro de Horas', grupo: 'Cronogramas e Planos' },
+      { id: 'relatorio-metodos-concurseiros', nome: 'Relatório — Métodos de Concurseiros', grupo: 'Cronogramas e Planos' },
+      { id: 'revisoes-simulados', nome: 'Revisões e Simulados', grupo: 'Cronogramas e Planos' },
+      { id: 'materias/portugues', nome: 'Português', grupo: 'Matérias' },
+      { id: 'materias/matematica', nome: 'Matemática', grupo: 'Matérias' },
+      { id: 'materias/quimica-geral', nome: 'Química Geral', grupo: 'Matérias' },
+      { id: 'materias/quimica-analitica', nome: 'Química Analítica', grupo: 'Matérias' },
+      { id: 'materias/quimica-organica', nome: 'Química Orgânica', grupo: 'Matérias' },
+      { id: 'materias/fisico-quimica', nome: 'Físico-Química', grupo: 'Matérias' },
+      { id: 'materias/analise-instrumental', nome: 'Análise Instrumental', grupo: 'Matérias' },
+      { id: 'materias/metrologia-estatistica', nome: 'Metrologia e Estatística', grupo: 'Matérias' },
+      { id: 'resumos/analise-geral', nome: 'Análise Geral', grupo: 'Resumos' },
+      { id: 'resumos/portugues', nome: 'Português', grupo: 'Resumos' },
+      { id: 'resumos/matematica', nome: 'Matemática', grupo: 'Resumos' },
+      { id: 'resumos/quimica-geral', nome: 'Química Geral', grupo: 'Resumos' },
+      { id: 'resumos/quimica-organica', nome: 'Química Orgânica', grupo: 'Resumos' },
+      { id: 'resumos/fisico-quimica', nome: 'Físico-Química', grupo: 'Resumos' },
+      { id: 'resumos/tecnicas-laboratorio', nome: 'Técnicas de Laboratório', grupo: 'Resumos' },
+      { id: 'simulados/simulado-01', nome: 'Simulado 01', grupo: 'Simulados' },
+      { id: 'simulados/simulado-02', nome: 'Simulado 02', grupo: 'Simulados' },
+      { id: 'simulados/simulado-03', nome: 'Simulado 03', grupo: 'Simulados' },
+    ];
+
     const planoSelecionado = ref('');
     const planoHtml = ref('');
     const carregandoPlano = ref(false);
@@ -725,9 +1783,22 @@ const app = createApp({
       if (!planoSelecionado.value) return;
       carregandoPlano.value = true;
       try {
-        const r = await fetch(`/api/plano/${planoSelecionado.value}`);
-        if (!r.ok) throw new Error('Não encontrado');
-        const md = await r.text();
+        let md;
+        const apiUrl = `/api/plano/${planoSelecionado.value}`;
+        const staticUrl = `planos/${planoSelecionado.value}.md`;
+        const r = await fetch(apiUrl, { cache: 'no-store' });
+        if (r.ok) {
+          md = await r.text();
+        } else {
+          const r2 = await fetch(staticUrl, { cache: 'no-store' });
+          if (!r2.ok) {
+            const r3 = await fetch(`/${staticUrl}`, { cache: 'no-store' });
+            if (!r3.ok) throw new Error('Não encontrado');
+            md = await r3.text();
+          } else {
+            md = await r2.text();
+          }
+        }
         if (typeof marked !== 'undefined') {
           planoHtml.value = marked.parse(md, { breaks: true, gfm: true });
         } else {
@@ -744,8 +1815,10 @@ const app = createApp({
         const r = await fetch('/api/planos');
         if (r.ok) {
           planosDisponiveis.value = await r.json();
+          return;
         }
       } catch {}
+      planosDisponiveis.value = PLANOS_LISTA;
     }
 
     // --- Nav ---
@@ -765,8 +1838,10 @@ const app = createApp({
     }
 
     return {
+      usuarioAtual, autenticado, erroLogin, usuarioLogado,
+      handleLogin, logout, loginUsuario, loginSenha,
       view, menuAberta, semanaAtual,
-      tema, diasSemana, carregando, saveStatus,
+      tema, diasSemana, carregando,
       tituloView, subtituloView,
       semanasPlano, metaHoras, totalMeta,
       conteudos: CONTEUDOS,
@@ -796,13 +1871,59 @@ const app = createApp({
       // Expondo tudo do Composable de Flashcards
       flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados,
       novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard,
-      modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao, 
+      modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, 
       abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao,
       // Expondo tudo do Composable de Ciclo de Estudos
-      ciclo, materiaAtual, cicloCompleto, cicloExpandido,
+      ciclo, materiaAtual, idxOriginalAtual, cicloCompleto, cicloExpandido, completosPorItem,
       avancarCiclo, reiniciarCiclo,
       CICLO_ESTUDOS, REVISAO_INTERVALOS, DIAS_SEMANA,
-      conteudosFiltrados, expandirTudo, colapsarTudo
+      conteudosFiltrados, expandirTudo, colapsarTudo,
+      // Admin
+      adminUsuarios: admin.usuarios,
+      adminEditando: admin.editandoUsuario,
+      adminTotal: admin.totalUsuarios,
+      adminAdmins: admin.admins,
+      adminComuns: admin.usuariosComuns,
+      adminNovo: admin.novoUsuario,
+      adminEditar: admin.editarUsuario,
+      adminSalvar: admin.salvarUsuario,
+      adminRemover: admin.removerUsuario,
+      adminCancelar: admin.cancelarEdicao,
+      // Cronograma
+      periodos, cronSemana, cronograma, semanaAtualDias, materiaInfo, materiasList,
+      slotConcluido, alternarSlot, totalSlots, totalConcluidos, progressoGeralCron,
+      progressoSemana, totalSlotsSemana, concluidosSemana,
+      // Expondo tudo do Composable de Questões
+      filtroMateria: exercicios.filtroMateria,
+      filtroGrupo: exercicios.filtroGrupo,
+      filtroDificuldade: exercicios.filtroDificuldade,
+      mostrarFavoritos: exercicios.mostrarFavoritos,
+      modoQuiz: exercicios.modoQuiz,
+      quizQuestoes: exercicios.quizQuestoes,
+      quizIndex: exercicios.quizIndex,
+      respostas: exercicios.respostas,
+      responded: exercicios.responded,
+      selecionado: exercicios.selecionado,
+      mostrarExplicacao: exercicios.mostrarExplicacao,
+      revisao: exercicios.revisao,
+      favoritos: exercicios.favoritos,
+      materiasDisponiveis: exercicios.materiasDisponiveis,
+      gruposDisponiveis: exercicios.gruposDisponiveis,
+      questoesFiltradas: exercicios.questoesFiltradas,
+      quizAtual: exercicios.quizAtual,
+      quizProgresso: exercicios.quizProgresso,
+      quizAcertos: exercicios.quizAcertos,
+      quizTotal: exercicios.quizTotal,
+      favoritosLista: exercicios.favoritosLista,
+      iniciarQuiz: exercicios.iniciarQuiz,
+      responderQuestao: exercicios.responderQuestao,
+      proximaQuestao: exercicios.proximaQuestao,
+      voltarQuestao: exercicios.voltarQuestao,
+      finalizarQuiz: exercicios.finalizarQuiz,
+      alternarFavorito: exercicios.alternarFavorito,
+      toggleExplicacao: exercicios.toggleExplicacao,
+      toggleRevisao: exercicios.toggleRevisao,
+      EXERCICIOS: EXERCICIOS
     };
   }
 });

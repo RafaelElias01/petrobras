@@ -1,4 +1,4 @@
-const CONTEUDOS = [
+export const CONTEUDOS = [
   {
     id: 'portugues',
     nome: 'Língua Portuguesa',
@@ -766,10 +766,11 @@ const CONTEUDOS = [
   }
 ];
 
-const SEMANAS_PLANO = 12;
-const META_HORAS_SEMANA = 30;
+export const SEMANAS_PLANO = 12;
+export const META_HORAS_SEMANA = 30;
+export const META_HORAS_DIA = 6;
 
-const CICLO_ESTUDOS = [
+export const CICLO_ESTUDOS = [
   { materia: 'Português', icone: '📝', tempo: 80, peso: 4 },
   { materia: 'Química — Soluções + Inorgânica', icone: '🧪', tempo: 90, peso: 4 },
   { materia: 'Matemática', icone: '🔢', tempo: 70, peso: 3 },
@@ -781,7 +782,23 @@ const CICLO_ESTUDOS = [
   { materia: 'Química — Transformações + Estequiometria', icone: '🧪', tempo: 80, peso: 3 }
 ];
 
-const DIAS_SEMANA = [
+// Mapeia nome do ciclo para ID de CONTEUDOS (mesmo usado em Diario.vue)
+export const CICLO_MAP = {
+  'português': 'portugues',
+  'matemática': 'matematica',
+  'química': 'quimica',
+  'petróleo': 'processospetroleo',
+  'segurança': 'segurancaaambiente',
+  'metrologia': 'metrologiacontrole'
+};
+
+export function mapCicloParaMateriaId(nomeMateria) {
+  const nome = nomeMateria.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const match = Object.keys(CICLO_MAP).find(k => nome.includes(k));
+  return CICLO_MAP[match] || 'quimica';
+}
+
+export const DIAS_SEMANA = [
   { valor: 'seg', rotulo: 'Segunda' },
   { valor: 'ter', rotulo: 'Terça' },
   { valor: 'qua', rotulo: 'Quarta' },
@@ -791,380 +808,15 @@ const DIAS_SEMANA = [
   { valor: 'dom', rotulo: 'Domingo' }
 ];
 
-const REVISAO_INTERVALOS = [
+export const REVISAO_INTERVALOS = [
   { id: 'd1', rotulo: 'D+1 (24h)', dias: 1 },
   { id: 'd7', rotulo: 'D+7 (1 sem)', dias: 7 },
   { id: 'd30', rotulo: 'D+30 (1 mês)', dias: 30 }
 ];
 
-const MATERIA_MAP = {
-  P:   { nome: 'Português',        icone: '📝', cor: '#4CAF50' },
-  M:   { nome: 'Matemática',       icone: '🔢', cor: '#2196F3' },
-  Q:   { nome: 'Química',          icone: '🧪', cor: '#FF9800' },
-  QO:  { nome: 'Química Orgânica', icone: '🧪', cor: '#E65100' },
-  R:   { nome: 'Revisão',          icone: '🔄', cor: '#7C3AED' },
-  SIM: { nome: 'Simulado',         icone: '📋', cor: '#DC2626' },
-};
-
-const CRONOGRAMA_SEMANAL = [
-  {
-    semana: 1, titulo: 'Fundamento Químico + Orgânica Básica',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Interpretação de textos (estilo Cesgranrio)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Átomos, modelos atômicos, tabela periódica' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Ligações químicas + geometria molecular' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Ortografia + Acentuação (Cesgranrio)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Funções inorgânicas I: Ácidos + Bases' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Funções inorgânicas II: Sais + Óxidos' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Conjuntos + Função afim (1º grau)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Reações inorgânicas (síntese, decomposição, simples/dupla troca)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Exercícios de funções inorgânicas' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Classes de palavras (substantivo, adjetivo, artigo)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'NOX + Reações redox' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Balanceamento redox' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Função quadrática' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Revisão da semana + 30 questões' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção + caderno de erros' },
-      ]},
-    ],
-  },
-  {
-    semana: 2, titulo: 'Estequiometria + Soluções I',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Classes (verbos, pronomes, conjunções)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Massa molar, mol, Constante de Avogadro' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Leis ponderais + Cálculos estequiométricos' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Sintaxe (concordância verbal e nominal)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Reagente limitante + Rendimento + Pureza' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Exercícios de estequiometria' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Geometria plana (triângulos, quadriláteros, círculo)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Soluções: concentração comum + molaridade' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Diluição (C1V1 = C2V2)' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Regência verbal + nominal + Crase' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Mistura de soluções (mesmo soluto + c/ reação)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Título, ppm, fração molar' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Geometria espacial (cubo, paralelepípedo, cilindro, cone)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Revisão estequiometria + soluções (30 questões)' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção' },
-      ]},
-    ],
-  },
-  {
-    semana: 3, titulo: 'Soluções II + Equilíbrio Químico',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Pontuação' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Propriedades coligativas + Coloides' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Solubilidade + Kps' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Reescritura de frases + Problemas língua culta' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Equilíbrio Químico (Kc, Kp, relação)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Princípio de Le Chatelier' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Progressões (PA e PG)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Exercícios de equilíbrio químico' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'pH + pOH + escala' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: '10 questões completas Cesgranrio (prova 2018)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Hidrólise de sais + Solução-tampão' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Exercícios de pH e tampão' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Análise Combinatória (PFC, permutação, arranjo, combinação)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Revisão S1+S2 (átomos a soluções)' },
-        { periodo: '20h-22h', cod: 'R', conteudo: '30 questões de revisão + correção' },
-      ]},
-    ],
-  },
-  {
-    semana: 4, titulo: 'Técnicas de Laboratório + Titulometria + SIMULADO 1',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Interpretação + vocabulário (Cesgranrio)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Técnicas: destilação, filtração, extração, decantação' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Gravimetria' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Exercícios de sintaxe (Crase, concordância, regência)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Titulometria: conceitos, padrão primário, fator de correção' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Volumetria ácido-base (curvas, indicadores)' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Geometria analítica (reta, circunferência)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Volumetria redox (permanganometria, iodometria)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Volumetria de precipitação e complexação' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Aritmética + Problemas (regra de 3, porcentagem)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Cálculos titulométricos' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Exercícios completos de titulometria' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'SIM', conteudo: 'SIMULADO 1 (2h: P+M / 2h: Q)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Correção do simulado' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Caderno de erros + revisão' },
-      ]},
-    ],
-  },
-  {
-    semana: 5, titulo: 'Química Orgânica',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Exercícios de interpretação (3 textos Cesgranrio)' },
-        { periodo: '13h-15h', cod: 'QO', conteudo: 'Cadeias carbônicas + Hidrocarbonetos (alcanos, alcenos, alcinos)' },
-        { periodo: '20h-22h', cod: 'QO', conteudo: 'Nomenclatura IUPAC' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Morfologia (verbos: tempos, modos, vozes)' },
-        { periodo: '13h-15h', cod: 'QO', conteudo: 'Hidrocarbonetos aromáticos + Petróleo e refino' },
-        { periodo: '20h-22h', cod: 'QO', conteudo: 'Exercícios de nomenclatura' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Álgebra Linear / Matrizes (operações, determinantes)' },
-        { periodo: '13h-15h', cod: 'QO', conteudo: 'Funções oxigenadas (álcool, fenol, éter, aldeído, cetona, ácido, éster)' },
-        { periodo: '20h-22h', cod: 'QO', conteudo: 'Funções nitrogenadas + Haletos' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Pronomes: colocação + emprego' },
-        { periodo: '13h-15h', cod: 'QO', conteudo: 'Reações orgânicas (adição, oxidação, esterificação, polimerização)' },
-        { periodo: '20h-22h', cod: 'QO', conteudo: 'Exercícios de reações orgânicas' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Raciocínio Lógico' },
-        { periodo: '13h-15h', cod: 'QO', conteudo: 'Isomeria plana + geométrica' },
-        { periodo: '20h-22h', cod: 'QO', conteudo: '30 questões completas de Orgânica' },
-      ]},
-    ],
-  },
-  {
-    semana: 6, titulo: 'Cinética + Termoquímica + Estatística/Financeira',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: '10 questões Cesgranrio (prova completa Português 2018)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Cinética: velocidade, fatores, lei da velocidade' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Ordem de reação + Energia de ativação' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Revisão geral de gramática Cesgranrio' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Exercícios de cinética' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Termoquímica (entalpia, calor de reação, Lei de Hess)' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Matemática Financeira (juros simples e compostos)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Exercícios de termoquímica' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: '20 questões de cinética + termoquímica' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Estatística básica (média, desvio, gráficos)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Eletroquímica (pilhas, potenciais, DDP)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Equação de Nernst + Eletrólise' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisão S3+S4+S5 (equilíbrio, técnicas, orgânica)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: '40 questões mistas de Química' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção + caderno de erros' },
-      ]},
-    ],
-  },
-  {
-    semana: 7, titulo: 'REVISÃO PESADA + SIMULADO 2',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Revisão interpretação + sintaxe (2h cronometradas)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'REVISÃO: Soluções + Funções Inorgânicas (40 questões)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'REVISÃO: Estequiometria + Reações (30 questões)' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Revisão: funções + geometria (30 questões)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'REVISÃO: Equilíbrio Químico + pH (25 questões)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'REVISÃO: Técnicas + Titulometria (20 questões)' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Revisão: morfologia + pontuação + crase' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'REVISÃO: Orgânica (30 questões)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'REVISÃO: Cinética + Termoquímica (20 questões)' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Revisão: combinatória + PA/PG + matrizes' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Mapeamento de pontos fracos' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Reforço nos tópicos críticos' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'SIM', conteudo: 'SIMULADO 2 (2h: P+M / 2h: Q)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Correção completa' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Caderno de erros' },
-      ]},
-    ],
-  },
-  {
-    semana: 8, titulo: 'Provas Anteriores Cesgranrio (resolução completa)',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Resolver PROVA CESGRANRIO 2018 (60 questões, cronometrado)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Correção detalhada questão a questão' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Analisar padrão de erros' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisar tópicos que errou na prova 2018' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Exercícios focados nos erros (Química)' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Exercícios focados nos erros (Port. + Mat.)' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Resolver PROVA TRANSPETRO CESGRANRIO 2023 (60q, cronometrado)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Correção detalhada questão a questão' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Analisar padrão de erros' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisar tópicos que errou na prova 2023' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Mais exercícios nos pontos fracos (Química)' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Mais exercícios nos pontos fracos (Port. + Mat.)' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Resolver PROVA CESGRANRIO 2011 (se disponível)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Correção' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Síntese: o que a Cesgranrio mais cobra' },
-      ]},
-    ],
-  },
-  {
-    semana: 9, titulo: 'Aprofundamento nos Tópicos Campeões (parte 1)',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: '30 questões de interpretação Cesgranrio' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: '50 questões de Soluções + Funções Inorgânicas' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: '25 questões de funções + geometria' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: '40 questões de Transformações Químicas + Estequiometria' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: '20 questões de sintaxe + crase + pontuação' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: '35 questões de Equilíbrio Químico + pH' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: '15 questões de combinatória + PA/PG + matrizes' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: '30 questões de Técnicas de Laboratório + Titulometria' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: '10 questões Cesgranrio (prova completa)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: '30 questões de Orgânica' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Revisão dos erros da semana' },
-      ]},
-    ],
-  },
-  {
-    semana: 10, titulo: 'Aprofundamento (parte 2) + Química Aplicada',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: 'Estratégias de leitura Cesgranrio' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: '20 questões de Cinética' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: '20 questões de Termoquímica' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Revisão: aritmética + problemas + estatística' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Eletroquímica (revisão + 15 questões)' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Análise Instrumental básica (IV, UV-Vis, Cromatografia)' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: '20 questões de morfologia (verbos, pronomes)' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Operações Unitárias + Processos Industriais' },
-        { periodo: '20h-22h', cod: 'Q', conteudo: 'Termodinâmica + Equilíbrio de fases' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'M', conteudo: 'Matemática Financeira + Raciocínio Lógico' },
-        { periodo: '13h-15h', cod: 'Q', conteudo: 'Análise Instrumental (mais questões)' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Revisão geral dos tópicos da semana' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'P', conteudo: '10 questões Cesgranrio (leitura + gramática)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: '50 questões mistas de Química' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Correção + pontos fracos' },
-      ]},
-    ],
-  },
-  {
-    semana: 11, titulo: 'Simulado 3 + Reta Final',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisão relâmpago Português (mapas mentais)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Revisão: Soluções + Inorgânica + Estequiometria' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Revisão: Equilíbrio + pH + Técnicas' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisão relâmpago Matemática (fórmulas)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Revisão: Orgânica + Cinética + Termoquímica' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Revisão: Eletroquímica + Instrumental' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisão acelerada de TODAS as fórmulas' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Resolução de dúvidas finais' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Leitura de resumos' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'SIM', conteudo: 'SIMULADO 3 (igual à prova real: 60 questões, 4h)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Correção completa' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Últimos ajustes' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisão dos erros do simulado' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Revisão dos erros do simulado' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Revisão leve de resumos' },
-      ]},
-    ],
-  },
-  {
-    semana: 12, titulo: 'Últimos Dias',
-    dias: [
-      { dia: 'Segunda-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisão TOP 3 Química (Soluções, Estequiometria, Equilíbrio)' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Revisão TOP 2 (Orgânica, Técnicas)' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Revisão TOP 2 (Cinética, Termoquímica)' },
-      ]},
-      { dia: 'Terça-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: '25 questões rápidas de Português' },
-        { periodo: '13h-15h', cod: 'R', conteudo: '25 questões rápidas de Matemática' },
-        { periodo: '20h-22h', cod: 'R', conteudo: '30 questões rápidas de Química' },
-      ]},
-      { dia: 'Quarta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Revisão de resumos + fórmulas' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Revisão de resumos + fórmulas' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'Revisão de resumos + fórmulas' },
-      ]},
-      { dia: 'Quinta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'Leitura leve de resumos' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'Logística: documentação, local, horário' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'DESCANSO' },
-      ]},
-      { dia: 'Sexta-feira', slots: [
-        { periodo: '08h-10h', cod: 'R', conteudo: 'DESCANSO TOTAL' },
-        { periodo: '13h-15h', cod: 'R', conteudo: 'DESCANSO TOTAL' },
-        { periodo: '20h-22h', cod: 'R', conteudo: 'DIA DA PROVA' },
-      ]},
-    ],
-  },
+export const CHECKLIST_ITENS = [
+    { id: 'revisoes', texto: 'Fiz as revisões espaçadas do dia' },
+    { id: 'ciclo', texto: 'Estudei a matéria do ciclo' },
+    { id: 'questoes', texto: 'Resolvi um bloco de questões' },
+    { id: 'erros', texto: 'Analisei e registrei os erros' },
 ];

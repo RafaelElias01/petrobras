@@ -4,12 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estudo Petrobras - Técnico em Química</title>
-  <base href="/">
   <link rel="stylesheet" href="css/estilo.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
   <div id="app">
+    <div v-if="!autenticado" class="login-wrapper">
+      <div class="login-bg">
+        <div class="bg-shape bg-shape-1"></div>
+        <div class="bg-shape bg-shape-2"></div>
+        <div class="bg-shape bg-shape-3"></div>
+      </div>
+      <div class="login-container">
+        <div class="login-brand">
+          <div class="brand-icon">📘</div>
+          <h1 class="brand-title">Petrobras 2026</h1>
+          <p class="brand-subtitle">Técnico em Química • Cesgranrio</p>
+          <div class="brand-features">
+            <div class="feature-item">
+              <span class="feature-icon">🎯</span>
+              <span>Plano de estudos inteligente</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🧠</span>
+              <span>Flashcards com revisão espaçada</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">📊</span>
+              <span>Métricas e relatórios de progresso</span>
+            </div>
+          </div>
+        </div>
+        <div class="login-card">
+          <div class="login-card-header">
+            <h2>Acessar Plataforma</h2>
+            <p>Informe suas credenciais</p>
+          </div>
+          <form @submit.prevent="handleLogin(loginUsuario, loginSenha)" class="login-form">
+            <div class="input-group">
+              <label for="loginUsuario">Usuário</label>
+              <input id="loginUsuario" v-model="loginUsuario" type="text" placeholder="Seu nome de usuário" class="input-field" autofocus autocomplete="username">
+              <span class="input-icon">👤</span>
+            </div>
+            <div class="input-group">
+              <label for="loginSenha">Senha</label>
+              <input id="loginSenha" v-model="loginSenha" type="password" placeholder="Sua senha" class="input-field" autocomplete="current-password">
+              <span class="input-icon">🔒</span>
+            </div>
+            <button type="submit" class="btn-entrar">
+              <span>Entrar</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <p v-if="erroLogin" class="msg-erro">⚠ Usuário ou senha inválidos. Tente novamente.</p>
+          </form>
+          <div class="login-card-footer">
+            <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <template v-if="autenticado">
     <div v-if="carregando" style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:var(--texto-sec);">
       Carregando...
     </div>
@@ -20,36 +74,57 @@
         <span>Técnico em Química • Cesgranrio</span>
       </div>
       <nav class="sidebar-nav">
-        <button class="nav-item" :class="{ ativa: view === 'dashboard' }" @click="irPara('dashboard')">
+        <a href="#dashboard" class="nav-item" :class="{ ativa: view === 'dashboard' }" @click.prevent="irPara('dashboard')">
           <span class="icone">📊</span> Dashboard
-        </button>
-        <button class="nav-item" :class="{ ativa: view === 'checklist' }" @click="irPara('checklist')">
+        </a>
+        <a href="#checklist" class="nav-item" :class="{ ativa: view === 'checklist' }" @click.prevent="irPara('checklist')">
           <span class="icone">✅</span> Conteúdos
-        </button>
-        <button class="nav-item" :class="{ ativa: view === 'ciclo' }" @click="irPara('ciclo')">
+        </a>
+        <a href="#ciclo" class="nav-item" :class="{ ativa: view === 'ciclo' }" @click.prevent="irPara('ciclo')">
           <span class="icone">🔄</span> Ciclo
-        </button>
-        <button class="nav-item" :class="{ ativa: view === 'horas' }" @click="irPara('horas')">
+        </a>
+        <a href="#horas" class="nav-item" :class="{ ativa: view === 'horas' }" @click.prevent="irPara('horas')">
           <span class="icone">⏱</span> Horas
-        </button>
-        <button class="nav-item" :class="{ ativa: view === 'simulados' }" @click="irPara('simulados')">
+        </a>
+        <a href="#simulados" class="nav-item" :class="{ ativa: view === 'simulados' }" @click.prevent="irPara('simulados')">
           <span class="icone">📋</span> Simulados
-        </button>
-        <button class="nav-item" :class="{ ativa: view === 'erros' }" @click="irPara('erros')">
+        </a>
+        <a href="#erros" class="nav-item" :class="{ ativa: view === 'erros' }" @click.prevent="irPara('erros')">
           <span class="icone">📕</span> Erros
-        </button>
-        <button class="nav-item" :class="{ ativa: view === 'diario' }" @click="irPara('diario')">
+        </a>
+        <a href="#exercicios" class="nav-item" :class="{ ativa: view === 'exercicios' }" @click.prevent="irPara('exercicios')">
+          <span class="icone">📝</span> Questões
+        </a>
+        <a href="#diario" class="nav-item" :class="{ ativa: view === 'diario' }" @click.prevent="irPara('diario')">
           <span class="icone">📌</span> Diário
-        </button>
+        </a>
+        <a href="#cronograma" class="nav-item" :class="{ ativa: view === 'cronograma' }" @click.prevent="irPara('cronograma')">
+          <span class="icone">📅</span> Cronograma
+        </a>
+        <a href="#flashcards" class="nav-item" :class="{ ativa: view === 'flashcards' }" @click.prevent="irPara('flashcards')">
+          <span class="icone">🧠</span> Flashcards
+        </a>
+        <a v-if="usuarioAtual?.role === 'admin'" href="#admin" class="nav-item" :class="{ ativa: view === 'admin' }" @click.prevent="irPara('admin')" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;padding-top:12px;">
+          <span class="icone">⚙️</span> Admin
+        </a>
         <div style="border-top:1px solid rgba(255,255,255,0.08);margin:8px 16px;"></div>
-        <button class="nav-item" :class="{ ativa: view === 'plano' }" @click="irPara('plano')">
+        <a href="#plano" class="nav-item" :class="{ ativa: view === 'plano' }" @click.prevent="irPara('plano')">
           <span class="icone">📖</span> Plano de Estudos
-        </button>
+        </a>
       </nav>
       <div style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08);">
         <button class="nav-item" @click="alternarTema" style="font-size:13px;">
           <span class="icone">{{ tema === 'dark' ? '☀️' : '🌙' }}</span>
           {{ tema === 'dark' ? 'Tema Claro' : 'Tema Escuro' }}
+        </button>
+      </div>
+      <div style="padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:12px;color:var(--texto-sec);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span style="opacity:0.7;">👤</span> {{ usuarioLogado }}
+          <span v-if="usuarioAtual?.role === 'admin'" style="font-size:10px;background:#f59e0b;color:#000;padding:1px 6px;border-radius:3px;font-weight:600;">ADM</span>
+        </div>
+        <button @click="logout" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--erro);padding:6px 0;display:flex;align-items:center;gap:6px;width:100%;">
+          <span>🚪</span> Sair
         </button>
       </div>
     </aside>
@@ -65,8 +140,8 @@
 
       <transition name="fade" mode="out-in">
         <div :key="view">
-          <!-- DASHBOARD -->
-        <div v-if="view === 'dashboard'" key="dashboard">
+          <!-- DASHBOARD --> 
+        <template v-if="view === 'dashboard'">
           <div class="grade-cartoes">
             <div class="cartao-stat verde">
               <div class="valor">{{ progressoGeral }}%</div>
@@ -127,10 +202,10 @@
               Banca: <strong>Cesgranrio</strong> · Última prova referência: 2018
             </div>
           </div>
-        </div>
+        </template>
 
         <!-- CHECKLIST -->
-        <div v-if="view === 'checklist'" key="checklist">
+        <template v-if="view === 'checklist'">
           <div class="grade-cartoes">
             <div v-for="m in conteudos" :key="m.id" class="cartao-stat" :style="{ borderTopColor: m.cor }">
               <div class="valor" :style="{ color: m.cor }">{{ progressoMateria(m) }}%</div>
@@ -149,7 +224,7 @@
             <!-- P1: Busca e Botões -->
             <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               <input v-model="filtro" type="text" placeholder="🔍 Buscar tópico..." 
-                style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--borda);border-radius:4px;background:var(--fundo-sec);color:var(--texto);font-size:13px;">
+                style="flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--borda);border-radius:4px;background:var(--fundo-sec);color:var(--texto);font-size:13px;">
               <button @click="expandirTudo" style="padding:8px 12px;background:var(--primaria);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;transition:background 0.2s;">
                 📂 Expandir Tudo
               </button>
@@ -184,10 +259,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </template>
 
         <!-- HORAS -->
-        <div v-if="view === 'horas'" key="horas">
+        <template v-if="view === 'horas'">
           <div class="grade-cartoes" style="margin-bottom:20px;">
             <div class="cartao-stat verde">
               <div class="valor">{{ horasSemanaAtual }}</div>
@@ -286,10 +361,89 @@
               </tfoot>
             </table>
           </div>
+        </template>
+
+        <!-- CRONOGRAMA SEMANAL -->
+        <div v-if="view === 'cronograma'" key="cronograma">
+          <div class="grade-cartoes">
+            <div class="cartao-stat" :class="progressoGeralCron >= 100 ? 'verde' : ''">
+              <div class="valor">{{ progressoGeralCron }}%</div>
+              <div class="rotulo">Geral ({{ totalConcluidos }}/{{ totalSlots }})</div>
+            </div>
+            <div class="cartao-stat" :class="progressoSemana(cronSemana) >= 100 ? 'verde' : ''">
+              <div class="valor">{{ progressoSemana(cronSemana) }}%</div>
+              <div class="rotulo">Semana {{ cronSemana }} ({{ concluidosSemana(cronSemana) }}/{{ totalSlotsSemana(cronSemana) }})</div>
+            </div>
+          </div>
+
+          <div class="cron-topo">
+            <div class="cron-nav">
+              <button @click="cronSemana--" :disabled="cronSemana <= 1" class="cron-nav-btn">‹</button>
+              <div class="cron-nav-info">
+                <span class="cron-nav-semana">Semana {{ cronSemana }} de {{ cronograma.length }}</span>
+                <span class="cron-nav-titulo">{{ cronograma[cronSemana-1]?.titulo }}</span>
+              </div>
+              <button @click="cronSemana++" :disabled="cronSemana >= cronograma.length" class="cron-nav-btn">›</button>
+            </div>
+            <select v-model.number="cronSemana" class="cron-select">
+              <option v-for="s in cronograma" :key="s.semana" :value="s.semana">
+                Semana {{ s.semana }} — {{ s.titulo }}
+              </option>
+            </select>
+          </div>
+
+          <div class="cron-barra-semana">
+            <div class="cron-barra-label">{{ concluidosSemana(cronSemana) }}/{{ totalSlotsSemana(cronSemana) }} concluídos</div>
+            <div class="barra-progresso">
+              <div class="preenchimento" :style="{ width: progressoSemana(cronSemana) + '%', background: '#7C3AED' }"></div>
+            </div>
+          </div>
+
+          <div class="cron-tabela-wrapper">
+            <table class="cron-tabela">
+              <thead>
+                <tr>
+                  <th class="cron-th-dia">Dia</th>
+                  <th v-for="p in periodos" :key="p" class="cron-th-horario">
+                    <span class="cron-horario-badge">{{ p }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="d in semanaAtualDias" :key="d.dia" class="cron-linha" :class="{ 'cron-linha-completa': periodos.every(p => slotConcluido(cronSemana, d.dia, p)) }">
+                  <td class="cron-dia-label">{{ d.dia }}</td>
+                  <td v-for="(slot, si) in d.slots" :key="si" class="cron-cell"
+                    :class="{ 'cron-cell-feito': slotConcluido(cronSemana, d.dia, slot.periodo) }"
+                    @click="alternarSlot(cronSemana, d.dia, slot.periodo)">
+                    <div class="cron-check-wrap">
+                      <input type="checkbox" :checked="slotConcluido(cronSemana, d.dia, slot.periodo)" @click.stop class="cron-check">
+                      <div class="cron-materia-badge" :style="{
+                        background: slotConcluido(cronSemana, d.dia, slot.periodo) ? materiaInfo(slot.cod).cor : materiaInfo(slot.cod).cor + '18',
+                        color: slotConcluido(cronSemana, d.dia, slot.periodo) ? '#fff' : materiaInfo(slot.cod).cor,
+                        borderLeftColor: materiaInfo(slot.cod).cor,
+                        textDecoration: slotConcluido(cronSemana, d.dia, slot.periodo) ? 'line-through' : 'none'
+                      }">
+                        <span class="cron-materia-icon">{{ materiaInfo(slot.cod).icone }}</span>
+                        <span class="cron-materia-nome">{{ materiaInfo(slot.cod).nome }}</span>
+                      </div>
+                    </div>
+                    <div class="cron-conteudo" :class="{ 'cron-conteudo-feito': slotConcluido(cronSemana, d.dia, slot.periodo) }">{{ slot.conteudo }}</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="cron-legenda">
+            <span v-for="m in materiasList" :key="m.cod" class="cron-legenda-item">
+              <span class="cron-legenda-dot" :style="{ background: m.cor }"></span>
+              {{ m.icone }} {{ m.nome }}
+            </span>
+          </div>
         </div>
 
         <!-- PLANO -->
-        <div v-if="view === 'plano'" key="plano">
+        <template v-if="view === 'plano'">
           <div class="card" style="margin-bottom:16px;">
             <div class="card-titulo" style="margin-bottom:0;">
               <select v-model="planoSelecionado" @change="carregarPlano"
@@ -307,10 +461,10 @@
           <div class="card" v-if="!carregandoPlano && !planoHtml" style="text-align:center;padding:40px;color:var(--texto-sec);">
             Selecione um documento acima para visualizar.
           </div>
-        </div>
+        </template>
 
         <!-- SIMULADOS -->
-        <div v-if="view === 'simulados'" key="simulados">
+        <template v-if="view === 'simulados'">
           <div class="grade-cartoes">
             <div class="cartao-stat" v-for="(s, i) in simuladosOrdenados" :key="s.semana"
               :class="s.total/60 >= 0.7 ? 'verde' : s.total/60 >= 0.5 ? 'laranja' : 'vermelho'">
@@ -387,10 +541,10 @@
               </tbody>
             </table>
           </div>
-        </div>
+        </template>
 
         <!-- CICLO DE ESTUDOS -->
-        <div v-if="view === 'ciclo'" key="ciclo">
+        <template v-if="view === 'ciclo'">
           <div class="grade-cartoes">
             <div class="cartao-stat" :style="{ borderTopColor: '#8b5cf6' }">
               <div class="valor" style="font-size:24px;color:#8b5cf6;">{{ materiaAtual.materia }}</div>
@@ -417,13 +571,13 @@
               <div v-for="(m, i) in CICLO_ESTUDOS" :key="i"
                 style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:13px;cursor:default;"
                 :style="{
-                  background: i === ciclo.posicao ? '#8b5cf6' : ciclo.concluido[m.materia+'-c'+i] ? '#10b981' : 'var(--bg)',
-                  color: i === ciclo.posicao ? '#fff' : ciclo.concluido[m.materia+'-c'+i] ? '#fff' : 'var(--texto)',
-                  border: '1px solid ' + (i === ciclo.posicao ? '#8b5cf6' : 'var(--borda)')
+                  background: i === idxOriginalAtual ? '#8b5cf6' : (completosPorItem[i] || 0) > 0 ? '#10b981' : 'var(--bg)',
+                  color: i === idxOriginalAtual || (completosPorItem[i] || 0) > 0 ? '#fff' : 'var(--texto)',
+                  border: '1px solid ' + (i === idxOriginalAtual ? '#8b5cf6' : 'var(--borda)')
                 }">
                 <span>{{ m.icone }}</span>
                 <span>{{ m.materia }}</span>
-                <span style="opacity:0.7;font-size:12px;">{{ m.tempo }}min</span>
+                <span style="opacity:0.7;font-size:12px;">{{ completosPorItem[i] || 0 }}/{{ m.peso }}</span>
               </div>
             </div>
             <div style="display:flex;gap:12px;flex-wrap:wrap;">
@@ -464,10 +618,10 @@
               💡 <strong>Tática dos 60%:</strong> Na prova, resolva primeiro as questões mais rápidas e fáceis de cada matéria. Deixe as longas e complexas para o final.
             </div>
           </div>
-        </div>
+        </template>
 
         <!-- CADERNO DE ERROS -->
-        <div v-if="view === 'erros'" key="erros">
+        <template v-if="view === 'erros'">
           <div class="grade-cartoes">
             <div class="cartao-stat vermelho">
               <div class="valor">{{ totalErros }}</div>
@@ -563,10 +717,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </template>
 
         <!-- DIÁRIO (DAILY CHECKLIST) -->
-        <div v-if="view === 'diario'" key="diario">
+        <template v-if="view === 'diario'">
           <div class="grade-cartoes">
             <div class="cartao-stat" :class="diarioProgresso >= 100 ? 'verde' : diarioProgresso >= 50 ? 'laranja' : 'vermelho'">
               <div class="valor">{{ diarioProgresso }}%</div>
@@ -610,8 +764,484 @@
               </div>
             </div>
           </div>
+          </template>
+
+<!-- FLASHCARDS -->
+<template v-if="view === 'flashcards'">
+  <div v-if="modoRevisao" class="revisao-mode">
+    <div class="grade-cartoes">
+      <div class="cartao-stat azul">
+        <div class="valor">{{ progressoRevisao }}%</div>
+        <div class="rotulo">Progresso da revisão</div>
+      </div>
+      <div class="cartao-stat">
+        <div class="valor" style="font-size:20px;">{{ deckRevisao.length - (cardAtual ? deckRevisao.indexOf(cardAtual) : 0) }} / {{ deckRevisao.length }}</div>
+        <div class="rotulo">Restantes</div>
+      </div>
+    </div>
+
+    <div class="flashcard-review" v-if="cardAtual">
+      <div class="flashcard-materia">{{ cardAtual.materia }}</div>
+      <div class="flashcard-card" :class="{ virado: cardAtual.virado }" @click="!cardAtual.virado && (cardAtual.virado = true)">
+        <div class="flashcard-inner">
+          <div class="flashcard-front">
+            <div class="flashcard-label">PERGUNTA</div>
+            <div class="flashcard-text">{{ cardAtual.frente }}</div>
+            <div class="flashcard-hint">Clique para ver a resposta</div>
+          </div>
+          <div class="flashcard-back">
+            <div class="flashcard-label">RESPOSTA</div>
+            <div class="flashcard-text">{{ cardAtual.verso }}</div>
           </div>
         </div>
+      </div>
+
+      <div v-if="cardAtual.virado" class="flashcard-actions">
+        <p class="flashcard-ask">Como foi sua resposta?</p>
+        <div class="flashcard-buttons">
+          <button class="btn-acertou" @click="marcarResultado(true)">
+            <span class="btn-icon">✓</span>
+            <span class="btn-label">Acertei</span>
+          </button>
+          <button class="btn-errei" @click="marcarResultado(false)">
+            <span class="btn-icon">✕</span>
+            <span class="btn-label">Errei</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="revisao-footer">
+      <button class="btn-encerrar" @click="finalizarRevisao">Encerrar revisão</button>
+    </div>
+  </div>
+
+  <div v-else>
+    <div class="grade-cartoes">
+      <div class="cartao-stat azul">
+        <div class="valor">{{ flashcards.length }}</div>
+        <div class="rotulo">Total de flashcards</div>
+      </div>
+      <div class="cartao-stat" style="border-top-color:#f59e0b;">
+        <div class="valor" style="color:#f59e0b;">{{ flashcards.filter(f => !f.lastReviewed || new Date() >= new Date(new Date(f.lastReviewed).getTime() + ({1:1,2:3,3:7,4:14,5:30}[f.box||1]||1)*86400000)).length }}</div>
+        <div class="rotulo">Pendentes de revisão</div>
+      </div>
+      <div class="cartao-stat verde" v-if="flashcards.length > 0">
+        <div class="valor">{{ Math.round((flashcards.length - flashcards.filter(f => !f.lastReviewed || new Date() >= new Date(new Date(f.lastReviewed).getTime() + ({1:1,2:3,3:7,4:14,5:30}[f.box||1]||1)*86400000)).length) / flashcards.length * 100) }}%</div>
+        <div class="rotulo">Dominados</div>
+      </div>
+    </div>
+
+    <div class="card" v-if="editandoFlashcard">
+      <div class="card-titulo">
+        <span>{{ editandoFlashcard.id ? '✏️ Editar Flashcard' : '➕ Novo Flashcard' }}</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Matéria</label>
+          <select v-model="editandoFlashcard.materia">
+            <option value="">Selecione...</option>
+            <option>Português</option>
+            <option>Matemática</option>
+            <option>Química</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>Frente (pergunta)</label>
+          <textarea v-model="editandoFlashcard.frente" placeholder="Ex: O que é pH?" rows="3"></textarea>
+        </div>
+        <div class="form-group full-width">
+          <label>Verso (resposta)</label>
+          <textarea v-model="editandoFlashcard.verso" placeholder="Ex: Potencial hidrogeniônico..." rows="3"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" @click="salvarFlashcard">💾 Salvar</button>
+          <button class="btn-secondary" @click="cancelarFlashcard">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" v-else>
+      <div class="card-titulo">
+        <span>📚 Flashcards</span>
+        <span class="card-count">{{ flashcards.length }} cards</span>
+      </div>
+
+      <div class="flashcard-toolbar">
+        <button class="btn-primary" @click="novoFlashcard">➕ Novo Flashcard</button>
+        <button class="btn-revisar" @click="abrirConfiguracaoRevisao" :disabled="flashcards.length === 0">▶ Iniciar Revisão</button>
+      </div>
+
+      <div v-if="configurandoRevisao" class="config-revisao">
+        <h4>Configurar Revisão</h4>
+        <div class="config-row">
+          <label>Matérias (deixe vazio para todas)</label>
+          <div class="config-checkboxes">
+            <label v-for="m in ['Português', 'Matemática', 'Química']" :key="m" class="config-check">
+              <input type="checkbox" :value="m" v-model="opcoesRevisao.materias"> {{ m }}
+            </label>
+          </div>
+        </div>
+        <div class="config-row">
+          <label>Número de cards</label>
+          <input type="number" v-model.number="opcoesRevisao.numCards" min="1" max="100" class="config-input">
+        </div>
+        <div class="config-row">
+          <label class="config-check">
+            <input type="checkbox" v-model="opcoesRevisao.aleatorio"> Aleatório
+          </label>
+        </div>
+        <div class="config-actions">
+          <button class="btn-primary" @click="iniciarRevisao">Iniciar</button>
+          <button class="btn-secondary" @click="cancelarConfiguracaoRevisao">Cancelar</button>
+        </div>
+      </div>
+
+      <div v-for="(cards, materia) in flashcardsAgrupados" :key="materia" class="materia-group">
+        <h4 class="materia-header">{{ materia }} <span class="materia-count">{{ cards.length }}</span></h4>
+        <div v-if="cards.length === 0" class="empty-state">Nenhum flashcard nesta matéria.</div>
+        <div v-for="card in cards" :key="card.id" class="flashcard-item">
+          <div class="flashcard-item-content">
+            <div class="flashcard-item-front">{{ card.frente }}</div>
+            <div class="flashcard-item-meta">
+              <span class="box-indicator" :class="'box-' + (card.box || 1)">Caixa {{ card.box || 1 }}</span>
+              <span class="review-info">Última revisão: {{ card.lastReviewed || 'Nunca' }}</span>
+            </div>
+          </div>
+          <div class="flashcard-item-actions">
+            <button class="btn-icon-only" @click="editarFlashcard(card)" title="Editar">✏️</button>
+            <button class="btn-icon-only btn-danger" @click="removerFlashcard(card.id)" title="Remover">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- EXERCICIOS / BANCO DE QUESTÕES -->
+<template v-if="view === 'exercicios'">
+  <div v-if="revisao">
+    <div class="grade-cartoes">
+      <div class="cartao-stat" :class="quizAcertos/quizTotal >= 0.7 ? 'verde' : quizAcertos/quizTotal >= 0.5 ? 'laranja' : 'vermelho'">
+        <div class="valor" style="font-size:28px;">{{ quizAcertos }}/{{ quizTotal }}</div>
+        <div class="rotulo">Acertos</div>
+      </div>
+      <div class="cartao-stat" :class="quizAcertos/quizTotal >= 0.7 ? 'verde' : quizAcertos/quizTotal >= 0.5 ? 'laranja' : 'vermelho'">
+        <div class="valor">{{ quizTotal > 0 ? Math.round(quizAcertos/quizTotal*100) : 0 }}%</div>
+        <div class="rotulo">Percentual</div>
+      </div>
+      <div class="cartao-stat" style="cursor:pointer;" @click="toggleRevisao">
+        <div class="valor" style="font-size:20px;">{{ quizQuestoes.length }}</div>
+        <div class="rotulo">Total de questões (clique para revisar)</div>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center;padding:30px;">
+      <div style="font-size:48px;margin-bottom:12px;">{{ quizAcertos/quizTotal >= 0.7 ? '🎉' : quizAcertos/quizTotal >= 0.5 ? '💪' : '📚' }}</div>
+      <div style="font-size:18px;font-weight:600;margin-bottom:8px;">
+        {{ quizAcertos/quizTotal >= 0.7 ? 'Ótimo desempenho!' : quizAcertos/quizTotal >= 0.5 ? 'Continue praticando!' : 'Estude mais e tente novamente!' }}
+      </div>
+      <div style="font-size:14px;color:var(--texto-sec);margin-bottom:16px;">
+        Você acertou {{ quizAcertos }} de {{ quizTotal }} questões ({{ quizTotal > 0 ? Math.round(quizAcertos/quizTotal*100) : 0 }}%)
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button @click="iniciarQuiz" style="padding:10px 24px;background:var(--primaria);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:15px;font-family:inherit;">
+          🔄 Novo Quiz
+        </button>
+        <button @click="toggleRevisao" style="padding:10px 24px;background:var(--bg);color:var(--texto);border:1px solid var(--borda);border-radius:8px;cursor:pointer;font-size:15px;font-family:inherit;">
+          ← Voltar para lista
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-titulo">Revisão por Questão</div>
+      <div v-for="(q, i) in quizQuestoes" :key="q.id" style="padding:14px;border:1px solid var(--borda);border-radius:8px;margin-bottom:10px;font-size:14px;"
+        :style="{ borderLeft: '4px solid ' + (respostas[i] === q.correta ? 'var(--sucesso)' : 'var(--erro)') }">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+          <div style="flex:1;">
+            <strong>Q{{ i+1 }}.</strong>
+            <span :style="{ color: respostas[i] === q.correta ? 'var(--sucesso)' : 'var(--erro)', fontWeight:600, marginLeft:'8px' }">
+              {{ respostas[i] === q.correta ? '✓ Correto' : '✗ Errado' }}
+            </span>
+            <div style="margin-top:6px;color:var(--texto-sec);font-size:13px;">
+              {{ q.materia }} · {{ q.grupo }} · {{ q.dificuldade }}
+            </div>
+          </div>
+          <button @click="alternarFavorito(q.id)" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px;" :title="favoritos.includes(q.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'">
+            {{ favoritos.includes(q.id) ? '⭐' : '☆' }}
+          </button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:16px;">
+        <button @click="toggleRevisao" style="padding:10px 24px;background:var(--primaria);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;font-weight:500;">← Voltar para exercícios</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-else-if="modoQuiz">
+    <div class="grade-cartoes">
+      <div class="cartao-stat azul">
+        <div class="valor">{{ quizProgresso }}%</div>
+        <div class="rotulo">Progresso</div>
+      </div>
+      <div class="cartao-stat" style="font-size:14px;">
+        <div class="valor" style="font-size:20px;">{{ quizIndex + 1 }} / {{ quizQuestoes.length }}</div>
+        <div class="rotulo">Questão</div>
+      </div>
+      <div class="cartao-stat" :class="quizAcertos > 0 ? 'verde' : ''">
+        <div class="valor" style="font-size:20px;">{{ quizAcertos }} / {{ Object.keys(respostas).length }}</div>
+        <div class="rotulo">Acertos</div>
+      </div>
+    </div>
+
+    <div class="card" v-if="quizAtual">
+      <div class="card-titulo" style="font-size:13px;color:var(--texto-sec);justify-content:flex-start;gap:12px;">
+        <span style="background:var(--primaria);color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;">{{ quizAtual.dificuldade }}</span>
+        <span>{{ quizAtual.materia }} · {{ quizAtual.grupo }}</span>
+      </div>
+
+      <div style="padding:8px 0 20px;font-size:15px;line-height:1.6;">
+        <strong>Questão {{ quizIndex + 1 }}:</strong> {{ quizAtual.enunciado }}
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div v-for="(alt, idx) in quizAtual.alternativas" :key="idx"
+          @click="responderQuestao(idx)"
+          style="padding:12px 16px;border:2px solid var(--borda);border-radius:8px;cursor:pointer;font-size:14px;transition:all 0.2s;"
+          :style="{
+            borderColor: responded ? (idx === quizAtual.correta ? 'var(--sucesso)' : idx === selecionado ? 'var(--erro)' : 'var(--borda)') : (selecionado === idx ? 'var(--primaria)' : 'var(--borda)'),
+            background: responded ? (idx === quizAtual.correta ? '#ecfdf5' : idx === selecionado ? '#fef2f2' : 'transparent') : (selecionado === idx ? '#eff6ff' : 'transparent'),
+            cursor: responded ? 'default' : 'pointer',
+            opacity: responded && idx !== selecionado && idx !== quizAtual.correta ? 0.5 : 1
+          }">
+          <span v-if="responded && idx === quizAtual.correta" style="margin-right:8px;">✓</span>
+          <span v-else-if="responded && idx === selecionado && idx !== quizAtual.correta" style="margin-right:8px;">✗</span>
+          <span v-else style="margin-right:8px;">{{ ['A','B','C','D','E'][idx] }})</span>
+          {{ alt.replace(/^[A-E]\)\s*/, '') }}
+        </div>
+      </div>
+
+      <div v-if="responded" style="margin-top:16px;padding:16px;border-radius:8px;font-size:14px;line-height:1.5;"
+        :style="{ background: selecionado === quizAtual.correta ? '#ecfdf5' : '#fef2f2', color: selecionado === quizAtual.correta ? '#065f46' : '#991b1b' }">
+        <strong>{{ selecionado === quizAtual.correta ? '✅ Correto!' : '❌ Incorreto!' }}</strong>
+        <div style="margin-top:4px;">
+          Resposta correta: <strong>{{ ['A','B','C','D','E'][quizAtual.correta] }}) {{ quizAtual.alternativas[quizAtual.correta].replace(/^[A-E]\)\s*/, '') }}</strong>
+        </div>
+        <div v-if="mostrarExplicacao" style="margin-top:12px;padding:12px;background:var(--card);border-radius:6px;color:var(--texto);border:1px solid var(--borda);">
+          <strong>💡 Explicação:</strong> {{ quizAtual.explicacao }}
+        </div>
+        <button @click="toggleExplicacao" style="margin-top:8px;background:none;border:1px solid var(--borda);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:13px;font-family:inherit;">
+          {{ mostrarExplicacao ? 'Ocultar' : 'Mostrar' }} explicação
+        </button>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+        <button @click="voltarQuestao" :disabled="quizIndex === 0"
+          style="padding:8px 20px;background:var(--card);color:var(--texto);border:1px solid var(--borda);border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;"
+          :style="{ opacity: quizIndex === 0 ? 0.4 : 1 }">
+          ‹ Anterior
+        </button>
+        <button v-if="quizIndex < quizQuestoes.length - 1" @click="proximaQuestao"
+          style="padding:8px 20px;background:var(--primaria);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;">
+          Próxima ›
+        </button>
+        <button v-else @click="finalizarQuiz"
+          style="padding:8px 20px;background:var(--sucesso);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;">
+          ✓ Finalizar Quiz
+        </button>
+        <button @click="finalizarQuiz" style="padding:8px 20px;background:transparent;color:var(--texto-sec);border:1px solid var(--borda);border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;">
+          Encerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-else>
+    <div class="grade-cartoes">
+      <div class="cartao-stat" style="border-top-color:#8b5cf6;">
+        <div class="valor" style="font-size:24px;color:#8b5cf6;">{{ EXERCICIOS.length }}</div>
+        <div class="rotulo">Total de questões</div>
+      </div>
+      <div class="cartao-stat" style="border-top-color:#8b5cf6;">
+        <div class="valor" style="font-size:24px;color:#8b5cf6;">{{ questoesFiltradas.length }}</div>
+        <div class="rotulo">Filtradas</div>
+      </div>
+      <div class="cartao-stat" style="border-top-color:#f59e0b;">
+        <div class="valor" style="font-size:20px;color:#f59e0b;">{{ favoritos.length }}</div>
+        <div class="rotulo">Favoritas</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-titulo">Filtros</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
+        <div style="flex:1;min-width:160px;">
+          <label style="font-size:12px;color:var(--texto-sec);display:block;margin-bottom:4px;">Matéria</label>
+          <select v-model="filtroMateria" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+            <option value="">Todas</option>
+            <option v-for="m in materiasDisponiveis" :key="m" :value="m">{{ m }}</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px;">
+          <label style="font-size:12px;color:var(--texto-sec);display:block;margin-bottom:4px;">Grupo</label>
+          <select v-model="filtroGrupo" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+            <option value="">Todos</option>
+            <option v-for="g in gruposDisponiveis" :key="g" :value="g">{{ g }}</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px;">
+          <label style="font-size:12px;color:var(--texto-sec);display:block;margin-bottom:4px;">Dificuldade</label>
+          <div style="display:flex;gap:4px;">
+            <button v-for="d in ['', 'Fácil', 'Médio', 'Difícil']" :key="d" @click="filtroDificuldade = d"
+              style="flex:1;padding:8px;border:1px solid var(--borda);border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s;"
+              :style="{ background: filtroDificuldade === d ? 'var(--primaria)' : 'var(--card)', color: filtroDificuldade === d ? '#fff' : 'var(--texto)', fontWeight: filtroDificuldade === d ? 600 : 400 }">
+              {{ d || 'Todas' }}
+            </button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding-bottom:4px;">
+          <input type="checkbox" v-model="mostrarFavoritos" id="favFilter" style="accent-color:var(--primaria);">
+          <label for="favFilter" style="font-size:13px;cursor:pointer;">⭐ Favoritas</label>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button @click="iniciarQuiz"
+          style="padding:10px 28px;background:var(--primaria);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:15px;font-family:inherit;font-weight:500;"
+          :disabled="questoesFiltradas.length === 0"
+          :style="{ opacity: questoesFiltradas.length === 0 ? 0.5 : 1 }">
+          ▶ Iniciar Quiz ({{ questoesFiltradas.length }} questões)
+        </button>
+        <button @click="filtroMateria = ''; filtroGrupo = ''; filtroDificuldade = ''; mostrarFavoritos = false;"
+          style="padding:8px 16px;background:transparent;color:var(--texto-sec);border:1px solid var(--borda);border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;">
+          Limpar filtros
+        </button>
+      </div>
+    </div>
+
+    <div class="card" v-if="questoesFiltradas.length > 0">
+      <div class="card-titulo">
+        <span>Questões ({{ questoesFiltradas.length }})</span>
+        <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">
+          {{ favoritos.filter(f => questoesFiltradas.some(q => q.id === f)).length }} favoritas
+        </span>
+      </div>
+
+      <div v-for="q in questoesFiltradas" :key="q.id" style="padding:16px;border:1px solid var(--borda);border-radius:8px;margin-bottom:12px;font-size:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+          <div style="flex:1;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+              <span style="background:var(--primaria);color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;">{{ q.dificuldade }}</span>
+              <span style="color:var(--texto-sec);font-size:12px;">{{ q.materia }} · {{ q.grupo }}</span>
+            </div>
+            <div style="font-weight:500;margin-bottom:8px;">{{ q.enunciado }}</div>
+            <div style="font-size:13px;color:var(--texto-sec);line-height:1.6;">
+              <div v-for="(alt, i) in q.alternativas" :key="i" style="padding:2px 0;">
+                {{ alt }}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+            <button @click="alternarFavorito(q.id)" style="background:none;border:none;cursor:pointer;font-size:20px;padding:4px;" :title="favoritos.includes(q.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'">
+              {{ favoritos.includes(q.id) ? '⭐' : '☆' }}
+            </button>
+            <button @click="toggleExplicacao" style="background:none;border:1px solid var(--borda);border-radius:4px;cursor:pointer;font-size:12px;padding:4px 8px;font-family:inherit;color:var(--texto-sec);">
+              💡
+            </button>
+          </div>
+        </div>
+        <div v-if="mostrarExplicacao" style="margin-top:12px;padding:12px;background:var(--bg);border-radius:6px;font-size:13px;color:var(--texto);">
+          <strong>✓ Resposta: {{ ['A','B','C','D','E'][q.correta] }}</strong> — {{ q.explicacao }}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" v-if="questoesFiltradas.length === 0" style="text-align:center;padding:40px;color:var(--texto-sec);">
+      Nenhuma questão encontrada com os filtros atuais.
+    </div>
+  </div>
+</template>
+<template v-if="view === 'admin'">
+  <div class="grade-cartoes">
+    <div class="cartao-stat" style="border-top-color:#f59e0b;">
+      <div class="valor" style="color:#f59e0b;">{{ adminTotal }}</div>
+      <div class="rotulo">Usuários</div>
+    </div>
+    <div class="cartao-stat" style="border-top-color:#ef4444;">
+      <div class="valor" style="color:#ef4444;font-size:20px;">{{ adminAdmins.length }}</div>
+      <div class="rotulo">Administradores</div>
+    </div>
+    <div class="cartao-stat" style="border-top-color:#3b82f6;">
+      <div class="valor" style="color:#3b82f6;font-size:20px;">{{ adminComuns.length }}</div>
+      <div class="rotulo">Usuários</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-titulo">
+      <span>{{ adminEditando ? (adminEditando.usuario ? 'Editar Usuário' : 'Novo Usuário') : 'Usuários' }}</span>
+    </div>
+
+    <div v-if="adminEditando" class="form-simulado">
+      <div>
+        <label>Usuário</label>
+        <input v-model="adminEditando.usuario" placeholder="Nome de usuário" :disabled="!!adminEditando.usuario" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+      </div>
+      <div>
+        <label>Nome completo</label>
+        <input v-model="adminEditando.nome" placeholder="Nome de exibição" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+      </div>
+      <div>
+        <label>Senha</label>
+        <input v-model="adminEditando.senha" type="password" placeholder="Mínimo 3 caracteres" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+      </div>
+      <div>
+        <label>Função</label>
+        <select v-model="adminEditando.role" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+          <option value="user">Usuário</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button @click="adminSalvar" style="flex:1;padding:8px 16px;background:var(--primaria);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">Salvar</button>
+        <button @click="adminCancelar" style="flex:1;padding:8px 16px;background:var(--texto-sec);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">Cancelar</button>
+      </div>
+    </div>
+
+    <div v-else>
+      <button @click="adminNovo" style="margin-bottom:16px;padding:8px 20px;background:var(--primaria);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;">+ Novo Usuário</button>
+      <table class="tabela-simulados">
+        <thead>
+          <tr>
+            <th>Usuário</th>
+            <th>Nome</th>
+            <th>Função</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="u in adminUsuarios" :key="u.usuario">
+            <td><strong>{{ u.usuario }}</strong></td>
+            <td>{{ u.nome }}</td>
+            <td>
+              <span v-if="u.role === 'admin'" style="background:#f59e0b;color:#000;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">ADMIN</span>
+              <span v-else style="color:var(--texto-sec);font-size:13px;">Usuário</span>
+            </td>
+            <td>
+              <button @click="adminEditar(u)" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;" :disabled="u.usuario === usuarioAtual?.usuario" :style="u.usuario === usuarioAtual?.usuario ? {opacity:0.3} : {}">✏️</button>
+              <button @click="adminRemover(u.usuario)" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;color:var(--erro);" :disabled="u.usuario === usuarioAtual?.usuario" :style="u.usuario === usuarioAtual?.usuario ? {opacity:0.3} : {}">✕</button>
+            </td>
+          </tr>
+          <tr v-if="adminUsuarios.length === 0">
+            <td colspan="4" style="padding:20px;color:var(--texto-sec);text-align:center;">Nenhum usuário cadastrado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>
+  </div>
       </transition>
     </main>
 
@@ -624,11 +1254,13 @@
       </div>
     </footer>
     </template>
+    </template>
   </div>
 
   <script src="js/dados.js"></script>
   <script src="js/armazenamento.js"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="js/usuarios.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
