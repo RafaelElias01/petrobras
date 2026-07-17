@@ -2146,6 +2146,17 @@ const app = createApp({
       return Math.random().toString(36).substring(2) + Date.now().toString(36);
     }
 
+    const FEATURES_BLOQUEADAS_DEMO = new Set([
+      'ciclo', 'horas', 'simulados', 'erros',
+      'flashcards', 'diario', 'relatorio', 'exercicios', 'admin'
+    ]);
+    const isDemo = computed(() =>
+      usuarioAtual.value?.usuario === 'estudante' && usuarioAtual.value?.role !== 'admin'
+    );
+    function featureBloqueada(v) {
+      return isDemo.value && FEATURES_BLOQUEADAS_DEMO.has(v);
+    }
+
     const usuarioAtual = ref(null);
     const autenticado = ref(false);
     const erroLogin = ref(false);
@@ -2452,6 +2463,7 @@ const app = createApp({
 
     // --- Nav ---
     function irPara(v) {
+      if (featureBloqueada(v)) { menuAberta.value = false; return; }
       view.value = v;
       menuAberta.value = false;
       if (v === 'plano' && !planoSelecionado.value && planosDisponiveis.value.length > 0) {
@@ -2488,7 +2500,7 @@ const app = createApp({
       planoSelecionado, planoHtml, carregandoPlano,
       planosDisponiveis, planosGrupos, planosFiltrados,
       carregarPlano,
-      irPara, alternarTema,
+      irPara, alternarTema, featureBloqueada,
       // Expondo tudo do Composable de Erros
       erros, editandoErro, errosAgrupados, totalErros,
       carregandoErros, novoErro, salvarErro, editarErro, removerErro, cancelarErro,

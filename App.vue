@@ -25,6 +25,17 @@ const usuarioAtual = ref(null);
 const autenticado = ref(false);
 const erroLogin = ref(false);
 
+const FEATURES_BLOQUEADAS_DEMO = new Set([
+  'ciclo', 'horas', 'simulados', 'erros',
+  'flashcards', 'diario', 'relatorio', 'exercicios', 'admin'
+]);
+const isDemo = computed(() =>
+  usuarioAtual.value?.usuario === 'estudante' && usuarioAtual.value?.role !== 'admin'
+);
+function featureBloqueada(view) {
+  return isDemo.value && FEATURES_BLOQUEADAS_DEMO.has(view);
+}
+
 const carregando = ref(true);
 const menuAberta = ref(false);
 const view = ref('dashboard');
@@ -49,6 +60,10 @@ const tituloView = computed(() => titulos[view.value]?.t || 'Dashboard');
 const subtituloView = computed(() => titulos[view.value]?.s || '');
 
 function irPara(novaView) {
+  if (featureBloqueada(novaView)) {
+    menuAberta.value = false;
+    return;
+  }
   view.value = novaView;
   menuAberta.value = false;
   window.scrollTo(0, 0);
@@ -63,7 +78,14 @@ function alternarTema() {
 
 function navegarHash() {
   const hash = window.location.hash.slice(1);
-  if (hash && views[hash]) view.value = hash;
+  if (hash && views[hash]) {
+    if (featureBloqueada(hash)) {
+      view.value = 'dashboard';
+      window.location.hash = 'dashboard';
+    } else {
+      view.value = hash;
+    }
+  }
 }
 
 function handleLogin(usuario, senha) {
@@ -167,11 +189,13 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
         <span>Técnico em Química • Cesgranrio</span>
       </div>
       <nav class="sidebar-nav">
-        <a v-for="link in navLinks" :key="link.view" :href="`#${link.view}`" class="nav-item" :class="{ ativa: view === link.view }" @click.prevent="irPara(link.view)">
+        <a v-for="link in navLinks" :key="link.view" :href="`#${link.view}`" class="nav-item" :class="{ ativa: view === link.view, bloqueada: featureBloqueada(link.view) }" @click.prevent="irPara(link.view)">
           <span class="icone">{{ link.icon }}</span> {{ link.text }}
+          <span v-if="featureBloqueada(link.view)" class="icone-lock">🔒</span>
         </a>
         <a v-if="usuarioAtual?.role === 'admin'" href="#admin" class="nav-item" :class="{ ativa: view === 'admin' }" @click.prevent="irPara('admin')" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;padding-top:12px;">
           <span class="icone">⚙️</span> Admin
+          <span v-if="featureBloqueada('admin')" class="icone-lock">🔒</span>
         </a>
         <div style="border-top:1px solid rgba(255,255,255,0.08);margin:8px 16px;"></div>
         <a :href="`#${planoLink.view}`" class="nav-item" :class="{ ativa: view === planoLink.view }" @click.prevent="irPara(planoLink.view)">
@@ -203,7 +227,14 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
       </div>
 
       <transition name="fade" mode="out-in">
+        <div v-if="featureBloqueada(view)" key="locked" class="locked-placeholder">
+          <div class="locked-icon">🔒</div>
+          <h3>Recurso Bloqueado</h3>
+          <p>Esta funcionalidade não está disponível na conta de demonstração.</p>
+          <p class="locked-hint">Crie uma conta completa para desbloquear todos os recursos.</p>
+        </div>
         <component
+          v-else
           :is="views[view]"
           :key="view"
           :usuarioLogado="view === 'admin' ? usuarioAtual?.usuario : undefined"
@@ -222,5 +253,55 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
   width: 100vw;
   font-size: 18px;
   color: var(--texto-sec);
+}
+
+.locked-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--texto-sec);
+}
+
+.locked-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.locked-placeholder h3 {
+  font-size: 20px;
+  color: var(--texto);
+  margin-bottom: 8px;
+}
+
+.locked-placeholder p {
+  font-size: 14px;
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+.locked-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.nav-item.bloqueada {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nav-item.bloqueada:hover {
+  background: transparent;
+  color: inherit;
+}
+
+.icone-lock {
+  margin-left: auto;
+  font-size: 12px;
+  opacity: 0.5;
 }
 </style>
