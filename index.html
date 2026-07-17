@@ -48,8 +48,8 @@
             </div>
             <div class="input-group">
               <label for="loginSenha">Senha</label>
-              <input id="loginSenha" v-model="loginSenha" type="password" placeholder="Sua senha" class="input-field" autocomplete="current-password">
-              <span class="input-icon">🔒</span>
+              <input id="loginSenha" v-model="loginSenha" :type="mostrarSenha ? 'text' : 'password'" placeholder="Sua senha" class="input-field" autocomplete="current-password">
+              <span class="input-icon" @click="mostrarSenha = !mostrarSenha" style="cursor:pointer;">{{ mostrarSenha ? '👁' : '🔒' }}</span>
             </div>
             <button type="submit" class="btn-entrar">
               <span>Entrar</span>

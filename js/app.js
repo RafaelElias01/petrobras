@@ -2146,6 +2146,7 @@ const app = createApp({
     const erroLogin = ref(false);
     const loginUsuario = ref('');
     const loginSenha = ref('');
+    const mostrarSenha = ref(false);
 
     function handleLogin(usuario, senha) {
       const user = autenticar(usuario, senha);
@@ -2441,7 +2442,7 @@ const app = createApp({
 
     return {
       usuarioAtual, autenticado, erroLogin, usuarioLogado,
-      handleLogin, logout, loginUsuario, loginSenha,
+      handleLogin, logout, loginUsuario, loginSenha, mostrarSenha,
       view, menuAberta, semanaAtual,
       tema, diasSemana, carregando,
       tituloView, subtituloView,
