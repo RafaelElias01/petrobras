@@ -239,7 +239,7 @@
             </div>
 
             <div v-for="m in (filtro ? conteudosFiltrados : conteudos).filter(c => !abaAtiva || c.id === abaAtiva)" :key="m.id" style="margin-bottom:24px;">
-              <h3 style="font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--borda);">
+              <h3 style="font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--borda);word-break:break-word;overflow-wrap:break-word;">
                 {{ m.icone }} {{ m.nome }}
                 <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">
                   ({{ itensConcluidos(m) }}/{{ totalItens(m) }})

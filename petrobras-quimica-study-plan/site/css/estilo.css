@@ -166,7 +166,6 @@ body {
   align-items: center;
   gap: 6px;
   justify-content: center;
-  white-space: nowrap;
 }
 
 .checklist-tab:hover {
@@ -234,8 +233,8 @@ body {
   margin-bottom: 4px;
 }
 
-.materia-progresso .nome { font-weight: 500; font-size: 14px; }
-.materia-progresso .pct { font-size: 13px; color: var(--texto-sec); }
+.materia-progresso .nome { font-weight: 500; font-size: 14px; word-break: break-word; overflow-wrap: break-word; overflow: hidden; }
+.materia-progresso .pct { font-size: 13px; color: var(--texto-sec); flex-shrink: 0; }
 
 /* CheckList */
 .grupo-checklist {
@@ -254,6 +253,9 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 0;
+  flex-wrap: wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .grupo-titulo:hover { color: var(--texto); }
@@ -276,7 +278,7 @@ body {
   flex-shrink: 0;
 }
 
-.item-check .texto { flex: 1; }
+.item-check .texto { flex: 1; word-break: break-word; overflow-wrap: break-word; overflow: hidden; }
 .item-check.concluido .texto { text-decoration: line-through; opacity: 0.5; }
 
 /* Horas */
@@ -619,9 +621,6 @@ body {
     width: 13px;
     height: 13px;
     margin-top: 1px;
-  }
-  .item-check .texto {
-    word-break: break-word;
   }
   .plano-conteudo {
     font-size: 13px;
