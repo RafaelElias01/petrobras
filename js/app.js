@@ -1742,7 +1742,7 @@ const app = createApp({
     const { horas, horaValor, setHora, totalDia, totalMateriaSemana, horasSemana, totalAcumulado, totalHorasAcumuladas } = useHoras(semanasPlano, DIAS_SEMANA, metaHoras);
 
     // --- Usando o Composable para a feature de Checklist de Conteúdos ---
-    const { checklist, gruposAbertos, filtro, chaveItem, checkId, alternarItem, toggleGrupo,
+    const { checklist, gruposAbertos, filtro, abaAtiva, toggleAba, chaveItem, checkId, alternarItem, toggleGrupo,
             totalItens, itensConcluidos, itensConcluidosGrupo, progressoMateria,
             totalGeral, totalConcluidoGeral, progressoGeral,
             conteudosFiltrados, expandirTudo, colapsarTudo } = useChecklist(CONTEUDOS);
