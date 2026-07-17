@@ -2148,7 +2148,7 @@ const app = createApp({
 
     const FEATURES_BLOQUEADAS_DEMO = new Set([
       'ciclo', 'horas', 'simulados', 'erros',
-      'flashcards', 'diario', 'relatorio', 'exercicios', 'admin'
+      'diario', 'relatorio', 'exercicios', 'admin'
     ]);
     const isDemo = computed(() =>
       usuarioAtual.value?.usuario === 'estudante' && usuarioAtual.value?.role !== 'admin'
@@ -2463,7 +2463,6 @@ const app = createApp({
 
     // --- Nav ---
     function irPara(v) {
-      if (featureBloqueada(v)) { menuAberta.value = false; return; }
       view.value = v;
       menuAberta.value = false;
       if (v === 'plano' && !planoSelecionado.value && planosDisponiveis.value.length > 0) {

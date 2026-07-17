@@ -27,7 +27,7 @@ const erroLogin = ref(false);
 
 const FEATURES_BLOQUEADAS_DEMO = new Set([
   'ciclo', 'horas', 'simulados', 'erros',
-  'flashcards', 'diario', 'relatorio', 'exercicios', 'admin'
+  'diario', 'relatorio', 'exercicios', 'admin'
 ]);
 const isDemo = computed(() =>
   usuarioAtual.value?.usuario === 'estudante' && usuarioAtual.value?.role !== 'admin'
@@ -60,10 +60,6 @@ const tituloView = computed(() => titulos[view.value]?.t || 'Dashboard');
 const subtituloView = computed(() => titulos[view.value]?.s || '');
 
 function irPara(novaView) {
-  if (featureBloqueada(novaView)) {
-    menuAberta.value = false;
-    return;
-  }
   view.value = novaView;
   menuAberta.value = false;
   window.scrollTo(0, 0);
@@ -78,14 +74,7 @@ function alternarTema() {
 
 function navegarHash() {
   const hash = window.location.hash.slice(1);
-  if (hash && views[hash]) {
-    if (featureBloqueada(hash)) {
-      view.value = 'dashboard';
-      window.location.hash = 'dashboard';
-    } else {
-      view.value = hash;
-    }
-  }
+  if (hash && views[hash]) view.value = hash;
 }
 
 function handleLogin(usuario, senha) {
@@ -189,7 +178,7 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
         <span>Técnico em Química • Cesgranrio</span>
       </div>
       <nav class="sidebar-nav">
-        <a v-for="link in navLinks" :key="link.view" :href="`#${link.view}`" class="nav-item" :class="{ ativa: view === link.view, bloqueada: featureBloqueada(link.view) }" @click.prevent="irPara(link.view)">
+        <a v-for="link in navLinks" :key="link.view" :href="`#${link.view}`" class="nav-item" :class="{ ativa: view === link.view }" @click.prevent="irPara(link.view)">
           <span class="icone">{{ link.icon }}</span> {{ link.text }}
           <span v-if="featureBloqueada(link.view)" class="icone-lock">🔒</span>
         </a>
@@ -226,20 +215,29 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
         </div>
       </div>
 
-      <transition name="fade" mode="out-in">
-        <div v-if="featureBloqueada(view)" key="locked" class="locked-placeholder">
-          <div class="locked-icon">🔒</div>
-          <h3>Recurso Bloqueado</h3>
-          <p>Esta funcionalidade não está disponível na conta de demonstração.</p>
-          <p class="locked-hint">Crie uma conta completa para desbloquear todos os recursos.</p>
+      <div class="view-wrapper" :class="{ 'view-bloqueada': featureBloqueada(view) }">
+        <transition name="fade" mode="out-in">
+          <component
+            :is="views[view]"
+            :key="view"
+            :usuarioLogado="view === 'admin' ? usuarioAtual?.usuario : undefined"
+          />
+        </transition>
+        <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click.prevent @scroll.prevent @wheel.prevent @touchmove.prevent>
+          <div class="overlay-card">
+            <div class="overlay-crown">👑</div>
+            <h3>Versão Premium</h3>
+            <p>Esta funcionalidade está bloqueada na conta de demonstração.</p>
+            <p class="overlay-destaque">Crie sua conta completa e tenha acesso a todos os recursos da plataforma.</p>
+            <div class="overlay-features">
+              <span>📊 Relatórios Avançados</span>
+              <span>🔄 Ciclo Inteligente</span>
+              <span>📕 Caderno de Erros</span>
+              <span>🧠 Revisão Espaçada</span>
+            </div>
+          </div>
         </div>
-        <component
-          v-else
-          :is="views[view]"
-          :key="view"
-          :usuarioLogado="view === 'admin' ? usuarioAtual?.usuario : undefined"
-        />
-      </transition>
+      </div>
     </main>
   </template>
 </template>
@@ -255,48 +253,85 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
   color: var(--texto-sec);
 }
 
-.locked-placeholder {
+.view-wrapper {
+  position: relative;
+  min-height: 300px;
+}
+
+.view-wrapper.view-bloqueada {
+  overflow: hidden;
+  max-height: 100vh;
+}
+
+.overlay-bloqueio {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 20px;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: default;
+}
+
+.overlay-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 20px;
+  padding: 48px 40px 40px;
+  max-width: 420px;
+  width: 90%;
   text-align: center;
-  color: var(--texto-sec);
+  animation: overlayIn 0.4s ease-out;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5);
 }
 
-.locked-icon {
+@keyframes overlayIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.overlay-crown {
   font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
+  margin-bottom: 12px;
 }
 
-.locked-placeholder h3 {
-  font-size: 20px;
+.overlay-card h3 {
+  font-size: 22px;
   color: var(--texto);
   margin-bottom: 8px;
 }
 
-.locked-placeholder p {
+.overlay-card p {
   font-size: 14px;
-  max-width: 360px;
+  color: var(--texto-sec);
   line-height: 1.5;
+  margin-bottom: 4px;
 }
 
-.locked-hint {
-  margin-top: 12px;
+.overlay-destaque {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--primaria) !important;
+}
+
+.overlay-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.overlay-features span {
   font-size: 12px;
-  opacity: 0.6;
-}
-
-.nav-item.bloqueada {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.nav-item.bloqueada:hover {
-  background: transparent;
-  color: inherit;
+  background: var(--bg);
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--texto);
+  border: 1px solid var(--borda);
 }
 
 .icone-lock {
