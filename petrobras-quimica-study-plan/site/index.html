@@ -80,32 +80,32 @@
         <a href="#checklist" class="nav-item" :class="{ ativa: view === 'checklist' }" @click.prevent="irPara('checklist')">
           <span class="icone">✅</span> Conteúdos
         </a>
-        <a href="#ciclo" class="nav-item" :class="{ ativa: view === 'ciclo' }" @click.prevent="irPara('ciclo')">
-          <span class="icone">🔄</span> Ciclo
+        <a href="#ciclo" class="nav-item" :class="{ ativa: view === 'ciclo', bloqueada: featureBloqueada('ciclo') }" @click.prevent="irPara('ciclo')">
+          <span class="icone">🔄</span> Ciclo <span v-if="featureBloqueada('ciclo')" class="lock-icon">🔒</span>
         </a>
-        <a href="#horas" class="nav-item" :class="{ ativa: view === 'horas' }" @click.prevent="irPara('horas')">
-          <span class="icone">⏱</span> Horas
+        <a href="#horas" class="nav-item" :class="{ ativa: view === 'horas', bloqueada: featureBloqueada('horas') }" @click.prevent="irPara('horas')">
+          <span class="icone">⏱</span> Horas <span v-if="featureBloqueada('horas')" class="lock-icon">🔒</span>
         </a>
-        <a href="#simulados" class="nav-item" :class="{ ativa: view === 'simulados' }" @click.prevent="irPara('simulados')">
-          <span class="icone">📋</span> Simulados
+        <a href="#simulados" class="nav-item" :class="{ ativa: view === 'simulados', bloqueada: featureBloqueada('simulados') }" @click.prevent="irPara('simulados')">
+          <span class="icone">📋</span> Simulados <span v-if="featureBloqueada('simulados')" class="lock-icon">🔒</span>
         </a>
-        <a href="#erros" class="nav-item" :class="{ ativa: view === 'erros' }" @click.prevent="irPara('erros')">
-          <span class="icone">📕</span> Erros
+        <a href="#erros" class="nav-item" :class="{ ativa: view === 'erros', bloqueada: featureBloqueada('erros') }" @click.prevent="irPara('erros')">
+          <span class="icone">📕</span> Erros <span v-if="featureBloqueada('erros')" class="lock-icon">🔒</span>
         </a>
-        <a href="#exercicios" class="nav-item" :class="{ ativa: view === 'exercicios' }" @click.prevent="irPara('exercicios')">
-          <span class="icone">📝</span> Questões
+        <a href="#exercicios" class="nav-item" :class="{ ativa: view === 'exercicios', bloqueada: featureBloqueada('exercicios') }" @click.prevent="irPara('exercicios')">
+          <span class="icone">📝</span> Questões <span v-if="featureBloqueada('exercicios')" class="lock-icon">🔒</span>
         </a>
-        <a href="#diario" class="nav-item" :class="{ ativa: view === 'diario' }" @click.prevent="irPara('diario')">
-          <span class="icone">📌</span> Diário
+        <a href="#diario" class="nav-item" :class="{ ativa: view === 'diario', bloqueada: featureBloqueada('diario') }" @click.prevent="irPara('diario')">
+          <span class="icone">📌</span> Diário <span v-if="featureBloqueada('diario')" class="lock-icon">🔒</span>
         </a>
-        <a href="#cronograma" class="nav-item" :class="{ ativa: view === 'cronograma' }" @click.prevent="irPara('cronograma')">
-          <span class="icone">📅</span> Cronograma
+        <a href="#cronograma" class="nav-item" :class="{ ativa: view === 'cronograma', bloqueada: featureBloqueada('cronograma') }" @click.prevent="irPara('cronograma')">
+          <span class="icone">📅</span> Cronograma <span v-if="featureBloqueada('cronograma')" class="lock-icon">🔒</span>
         </a>
-        <a href="#flashcards" class="nav-item" :class="{ ativa: view === 'flashcards' }" @click.prevent="irPara('flashcards')">
-          <span class="icone">🧠</span> Flashcards
+        <a href="#flashcards" class="nav-item" :class="{ ativa: view === 'flashcards', bloqueada: featureBloqueada('flashcards') }" @click.prevent="irPara('flashcards')">
+          <span class="icone">🧠</span> Flashcards <span v-if="featureBloqueada('flashcards')" class="lock-icon">🔒</span>
         </a>
-        <a v-if="usuarioAtual?.role === 'admin'" href="#admin" class="nav-item" :class="{ ativa: view === 'admin' }" @click.prevent="irPara('admin')" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;padding-top:12px;">
-          <span class="icone">⚙️</span> Admin
+        <a v-if="usuarioAtual?.role === 'admin'" href="#admin" class="nav-item" :class="{ ativa: view === 'admin', bloqueada: featureBloqueada('admin') }" @click.prevent="irPara('admin')" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;padding-top:12px;">
+          <span class="icone">⚙️</span> Admin <span v-if="featureBloqueada('admin')" class="lock-icon">🔒</span>
         </a>
         <div style="border-top:1px solid rgba(255,255,255,0.08);margin:8px 16px;"></div>
         <a href="#plano" class="nav-item" :class="{ ativa: view === 'plano' }" @click.prevent="irPara('plano')">
@@ -140,6 +140,13 @@
 
       <transition name="fade" mode="out-in">
         <div :key="view">
+          <!-- LOCKED PLACEHOLDER -->
+          <div v-if="featureBloqueada(view)" class="locked-placeholder">
+            <div class="locked-icon">🔒</div>
+            <h3>Recurso Bloqueado</h3>
+            <p>Esta funcionalidade não está disponível na conta de demonstração.</p>
+            <p class="locked-hint">Crie uma conta completa para desbloquear todos os recursos.</p>
+          </div>
           <!-- DASHBOARD --> 
         <template v-if="view === 'dashboard'">
           <div class="grade-cartoes">

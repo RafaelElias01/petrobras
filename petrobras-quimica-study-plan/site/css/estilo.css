@@ -95,6 +95,19 @@ body {
 .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
 .nav-item.ativa { background: var(--sidebar-ativa); color: #fff; border-right: 3px solid var(--primaria); }
 .nav-item .icone { font-size: 18px; width: 24px; text-align: center; }
+.nav-item.bloqueada { opacity: 0.4; cursor: not-allowed; }
+.nav-item.bloqueada:hover { background: transparent; color: inherit; }
+.lock-icon { margin-left: auto; font-size: 12px; opacity: 0.5; }
+
+.locked-placeholder {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 80px 20px; text-align: center;
+  color: var(--texto-sec);
+}
+.locked-placeholder .locked-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.locked-placeholder h3 { font-size: 20px; color: var(--texto); margin-bottom: 8px; }
+.locked-placeholder p { font-size: 14px; max-width: 360px; line-height: 1.5; }
+.locked-placeholder .locked-hint { margin-top: 12px; font-size: 12px; opacity: 0.6; }
 
 .conteudo {
   flex: 1;
