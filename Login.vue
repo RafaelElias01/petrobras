@@ -72,10 +72,7 @@ function submeter() {
               class="input-field"
               autocomplete="current-password"
             />
-            <span class="input-icon">🔒</span>
-            <button type="button" class="btn-olho" @click="mostrarSenha = !mostrarSenha" tabindex="-1">
-              {{ mostrarSenha ? '🙈' : '👁️' }}
-            </button>
+            <span class="input-icon" @click="mostrarSenha = !mostrarSenha" style="cursor:pointer;">{{ mostrarSenha ? '👁' : '🔒' }}</span>
           </div>
           <button type="submit" class="btn-entrar">
             <span>Entrar</span>
@@ -301,25 +298,7 @@ function submeter() {
   bottom: 14px;
   font-size: 18px;
   opacity: 0.3;
-  pointer-events: none;
 }
-
-.btn-olho {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-  line-height: 1;
-}
-
-.btn-olho:hover { opacity: 1; }
 
 .btn-entrar {
   width: 100%;
