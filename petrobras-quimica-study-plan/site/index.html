@@ -627,98 +627,221 @@
 
         <!-- CADERNO DE ERROS -->
         <template v-if="view === 'erros'">
-          <div class="grade-cartoes">
-            <div class="cartao-stat vermelho">
-              <div class="valor">{{ totalErros }}</div>
-              <div class="rotulo">Total de erros registrados</div>
-            </div>
-            <div class="cartao-stat" v-for="(errList, mat) in errosAgrupados" :key="mat">
-              <div class="valor" style="font-size:24px;">{{ errList.length }}</div>
-              <div class="rotulo">{{ mat }}</div>
+          <div class="card" style="text-align:center;padding:32px 24px;background:linear-gradient(135deg, var(--card), color-mix(in srgb, var(--card) 95%, #ef4444));">
+            <h1 style="font-size:22px;font-weight:700;margin:0 0 8px;color:var(--texto);">Caderno de Erros — Petrobras 2026</h1>
+            <p style="font-size:14px;color:var(--texto-sec);margin:0 0 16px;line-height:1.5;">Preencha imediatamente após cada correção de exercícios ou simulados. Cada erro preenchido é um ponto garantido na prova.</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+              <span style="padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;background:rgba(239,68,68,0.1);color:#ef4444;">{{ totalErros }} erros registrados</span>
+              <span style="padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;background:rgba(99,102,241,0.1);color:#6366f1;">{{ errosPorMateria.filter(m => m.revisados > 0).length }} matérias com revisão</span>
             </div>
           </div>
 
           <div class="card">
             <div class="card-titulo">
-              <span>{{ editandoErro ? (editandoErro.id ? 'Editar Erro' : 'Novo Erro') : 'Caderno de Erros' }}</span>
+              <span>Registro de Erros</span>
+              <button @click="novoErro" style="padding:6px 16px;background:var(--primaria);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">+ Novo Erro</button>
             </div>
-            <div v-if="editandoErro" class="form-simulado">
-              <div>
-                <label>Matéria</label>
-                <select v-model="editandoErro.materia" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:900px;">
+                <thead>
+                  <tr>
+                    <th style="width:40px;text-align:center;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">#</th>
+                    <th style="width:100px;white-space:nowrap;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Data</th>
+                    <th style="width:100px;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Matéria</th>
+                    <th style="min-width:120px;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Tópico</th>
+                    <th style="min-width:100px;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Questão</th>
+                    <th style="min-width:130px;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">O que pensei</th>
+                    <th style="min-width:130px;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Resposta correta</th>
+                    <th style="min-width:130px;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Lacuna identificada</th>
+                    <th style="width:60px;text-align:center;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Class</th>
+                    <th style="width:70px;text-align:center;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(e, idx) in erros" :key="e.id" style="transition:background 0.15s;" @mouseenter="e._hover = true" @mouseleave="e._hover = false">
+                    <td style="text-align:center;padding:10px 8px;border-bottom:1px solid var(--borda);">{{ idx + 1 }}</td>
+                    <td style="white-space:nowrap;padding:10px 8px;border-bottom:1px solid var(--borda);">{{ e.data }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);"><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:var(--fundo-sec);color:var(--texto-sec);">{{ e.materia }}</span></td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">{{ e.topico }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">{{ e.questao || '-' }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);vertical-align:top;">{{ e.pensamento || '-' }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);vertical-align:top;">{{ e.respostaCorreta || '-' }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);vertical-align:top;">{{ e.lacuna || '-' }}</td>
+                    <td style="text-align:center;padding:10px 8px;border-bottom:1px solid var(--borda);">
+                      <span :style="{display:'inline-block',width:'28px',height:'28px',lineHeight:'28px',textAlign:'center',borderRadius:'50%',fontSize:'12px',fontWeight:700,background: (e.classificacao || e.tipo) === 'A' ? '#fef3c7' : (e.classificacao || e.tipo) === 'B' ? '#dbeafe' : '#fce7f3',color: (e.classificacao || e.tipo) === 'A' ? '#92400e' : (e.classificacao || e.tipo) === 'B' ? '#1e40af' : '#9d174d'}">{{ e.classificacao || e.tipo }}</span>
+                    </td>
+                    <td style="text-align:center;padding:10px 8px;border-bottom:1px solid var(--borda);white-space:nowrap;">
+                      <button @click="editarErro(e)" title="Editar" style="background:none;border:none;cursor:pointer;font-size:14px;padding:4px;opacity:0.6;">✏️</button>
+                      <button @click="removerErro(e.id)" title="Remover" style="background:none;border:none;cursor:pointer;font-size:14px;padding:4px;opacity:0.6;">🗑️</button>
+                    </td>
+                  </tr>
+                  <tr v-if="erros.length === 0">
+                    <td colspan="10" style="text-align:center;padding:32px 16px;color:var(--texto-sec);font-style:italic;">Nenhum erro registrado ainda. Clique em "+ Novo Erro" para começar.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" v-if="editandoErro">
+            <div class="card-titulo"><span>{{ editandoErro.id && erros.find(e => e.id === editandoErro.id) ? 'Editar Erro' : 'Novo Erro' }}</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Matéria</label>
+                <select v-model="editandoErro.materia" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
                   <option value="">Selecione...</option>
                   <option>Português</option>
                   <option>Matemática</option>
                   <option>Química</option>
                 </select>
               </div>
-              <div>
-                <label>Tópico</label>
-                <input v-model="editandoErro.topico" placeholder="Ex: pH, Estequiometria">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Data</label>
+                <input type="date" v-model="editandoErro.data" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
               </div>
-              <div>
-                <label>O que pensei (erro)</label>
-                <input v-model="editandoErro.pensamento" placeholder="Seu raciocínio na hora">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Tópico</label>
+                <input v-model="editandoErro.topico" placeholder="Ex: pH, Estequiometria" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
               </div>
-              <div>
-                <label>Resposta correta</label>
-                <input v-model="editandoErro.respostaCorreta" placeholder="O que deveria ser">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Questão</label>
+                <input v-model="editandoErro.questao" placeholder="Ex: Q42 do simulado 3" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
               </div>
-              <div>
-                <label>Lacuna identificada</label>
-                <input v-model="editandoErro.lacuna" placeholder="O que faltou saber">
+              <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">O que pensei</label>
+                <textarea v-model="editandoErro.pensamento" placeholder="Seu raciocínio na hora do erro" rows="2" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);resize:vertical;"></textarea>
               </div>
-              <div>
-                <label>Tipo de erro</label>
-                <select v-model="editandoErro.tipo" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
-                  <option value="A">A - Desconhecimento</option>
-                  <option value="B">B - Confusão</option>
-                  <option value="C">C - Atenção</option>
+              <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Resposta correta</label>
+                <textarea v-model="editandoErro.respostaCorreta" placeholder="O que deveria ser" rows="2" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);resize:vertical;"></textarea>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Lacuna identificada</label>
+                <textarea v-model="editandoErro.lacuna" placeholder="O que faltou saber/estudar" rows="2" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);resize:vertical;"></textarea>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Classificação do erro</label>
+                <select v-model="editandoErro.classificacao" style="padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
+                  <option value="A">A – Desconhecimento</option>
+                  <option value="B">B – Confusão</option>
+                  <option value="C">C – Atenção</option>
                 </select>
               </div>
-              <div>
-                <label>Descrição</label>
-                <input v-model="editandoErro.descricao" placeholder="Descreva o contexto">
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button @click="salvarErro" style="flex:1;">Salvar</button>
-                <button @click="cancelarErro" style="flex:1;background:var(--texto-sec);">Cancelar</button>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Revisado?</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--texto);cursor:pointer;padding-top:4px;">
+                  <input type="checkbox" v-model="editandoErro.revisado" style="width:18px;height:18px;cursor:pointer;">
+                  <span>Sim, já revisei este erro</span>
+                </label>
               </div>
             </div>
-            <div v-else>
-              <button @click="novoErro" style="margin-bottom:16px;padding:8px 20px;background:var(--primaria);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;">
-                + Novo Erro
-              </button>
-              <div v-for="(errList, mat) in errosAgrupados" :key="mat" style="margin-bottom:20px;">
-                <h4 style="font-size:14px;margin-bottom:8px;color:var(--texto-sec);text-transform:uppercase;">{{ mat }} ({{ errList.length }})</h4>
-                <div v-if="errList.length === 0" style="font-size:13px;color:var(--texto-sec);padding:8px 0;">Nenhum erro registrado.</div>
-                <div v-for="e in errList" :key="e.id" style="padding:12px;border:1px solid var(--borda);border-radius:8px;margin-bottom:8px;font-size:14px;">
-                  <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
-                    <div style="flex:1;">
-                      <strong>{{ e.topico }}</strong>
-                      <span :style="{
-                        display:'inline-block',
-                        marginLeft:'8px',
-                        padding:'2px 8px',
-                        borderRadius:'4px',
-                        fontSize:'12px',
-                        fontWeight:600,
-                        background: e.tipo === 'A' ? '#fef3c7' : e.tipo === 'B' ? '#dbeafe' : '#fce7f3',
-                        color: e.tipo === 'A' ? '#92400e' : e.tipo === 'B' ? '#1e40af' : '#9d174d'
-                      }">{{ e.tipo === 'A' ? 'Desconhecimento' : e.tipo === 'B' ? 'Confusão' : 'Atenção' }}</span>
-                      <div style="margin-top:6px;font-size:13px;color:var(--texto-sec);">
-                        <div><strong>Pensei:</strong> {{ e.pensamento }}</div>
-                        <div><strong>Correto:</strong> {{ e.respostaCorreta }}</div>
-                        <div v-if="e.lacuna"><strong>Lacuna:</strong> {{ e.lacuna }}</div>
-                      </div>
-                    </div>
-                    <div style="display:flex;gap:4px;flex-shrink:0;">
-                      <button @click="agendarRevisao(e.topico, e.materia, e.data)" title="Agendar revisão espaçada" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;">📅</button>
-                      <button @click="editarErro(e)" title="Editar" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;">✏️</button>
-                      <button @click="removerErro(e.id)" title="Remover" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px;color:var(--erro);">✕</button>
-                    </div>
-                  </div>
-                </div>
+            <div style="display:flex;gap:12px;margin-top:20px;">
+              <button @click="salvarErro" style="flex:1;padding:10px 28px;background:var(--primaria);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Salvar</button>
+              <button @click="cancelarErro" style="padding:10px 28px;background:var(--texto-sec);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancelar</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo"><span>Classificação do Erro</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px;padding:8px 0;">
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--texto);">
+                <span style="display:inline-block;width:28px;height:28px;lineHeight:28px;textAlign:center;borderRadius:50%;fontSize:12px;fontWeight:700;background:#fef3c7;color:#92400e;">A</span>
+                Desconhecimento — conteúdo não estudado
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--texto);">
+                <span style="display:inline-block;width:28px;height:28px;lineHeight:28px;textAlign:center;borderRadius:50%;fontSize:12px;fontWeight:700;background:#dbeafe;color:#1e40af;">B</span>
+                Confusão — conteúdo estudado mas confundido com outro
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--texto);">
+                <span style="display:inline-block;width:28px;height:28px;lineHeight:28px;textAlign:center;borderRadius:50%;fontSize:12px;fontWeight:700;background:#fce7f3;color:#9d174d;">C</span>
+                Atenção — domina o conteúdo, errou por distração
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo"><span>Erros por Matéria</span></div>
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                  <tr>
+                    <th style="text-align:left;padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Matéria</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);text-align:center;">Total erros</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);text-align:center;">A</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);text-align:center;">B</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);text-align:center;">C</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);text-align:center;">Revisados</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="m in errosPorMateria" :key="m.materia">
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);"><strong>{{ m.materia }}</strong></td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);text-align:center;">{{ m.total }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);text-align:center;">{{ m.A }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);text-align:center;">{{ m.B }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);text-align:center;">{{ m.C }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);text-align:center;">{{ m.revisados }}/{{ m.total }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo"><span>Erros Frequentes (refazer 7 dias depois)</span></div>
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                  <tr>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">#</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Data original</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Matéria</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Tópico</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Refiz D+7</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Acertou?</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Refiz D+30</th>
+                    <th style="padding:10px 8px;font-weight:600;font-size:12px;text-transform:uppercase;color:var(--texto-sec);border-bottom:2px solid var(--borda);">Acertou?</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(e, idx) in errosFrequentes" :key="e.id">
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">{{ idx + 1 }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">{{ e.data }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">{{ e.materia }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">{{ e.topico }}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">
+                      <button v-if="!e.revisaoD7" @click="registrarRevisao(e.id, 7)" style="padding:4px 12px;border:1px solid var(--primaria);background:transparent;color:var(--primaria);border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Refazer</button>
+                      <span v-else style="font-size:12px;color:var(--texto-sec);white-space:nowrap;">{{ e.revisaoD7.data }}</span>
+                    </td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">
+                      <span v-if="!e.revisaoD7">–</span>
+                      <button v-else-if="!e.revisaoD7.acertou" @click="marcarRevisaoAcertou(e.id, 7)" style="padding:2px 8px;border:1px solid #10b981;background:transparent;color:#10b981;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">✅ Sim</button>
+                      <span v-else style="color:#10b981;font-weight:600;font-size:13px;">Sim ✓</span>
+                    </td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">
+                      <button v-if="!e.revisaoD30" @click="registrarRevisao(e.id, 30)" style="padding:4px 12px;border:1px solid var(--primaria);background:transparent;color:var(--primaria);border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Refazer</button>
+                      <span v-else style="font-size:12px;color:var(--texto-sec);white-space:nowrap;">{{ e.revisaoD30.data }}</span>
+                    </td>
+                    <td style="padding:10px 8px;border-bottom:1px solid var(--borda);">
+                      <span v-if="!e.revisaoD30">–</span>
+                      <button v-else-if="!e.revisaoD30.acertou" @click="marcarRevisaoAcertou(e.id, 30)" style="padding:2px 8px;border:1px solid #10b981;background:transparent;color:#10b981;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">✅ Sim</button>
+                      <span v-else style="color:#10b981;font-weight:600;font-size:13px;">Sim ✓</span>
+                    </td>
+                  </tr>
+                  <tr v-if="errosFrequentes.length === 0">
+                    <td colspan="8" style="text-align:center;padding:32px 16px;color:var(--texto-sec);font-style:italic;">Nenhum erro classificado como A ou B registrado.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo"><span>Regras de Ouro (aprendidas com os erros)</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px;padding:8px 0;">
+              <div v-for="(r, idx) in regrasDeOuro" :key="idx" style="display:flex;align-items:center;gap:10px;">
+                <span style="font-weight:700;font-size:16px;color:var(--primaria);min-width:24px;">{{ idx + 1 }}.</span>
+                <input v-model="regrasDeOuro[idx]" :placeholder="'Digite sua regra de ouro #' + (idx + 1)" style="flex:1;padding:10px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);">
               </div>
             </div>
           </div>

@@ -79,9 +79,9 @@ function useSimulados(semanasPlano) {
 
 function useErros() {
   const erros = ref([]);
-  const formErro = ref({ materia: '', topico: '', descricao: '', pensamento: '', respostaCorreta: '', lacuna: '', tipo: 'B' });
   const editandoErro = ref(null);
   const carregandoErros = ref(false);
+  const regrasDeOuro = ref(['', '', '', '', '']);
 
   const errosAgrupados = computed(() => {
     const grupos = {};
@@ -95,33 +95,47 @@ function useErros() {
 
   const totalErros = computed(() => erros.value.length);
 
+  const errosPorMateria = computed(() => {
+    const materias = ['Português', 'Matemática', 'Química'];
+    return materias.map(mat => {
+      const lista = erros.value.filter(e => e.materia === mat);
+      const total = lista.length;
+      const A = lista.filter(e => (e.classificacao || e.tipo) === 'A').length;
+      const B = lista.filter(e => (e.classificacao || e.tipo) === 'B').length;
+      const C = lista.filter(e => (e.classificacao || e.tipo) === 'C').length;
+      const revisados = lista.filter(e => e.revisado).length;
+      return { materia: mat, total, A, B, C, revisados, pendentes: total - revisados };
+    });
+  });
+
+  const errosFrequentes = computed(() => {
+    return erros.value.filter(e => e.classificacao === 'A' || e.classificacao === 'B' || (e.tipo && e.tipo !== 'C'));
+  });
+
   async function carregarErros() {
-    if (erros.value.length > 0) return; // Evita recarregar se já tiver dados
+    if (erros.value.length > 0) return;
     carregandoErros.value = true;
     erros.value = await Armazenamento.getErros();
+    const regras = await Armazenamento._getData('regrasDeOuro', null);
+    if (regras) regrasDeOuro.value = regras;
     carregandoErros.value = false;
   }
 
   function novoErro() {
-    editandoErro.value = { id: Date.now(), data: new Date().toISOString().slice(0, 10), ...formErro.value };
+    editandoErro.value = { id: Date.now(), data: new Date().toISOString().slice(0, 10), materia: '', topico: '', questao: '', pensamento: '', respostaCorreta: '', lacuna: '', classificacao: 'A', revisado: false, revisaoD7: null, revisaoD30: null };
   }
 
   async function salvarErro() {
-    if (!editandoErro.value || !editandoErro.value.materia || !editandoErro.value.topico) return;
-    
+    if (!editandoErro.value) return;
     const erroSalvo = { ...editandoErro.value };
-
-    // Otimização: Atualiza a UI reativamente
     const idx = erros.value.findIndex(e => e.id === erroSalvo.id);
     if (idx >= 0) {
       erros.value.splice(idx, 1, erroSalvo);
     } else {
       erros.value.push(erroSalvo);
     }
-
     await Armazenamento.salvarErro(erroSalvo);
     editandoErro.value = null;
-    formErro.value = { materia: '', topico: '', descricao: '', pensamento: '', respostaCorreta: '', lacuna: '', tipo: 'B' };
   }
 
   function editarErro(e) {
@@ -129,11 +143,8 @@ function useErros() {
   }
 
   async function removerErro(id) {
-    // Otimização: Atualiza a UI reativamente
     const idx = erros.value.findIndex(e => e.id === id);
-    if (idx >= 0) {
-      erros.value.splice(idx, 1);
-    }
+    if (idx >= 0) erros.value.splice(idx, 1);
     await Armazenamento.removerErro(id);
   }
 
@@ -141,9 +152,27 @@ function useErros() {
     editandoErro.value = null;
   }
 
+  function registrarRevisao(id, prazo) {
+    const e = erros.value.find(e => e.id === id);
+    if (!e) return;
+    if (prazo === 7) e.revisaoD7 = { data: new Date().toISOString().slice(0, 10), acertou: false };
+    if (prazo === 30) e.revisaoD30 = { data: new Date().toISOString().slice(0, 10), acertou: false };
+    Armazenamento.salvarErro(e);
+  }
+
+  function marcarRevisaoAcertou(id, prazo) {
+    const e = erros.value.find(e => e.id === id);
+    if (!e) return;
+    if (prazo === 7 && e.revisaoD7) e.revisaoD7.acertou = true;
+    if (prazo === 30 && e.revisaoD30) e.revisaoD30.acertou = true;
+    Armazenamento.salvarErro(e);
+  }
+
   return {
-    erros, formErro, editandoErro, errosAgrupados, totalErros, carregandoErros,
-    novoErro, salvarErro, editarErro, removerErro, cancelarErro, carregarErros
+    erros, editandoErro, errosAgrupados, totalErros, carregandoErros,
+    errosPorMateria, errosFrequentes, regrasDeOuro,
+    novoErro, salvarErro, editarErro, removerErro, cancelarErro, carregarErros,
+    registrarRevisao, marcarRevisaoAcertou
   };
 }
 
@@ -1971,8 +2000,9 @@ const app = createApp({
       carregarPlano,
       irPara, alternarTema,
       // Expondo tudo do Composable de Erros
-      erros, formErro, editandoErro, errosAgrupados, totalErros,
+      erros, editandoErro, errosAgrupados, totalErros,
       carregandoErros, novoErro, salvarErro, editarErro, removerErro, cancelarErro,
+      errosPorMateria, errosFrequentes, regrasDeOuro, registrarRevisao, marcarRevisaoAcertou,
       // Expondo tudo do Composable de Diário
       CHECKLIST_ITENS, diario, diarioData, diarioHoje, diarioProgresso, alternarDiario,
       // Expondo tudo do Composable de Revisões
