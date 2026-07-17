@@ -2214,7 +2214,7 @@ const app = createApp({
     const { revisoes, revisoesPendentes, revisoesHoje, agendarRevisao, concluirRevisao, removerRevisao } = useRevisoes(REVISAO_INTERVALOS);
 
     // --- Usando o Composable para a feature de Flashcards ---
-    const { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao } = useFlashcards();
+    const { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao, reiniciarFlashcards } = useFlashcards();
 
     // --- Usando o Composable para Admin ---
     const admin = useAdmin();
