@@ -10,15 +10,26 @@ const {
 } = useChecklist();
 
 const conteudos = CONTEUDOS;
+
+const abaAtiva = ref(null);
+
+function toggleAba(id) {
+  abaAtiva.value = abaAtiva.value === id ? null : id;
+}
 </script>
 
 <template>
   <div>
-    <div class="grade-cartoes">
-      <div v-for="m in conteudos" :key="m.id" class="cartao-stat" :style="{ borderTopColor: m.cor }">
-        <div class="valor" :style="{ color: m.cor }">{{ progressoMateria(m) }}%</div>
-        <div class="rotulo">{{ m.icone }} {{ m.nome }}</div>
-      </div>
+    <div class="checklist-tabs">
+      <button class="checklist-tab" :class="{ active: abaAtiva === null }" @click="abaAtiva = null">
+        📋 Todas
+        <span class="tab-progress">{{ totalConcluidoGeral }}/{{ totalGeral }}</span>
+      </button>
+      <button v-for="m in conteudos" :key="m.id" class="checklist-tab" :class="{ active: abaAtiva === m.id }"
+        :style="abaAtiva === m.id ? { borderBottomColor: m.cor, color: m.cor } : {}" @click="toggleAba(m.id)">
+        {{ m.icone }} {{ m.nome }}
+        <span class="tab-progress">{{ progressoMateria(m) }}%</span>
+      </button>
     </div>
 
     <div class="card">
@@ -36,7 +47,7 @@ const conteudos = CONTEUDOS;
         <button @click="colapsarTudo" style="padding:8px 12px;background:var(--texto-sec);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;">📁 Colapsar Tudo</button>
       </div>
 
-      <div v-for="m in (filtro ? conteudosFiltrados : conteudos)" :key="m.id" style="margin-bottom:24px;">
+      <div v-for="m in (filtro ? conteudosFiltrados : conteudos).filter(c => !abaAtiva || c.id === abaAtiva)" :key="m.id" style="margin-bottom:24px;">
         <h3 style="font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--borda);">
           {{ m.icone }} {{ m.nome }}
           <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">({{ itensConcluidos(m) }}/{{ totalItens(m) }})</span>

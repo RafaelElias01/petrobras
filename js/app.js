@@ -303,6 +303,8 @@ function useChecklist(conteudosData) {
   const checklist = ref({});
   const gruposAbertos = ref({});
   const filtro = ref('');
+  const abaAtiva = ref(null);
+  function toggleAba(id) { abaAtiva.value = abaAtiva.value === id ? null : id; }
 
   // Initialize all groups as open by default
   conteudosData.forEach(m => {
@@ -383,7 +385,7 @@ function useChecklist(conteudosData) {
   function colapsarTudo() { Object.keys(gruposAbertos.value).forEach(k => gruposAbertos.value[k] = false); }
 
   return {
-    checklist, gruposAbertos, filtro,
+    checklist, gruposAbertos, filtro, abaAtiva, toggleAba,
     chaveItem, checkId, alternarItem, toggleGrupo,
     totalItens, itensConcluidos, itensConcluidosGrupo, progressoMateria,
     totalGeral, totalConcluidoGeral, progressoGeral,
@@ -1954,7 +1956,7 @@ const app = createApp({
       semanasPlano, metaHoras, totalMeta,
       conteudos: CONTEUDOS,
       // Expondo tudo do Composable de Checklist
-      checklist, gruposAbertos, filtro, chaveItem, checkId, alternarItem, toggleGrupo,
+      checklist, gruposAbertos, filtro, abaAtiva, toggleAba, chaveItem, checkId, alternarItem, toggleGrupo,
       totalItens, itensConcluidos, itensConcluidosGrupo, progressoMateria,
       totalGeral, totalConcluidoGeral, progressoGeral,
       // Expondo tudo do Composable de Horas
