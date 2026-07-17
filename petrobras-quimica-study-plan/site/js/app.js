@@ -168,6 +168,12 @@ function useErros() {
     Armazenamento.salvarErro(e);
   }
 
+  watch(regrasDeOuro, (val) => {
+    if (carregandoErros.value) return;
+    Armazenamento._salvarLocal('regrasDeOuro', val);
+    Armazenamento._putToServer('regrasDeOuro', val);
+  }, { deep: true });
+
   return {
     erros, editandoErro, errosAgrupados, totalErros, carregandoErros,
     errosPorMateria, errosFrequentes, regrasDeOuro,
@@ -330,20 +336,22 @@ function useHoras(semanasPlano, diasSemana, metaHoras) {
 
 function useChecklist(conteudosData) {
   const checklist = ref({});
-  const gruposAbertos = ref({});
+  const gruposAbertos = ref(Armazenamento._carregarLocal('gruposAbertos', {}));
   const filtro = ref('');
   const abaAtiva = ref(null);
   function toggleAba(id) { abaAtiva.value = abaAtiva.value === id ? null : id; }
 
-  // Initialize all groups as open by default
-  conteudosData.forEach(m => {
-    m.grupos.forEach(g => {
-      gruposAbertos.value[m.id + '-' + g.nome] = true;
+  // Initialize all groups as open by default if not loaded from storage
+  if (Object.keys(gruposAbertos.value).length === 0) {
+    conteudosData.forEach(m => {
+      m.grupos.forEach(g => {
+        gruposAbertos.value[m.id + '-' + g.nome] = true;
+      });
     });
-  });
+  }
 
   function chaveItem(materiaId, grupoNome, idx) {
-    return `${materiaId}::${grupoNome}::${idx}`;
+    return `${materiaId}-${grupoNome}-${idx}`;
   }
 
   function checkId(materiaId, grupoNome, idx) {
@@ -412,6 +420,10 @@ function useChecklist(conteudosData) {
 
   function expandirTudo() { Object.keys(gruposAbertos.value).forEach(k => gruposAbertos.value[k] = true); }
   function colapsarTudo() { Object.keys(gruposAbertos.value).forEach(k => gruposAbertos.value[k] = false); }
+
+  watch(gruposAbertos, (val) => {
+    Armazenamento._salvarLocal('gruposAbertos', val);
+  }, { deep: true });
 
   return {
     checklist, gruposAbertos, filtro, abaAtiva, toggleAba,

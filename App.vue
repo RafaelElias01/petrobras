@@ -8,6 +8,7 @@ import Horas from './Horas.vue';
 import Ciclo from './Ciclo.vue';
 import Simulados from './Simulados.vue';
 import Erros from './Erros.vue';
+import Flashcards from './Flashcards.vue';
 import Diario from './Diario.vue';
 import Plano from './Plano.vue';
 import Relatorio from './Relatorio.vue';
@@ -31,6 +32,7 @@ const titulos = {
   horas: { t: 'Quadro de Horas', s: 'Controle seu tempo de estudo' },
   simulados: { t: 'Simulados', s: 'Acompanhe seu desempenho' },
   erros: { t: 'Caderno de Erros', s: 'Transforme falhas em aprendizado' },
+  flashcards: { t: 'Flashcards', s: 'Revisão com repetição espaçada' },
   diario: { t: 'Diário de Bordo', s: 'Seu checklist de hábitos diários' },
   relatorio: { t: 'Relatório', s: 'Análise de desempenho e produtividade' },
   plano: { t: 'Plano de Estudos', s: 'Documentos e cronogramas' },
@@ -94,6 +96,7 @@ const views = {
   ciclo: Ciclo,
   simulados: Simulados,
   erros: Erros,
+  flashcards: Flashcards,
   diario: Diario,
   relatorio: Relatorio,
   plano: Plano,
@@ -108,6 +111,7 @@ const navLinks = [
   { view: 'horas', icon: '⏱', text: 'Horas' },
   { view: 'simulados', icon: '📋', text: 'Simulados' },
   { view: 'erros', icon: '📕', text: 'Erros' },
+  { view: 'flashcards', icon: '🃏', text: 'Flashcards' },
   { view: 'diario', icon: '📌', text: 'Diário' },
   { view: 'relatorio', icon: '📊', text: 'Relatório' },
   { view: 'exercicios', icon: '📝', text: 'Questões' },

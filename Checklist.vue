@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue';
 import { useChecklist } from './useChecklist.js';
 import { CONTEUDOS } from './dados.js';
 
