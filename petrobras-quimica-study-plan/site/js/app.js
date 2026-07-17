@@ -1100,6 +1100,34 @@ function useExercicios() {
 
 const app = createApp({
   setup() {
+    // --- Autenticação ---
+    const usuarioAtual = ref(null);
+    const autenticado = ref(false);
+    const erroLogin = ref(false);
+    const loginUsuario = ref('');
+    const loginSenha = ref('');
+
+    function handleLogin(usuario, senha) {
+      const user = autenticar(usuario, senha);
+      if (user) {
+        usuarioAtual.value = user;
+        autenticado.value = true;
+        erroLogin.value = false;
+        sessionStorage.setItem('petro_usuario', JSON.stringify(user));
+      } else {
+        erroLogin.value = true;
+      }
+    }
+
+    function logout() {
+      usuarioAtual.value = null;
+      autenticado.value = false;
+      sessionStorage.removeItem('petro_usuario');
+      view.value = 'dashboard';
+    }
+
+    const usuarioLogado = computed(() => usuarioAtual.value?.nome || 'Usuário');
+
     // --- Estado da UI e Navegação ---
     const view = ref('dashboard');
     const menuAberta = ref(false);
@@ -1161,6 +1189,15 @@ const app = createApp({
 
     // Inicialização assíncrona
     onMounted(async () => {
+      const sessao = sessionStorage.getItem('petro_usuario');
+      if (sessao) {
+        const user = JSON.parse(sessao);
+        if (user) {
+          usuarioAtual.value = user;
+          autenticado.value = true;
+        }
+      }
+
       carregando.value = true;
       const config = await Armazenamento.getConfig();
       tema.value = config.tema || 'light';
@@ -1193,6 +1230,7 @@ const app = createApp({
     });
 
     const tituloView = computed(() => ({
+      login: 'Login',
       dashboard: 'Dashboard',
       checklist: 'Conteúdos',
       ciclo: 'Ciclo de Estudos',
@@ -1354,6 +1392,8 @@ const app = createApp({
     }
 
     return {
+      usuarioAtual, autenticado, erroLogin, usuarioLogado,
+      handleLogin, logout, loginUsuario, loginSenha,
       view, menuAberta, semanaAtual,
       tema, diasSemana, carregando,
       tituloView, subtituloView,

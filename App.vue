@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 
-import Login from './Login.vue'; // 1. Importamos o novo componente
-import Dashboard from './Dashboard.vue'; // (demais imports continuam aqui)
+import Login from './Login.vue';
+import Dashboard from './Dashboard.vue';
 import Checklist from './Checklist.vue';
 import Horas from './Horas.vue';
 import Ciclo from './Ciclo.vue';
@@ -12,12 +12,11 @@ import Diario from './Diario.vue';
 import Plano from './Plano.vue';
 import Relatorio from './Relatorio.vue';
 import Exercicios from './Exercicios.vue';
+import { autenticar } from './usuarios.js';
 
-// --- Lógica de Autenticação ---
-const SENHA_CORRETA = 'petro2026'; // Defina sua senha aqui!
-const autenticado = ref(sessionStorage.getItem('petro_auth') === 'true');
+const usuarioAtual = ref(JSON.parse(sessionStorage.getItem('petro_usuario') || 'null'));
+const autenticado = ref(!!usuarioAtual.value);
 const erroLogin = ref(false);
-// --- Fim da Lógica de Autenticação ---
 
 const carregando = ref(true);
 const menuAberta = ref(false);
@@ -58,15 +57,23 @@ function navegarHash() {
   if (hash && views[hash]) view.value = hash;
 }
 
-function handleLogin(senhaDigitada) {
-  if (senhaDigitada === SENHA_CORRETA) {
+function handleLogin(usuario, senha) {
+  const user = autenticar(usuario, senha);
+  if (user) {
+    usuarioAtual.value = user;
     autenticado.value = true;
     erroLogin.value = false;
-    sessionStorage.setItem('petro_auth', 'true'); // Salva o estado na sessão
+    sessionStorage.setItem('petro_usuario', JSON.stringify(user));
   } else {
     erroLogin.value = true;
-    senhaDigitada = ''; // Limpa o campo (indireto)
   }
+}
+
+function logout() {
+  usuarioAtual.value = null;
+  autenticado.value = false;
+  sessionStorage.removeItem('petro_usuario');
+  view.value = 'dashboard';
 }
 
 onMounted(() => {
@@ -127,10 +134,17 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
           <span class="icone">{{ planoLink.icon }}</span> {{ planoLink.text }}
         </a>
       </nav>
-      <div style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08);">
+      <div style="padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:12px;color:var(--texto-sec);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span style="opacity:0.7;">👤</span> {{ usuarioAtual?.nome || 'Usuário' }}
+          <span v-if="usuarioAtual?.role === 'admin'" style="font-size:10px;background:#f59e0b;color:#000;padding:1px 6px;border-radius:3px;font-weight:600;">ADM</span>
+        </div>
         <button class="nav-item" @click="alternarTema" style="font-size:13px;">
           <span class="icone">{{ tema === 'dark' ? '☀️' : '🌙' }}</span>
           {{ tema === 'dark' ? 'Tema Claro' : 'Tema Escuro' }}
+        </button>
+        <button class="nav-item" @click="logout" style="font-size:13px;margin-top:4px;color:var(--erro);">
+          <span class="icone">🚪</span> Sair
         </button>
       </div>
     </aside>

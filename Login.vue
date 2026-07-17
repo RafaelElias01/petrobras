@@ -7,10 +7,11 @@ defineProps({
 
 const emit = defineEmits(['tentativa-login']);
 
+const usuarioDigitado = ref('');
 const senhaDigitada = ref('');
 
-function submeterSenha() {
-  emit('tentativa-login', senhaDigitada.value);
+function submeter() {
+  emit('tentativa-login', usuarioDigitado.value, senhaDigitada.value);
 }
 </script>
 
@@ -22,19 +23,27 @@ function submeterSenha() {
         <span>Técnico em Química • Cesgranrio</span>
       </div>
       <p class="instrucao">
-        Para acessar a plataforma, por favor, insira a senha.
+        Informe usuário e senha para acessar.
       </p>
-      <form @submit.prevent="submeterSenha">
+      <form @submit.prevent="submeter">
+        <input
+          v-model="usuarioDigitado"
+          type="text"
+          placeholder="Usuário"
+          class="input-senha"
+          autofocus
+          autocomplete="username"
+        />
         <input
           v-model="senhaDigitada"
           type="password"
-          placeholder="Digite sua senha"
+          placeholder="Senha"
           class="input-senha"
-          autofocus
+          autocomplete="current-password"
         />
         <button type="submit" class="btn-entrar">Entrar</button>
         <p v-if="erro" class="msg-erro">
-          Senha incorreta. Tente novamente.
+          Usuário ou senha inválidos.
         </p>
       </form>
     </div>
@@ -74,6 +83,7 @@ function submeterSenha() {
   color: var(--texto);
   font-size: 16px;
   margin-bottom: 16px;
+  box-sizing: border-box;
 }
 .btn-entrar {
   width: 100%;
@@ -87,7 +97,7 @@ function submeterSenha() {
   cursor: pointer;
 }
 .msg-erro {
-  color: #ef4444; /* Cor de erro */
+  color: #ef4444;
   font-size: 13px;
   margin-top: 12px;
 }

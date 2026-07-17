@@ -9,6 +9,24 @@
 </head>
 <body>
   <div id="app">
+    <div v-if="!autenticado" class="login-container" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;">
+      <div style="width:100%;max-width:380px;padding:32px;background:var(--fundo-sec);border-radius:8px;border:1px solid var(--borda);text-align:center;">
+        <div style="margin-bottom:20px;">
+          <h1 style="font-size:24px;color:var(--texto);margin:0;">Petrobras 2026</h1>
+          <span style="font-size:14px;color:var(--texto-sec);">Técnico em Química • Cesgranrio</span>
+        </div>
+        <p style="color:var(--texto-sec);margin-bottom:24px;font-size:14px;">Informe usuário e senha para acessar.</p>
+        <form @submit.prevent="handleLogin(loginUsuario, loginSenha)">
+          <input v-model="loginUsuario" type="text" placeholder="Usuário" autofocus autocomplete="username"
+            style="width:100%;padding:12px;border-radius:4px;border:1px solid var(--borda);background:var(--fundo);color:var(--texto);font-size:16px;margin-bottom:16px;box-sizing:border-box;">
+          <input v-model="loginSenha" type="password" placeholder="Senha" autocomplete="current-password"
+            style="width:100%;padding:12px;border-radius:4px;border:1px solid var(--borda);background:var(--fundo);color:var(--texto);font-size:16px;margin-bottom:16px;box-sizing:border-box;">
+          <button type="submit" style="width:100%;padding:12px;border:none;border-radius:4px;background:var(--primaria);color:white;font-size:16px;font-weight:600;cursor:pointer;">Entrar</button>
+          <p v-if="erroLogin" style="color:#ef4444;font-size:13px;margin-top:12px;">Usuário ou senha inválidos.</p>
+        </form>
+      </div>
+    </div>
+    <template v-if="autenticado">
     <div v-if="carregando" style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:var(--texto-sec);">
       Carregando...
     </div>
@@ -58,6 +76,15 @@
         <button class="nav-item" @click="alternarTema" style="font-size:13px;">
           <span class="icone">{{ tema === 'dark' ? '☀️' : '🌙' }}</span>
           {{ tema === 'dark' ? 'Tema Claro' : 'Tema Escuro' }}
+        </button>
+      </div>
+      <div style="padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:12px;color:var(--texto-sec);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span style="opacity:0.7;">👤</span> {{ usuarioLogado }}
+          <span v-if="usuarioAtual?.role === 'admin'" style="font-size:10px;background:#f59e0b;color:#000;padding:1px 6px;border-radius:3px;font-weight:600;">ADM</span>
+        </div>
+        <button @click="logout" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--erro);padding:6px 0;display:flex;align-items:center;gap:6px;width:100%;">
+          <span>🚪</span> Sair
         </button>
       </div>
     </aside>
@@ -1084,11 +1111,13 @@
       </div>
     </footer>
     </template>
+    </template>
   </div>
 
   <script src="js/dados.js"></script>
   <script src="js/armazenamento.js"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="js/usuarios.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
