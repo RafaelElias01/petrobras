@@ -20,18 +20,39 @@ app.use(express.static(frontendDistPath));
 
 app.get('/api/planos', (req, res) => {
   const planosDir = path.join(__dirname, 'petrobras-quimica-study-plan');
-  fs.readdir(planosDir, (err, files) => {
-    if (err) return res.status(500).send('Erro ao ler planos.');
-    const planos = files
-      .filter(f => f.endsWith('.md'))
-      .map(file => ({ id: path.parse(file).name, nome: path.parse(file).name.replace(/-/g, ' '), grupo: 'Cronogramas' }));
-    res.json(planos);
-  });
+  const planos = [];
+
+  function scanDir(dir, grupo) {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch { return; }
+    for (const entry of entries) {
+      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        scanDir(fullPath, entry.name);
+      } else if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') {
+        const relPath = path.relative(planosDir, fullPath);
+        const id = relPath.replace(/\.md$/, '').replace(/\\/g, '/');
+        const nome = path.parse(entry.name).name.replace(/-/g, ' ');
+        planos.push({ id, nome, grupo: grupo || 'Cronogramas' });
+      }
+    }
+  }
+
+  scanDir(planosDir, '');
+  res.json(planos);
 });
 
-app.get('/api/plano/:id', (req, res) => {
-  const filePath = path.join(__dirname, 'petrobras-quimica-study-plan', `${req.params.id}.md`);
-  res.sendFile(filePath);
+app.get(/^\/api\/plano\/(.+)$/, (req, res) => {
+  const id = req.params[0];
+  const filePath = path.join(__dirname, 'petrobras-quimica-study-plan', `${id}.md`);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send('Documento não encontrado');
+  }
 });
 
 app.get(/^(?!\/api).*/, (req, res) => {

@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { marked } from 'marked';
 
 let instance;
@@ -9,7 +9,7 @@ export function usePlano() {
   }
 
   const planos = ref([]);
-  const planoSelecionado = ref('cronograma-12-semanas-provas');
+  const planoSelecionado = ref('');
   const planoHtml = ref('');
   const carregandoPlano = ref(false);
 
@@ -39,11 +39,6 @@ export function usePlano() {
     }
   }
 
-  onMounted(async () => {
-    await fetchPlanos();
-    await carregarPlano();
-  });
-
-  instance = { planos, planoSelecionado, planoHtml, carregandoPlano, carregarPlano };
+  instance = { planos, planoSelecionado, planoHtml, carregandoPlano, fetchPlanos, carregarPlano };
   return instance;
 }
