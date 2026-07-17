@@ -88,3 +88,11 @@ const {
     </div>
   </div>
 </template>
+
+<style scoped>
+@media (max-width: 600px) {
+  .cartao-stat .valor[style*="font-size:24px"] {
+    font-size: 18px !important;
+  }
+}
+</style>

@@ -690,9 +690,29 @@ onMounted(() => {
   transition: all 0.3s ease-out;
 }
 
+.slide-up-leave-active {
+  transition: all 0.2s ease-in;
+}
+
 .slide-up-enter-from {
   opacity: 0;
   transform: translateY(20px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+@media (max-width: 768px) {
+  .flashcard-front,
+  .flashcard-back {
+    padding: 28px 24px;
+  }
+
+  .flashcard-text {
+    font-size: 18px;
+  }
 }
 
 @media (max-width: 600px) {

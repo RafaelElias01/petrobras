@@ -949,6 +949,34 @@ button {
   .bg-shape-3 { width: 150px; height: 150px; }
 }
 
+@media (max-width: 600px) {
+  .login-container {
+    padding: 16px;
+    gap: 24px;
+  }
+  .login-card {
+    padding: 24px 16px;
+  }
+  .login-card-header h2 {
+    font-size: 18px;
+  }
+  .brand-title {
+    font-size: 22px;
+  }
+  .brand-subtitle {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .input-field {
+    padding: 12px 14px 12px 40px;
+    font-size: 14px;
+  }
+  .btn-entrar {
+    padding: 12px;
+    font-size: 15px;
+  }
+}
+
 /* Tema escuro */
 [data-tema="dark"] {
   --bg: #0f1117;

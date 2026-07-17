@@ -31,7 +31,7 @@ const conteudos = CONTEUDOS;
 
       <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
         <input v-model="filtro" type="text" placeholder="🔍 Buscar tópico..."
-          style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--borda);border-radius:4px;background:var(--fundo-sec);color:var(--texto);font-size:13px;">
+          style="flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--borda);border-radius:4px;background:var(--fundo-sec);color:var(--texto);font-size:13px;">
         <button @click="expandirTudo" style="padding:8px 12px;background:var(--primaria);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;">📂 Expandir Tudo</button>
         <button @click="colapsarTudo" style="padding:8px 12px;background:var(--texto-sec);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;">📁 Colapsar Tudo</button>
       </div>

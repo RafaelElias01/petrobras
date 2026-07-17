@@ -190,3 +190,12 @@ function materiaCor(nome) {
     </template>
   </div>
 </template>
+
+<style scoped>
+@media (max-width: 600px) {
+  .alternativa {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+}
+</style>
