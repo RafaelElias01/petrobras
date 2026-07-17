@@ -27,16 +27,16 @@ function Stop-ProcessOnPort {
 Stop-ProcessOnPort -Port 3000 # Porta do Backend Express
 Stop-ProcessOnPort -Port 5173 # Porta padrão do Frontend Vite
 
-# O backend agora será iniciado pelo Vite Dev Server através do proxy
-# Não precisamos mais iniciar o backend separadamente em modo de desenvolvimento
+Write-Host "--- Iniciando Servidor de Backend (Express) ---" -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "npm start"
+Write-Host "Backend iniciado em segundo plano." -ForegroundColor Green
 
 Write-Host ""
 Write-Host "--- Iniciando Servidor de Frontend (Vite) ---" -ForegroundColor Cyan
 
 if (-not (Test-Path (Join-Path $PSScriptRoot "node_modules"))) {
     Write-Host "Instalando dependências do frontend (npm install)..." -ForegroundColor Yellow
-    # Usa --prefix para garantir que o npm rode no diretório correto
-    npm install --prefix $PSScriptRoot
+    npm install
 }
 
 # Garante que estamos no diretório correto do frontend antes de rodar o dev server
@@ -44,4 +44,4 @@ Set-Location -Path $PSScriptRoot
 
 Write-Host "Frontend estará disponível em http://localhost:5173 (ou outra porta indicada pelo Vite)."
 Write-Host "Pressione CTRL+C para parar o servidor."
-npm run dev --prefix $PSScriptRoot
+npm run dev

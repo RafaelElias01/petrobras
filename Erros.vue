@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted } from 'vue';
-import { useErros } from '../composables/useErros.js';
+import { useErros } from './useErros.js';
 
 const {
   totalErros, errosAgrupados, editandoErro, carregarErros, agendarRevisao,

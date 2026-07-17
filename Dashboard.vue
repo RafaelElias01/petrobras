@@ -1,11 +1,11 @@
 <script setup>
-import { useChecklist } from '../composables/useChecklist.js';
-import { useHoras } from '../composables/useHoras.js';
-import { useSimulados } from '../composables/useSimulados.js';
-import { useErros } from '../composables/useErros.js';
-import { useDiario } from '../composables/useDiario.js';
-import { useCiclo } from '../composables/useCiclo.js';
-import { CONTEUDOS, META_HORAS_SEMANA } from '../composables/dados.js';
+import { useChecklist } from './useChecklist.js';
+import { useHoras } from './useHoras.js';
+import { useSimulados } from './useSimulados.js';
+import { useErros } from './useErros.js';
+import { useDiario } from './useDiario.js';
+import { useCiclo } from './useCiclo.js';
+import { CONTEUDOS, META_HORAS_SEMANA } from './dados.js';
 
 // O Dashboard precisa de um pouco de cada composable para exibir os status.
 const { progressoGeral, progressoMateria, itensConcluidos, totalItens } = useChecklist();
