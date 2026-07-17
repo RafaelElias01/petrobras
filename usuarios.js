@@ -22,3 +22,7 @@ export function autenticar(usuario, senha) {
   if (!encontrado) return null;
   return { usuario: encontrado.usuario, nome: encontrado.nome, role: encontrado.role };
 }
+
+export function gerarTokenSessao() {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}

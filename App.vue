@@ -16,8 +16,13 @@ import Exercicios from './Exercicios.vue';
 import Admin from './Admin.vue';
 import { autenticar } from './usuarios.js';
 
-const usuarioAtual = ref(JSON.parse(sessionStorage.getItem('petro_usuario') || 'null'));
-const autenticado = ref(!!usuarioAtual.value);
+const SESSAO_KEY = 'petro_quimica_sessao';
+function gerarToken() {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+const usuarioAtual = ref(null);
+const autenticado = ref(false);
 const erroLogin = ref(false);
 
 const carregando = ref(true);
@@ -67,7 +72,9 @@ function handleLogin(usuario, senha) {
     usuarioAtual.value = user;
     autenticado.value = true;
     erroLogin.value = false;
-    sessionStorage.setItem('petro_usuario', JSON.stringify(user));
+    const sessao = { user, token: gerarToken(), timestamp: Date.now() };
+    sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+    localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
   } else {
     erroLogin.value = true;
   }
@@ -76,13 +83,40 @@ function handleLogin(usuario, senha) {
 function logout() {
   usuarioAtual.value = null;
   autenticado.value = false;
-  sessionStorage.removeItem('petro_usuario');
+  sessionStorage.removeItem(SESSAO_KEY);
+  localStorage.removeItem(SESSAO_KEY);
   view.value = 'dashboard';
+}
+
+function verificarSessao() {
+  const local = localStorage.getItem(SESSAO_KEY);
+  const session = sessionStorage.getItem(SESSAO_KEY);
+  if (!session) {
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        usuarioAtual.value = parsed.user;
+        autenticado.value = true;
+        sessionStorage.setItem(SESSAO_KEY, local);
+      } catch { verificarSessao() }
+    }
+    return;
+  }
+  if (!local) { logout(); return; }
+  try {
+    const localParsed = JSON.parse(local);
+    const sessionParsed = JSON.parse(session);
+    if (localParsed.token !== sessionParsed.token) { logout(); }
+  } catch { logout() }
 }
 
 onMounted(() => {
   document.documentElement.dataset.tema = tema.value;
   window.addEventListener('hashchange', navegarHash);
+  window.addEventListener('storage', (e) => {
+    if (e.key === SESSAO_KEY) verificarSessao();
+  });
+  verificarSessao();
   navegarHash();
   setTimeout(() => {
     carregando.value = false;

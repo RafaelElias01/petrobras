@@ -2141,6 +2141,11 @@ function useExercicios() {
 const app = createApp({
   setup() {
     // --- Autenticação ---
+    const SESSAO_KEY = 'petro_quimica_sessao';
+    function gerarToken() {
+      return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    }
+
     const usuarioAtual = ref(null);
     const autenticado = ref(false);
     const erroLogin = ref(false);
@@ -2154,7 +2159,9 @@ const app = createApp({
         usuarioAtual.value = user;
         autenticado.value = true;
         erroLogin.value = false;
-        sessionStorage.setItem('petro_usuario', JSON.stringify(user));
+        const sessao = { user, token: gerarToken(), timestamp: Date.now() };
+        sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+        localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
       } else {
         erroLogin.value = true;
       }
@@ -2163,8 +2170,31 @@ const app = createApp({
     function logout() {
       usuarioAtual.value = null;
       autenticado.value = false;
-      sessionStorage.removeItem('petro_usuario');
+      sessionStorage.removeItem(SESSAO_KEY);
+      localStorage.removeItem(SESSAO_KEY);
       view.value = 'dashboard';
+    }
+
+    function verificarSessao() {
+      const local = localStorage.getItem(SESSAO_KEY);
+      const session = sessionStorage.getItem(SESSAO_KEY);
+      if (!session) {
+        if (local) {
+          try {
+            const parsed = JSON.parse(local);
+            usuarioAtual.value = parsed.user;
+            autenticado.value = true;
+            sessionStorage.setItem(SESSAO_KEY, local);
+          } catch {}
+        }
+        return;
+      }
+      if (!local) { logout(); return; }
+      try {
+        const localParsed = JSON.parse(local);
+        const sessionParsed = JSON.parse(session);
+        if (localParsed.token !== sessionParsed.token) { logout(); }
+      } catch { logout() }
     }
 
     const usuarioLogado = computed(() => usuarioAtual.value?.nome || 'Usuário');
@@ -2233,14 +2263,10 @@ const app = createApp({
 
     // Inicialização assíncrona
     onMounted(async () => {
-      const sessao = sessionStorage.getItem('petro_usuario');
-      if (sessao) {
-        const user = JSON.parse(sessao);
-        if (user) {
-          usuarioAtual.value = user;
-          autenticado.value = true;
-        }
-      }
+      window.addEventListener('storage', (e) => {
+        if (e.key === SESSAO_KEY) verificarSessao();
+      });
+      verificarSessao();
 
       carregando.value = true;
       const config = await Armazenamento.getConfig();
