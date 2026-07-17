@@ -33,6 +33,7 @@ function irPara(novaView) {
   view.value = novaView;
   menuAberta.value = false;
   window.scrollTo(0, 0);
+  window.location.hash = novaView;
 }
 
 function alternarTema() {
@@ -41,8 +42,15 @@ function alternarTema() {
   localStorage.setItem('petrobras_quimica_tema', tema.value);
 }
 
+function navegarHash() {
+  const hash = window.location.hash.slice(1);
+  if (hash && views[hash]) view.value = hash;
+}
+
 onMounted(() => {
   document.documentElement.dataset.tema = tema.value;
+  window.addEventListener('hashchange', navegarHash);
+  navegarHash();
   setTimeout(() => {
     carregando.value = false;
   }, 200);

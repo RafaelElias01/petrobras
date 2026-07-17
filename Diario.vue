@@ -20,6 +20,7 @@ function navegarPara(view) {
 </script>
 
 <template>
+  <div>
   <div class="grade-cartoes">
     <div class="cartao-stat">
       <div class="valor" style="font-size:20px;">{{ revisoesHoje.length }}</div>
@@ -91,6 +92,7 @@ function navegarPara(view) {
         <button @click="removerRevisao(r.id)" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--erro);">✕</button>
       </div>
     </div>
+  </div>
   </div>
 </template>
 

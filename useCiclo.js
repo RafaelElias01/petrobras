@@ -10,6 +10,9 @@ export function useCiclo() {
   }
 
   const ciclo = ref(Armazenamento.carregar('ciclo', { posicao: 0, concluido: {} }));
+  if (ciclo.value.posicao >= CICLO_ESTUDOS.length) {
+    ciclo.value.posicao = 0;
+  }
   const cicloExpandido = ref(false);
 
   watch(ciclo, (novoValor) => {

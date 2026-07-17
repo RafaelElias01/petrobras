@@ -20,7 +20,12 @@ export function useHoras() {
 
   const getHorasDia = (sem, dia) => horas.value[sem]?.[dia] || {};
 
-  const horaValor = (sem, dia, mat) => getHorasDia(sem, dia)[mat] || 0;
+  const horaValor = (sem, dia, mat) => {
+    if (mat === undefined) {
+      return horas.value[sem]?.[dia] || 0;
+    }
+    return getHorasDia(sem, dia)[mat] || 0;
+  };
   
   const setHora = (sem, dia, mat, val) => {
     if (String(sem).includes('-')) {
