@@ -744,7 +744,15 @@ function useFlashcards() {
     configurandoRevisao.value = false;
   }
 
-  return { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao };
+  async function reiniciarFlashcards() {
+    if (!confirm('Tem certeza? Todos os flashcards serão resetados para o padrão.')) return;
+    flashcards.value = FLASHCARDS_PADRAO.map(c => ({ ...c }));
+    Armazenamento._cache['flashcards'] = flashcards.value;
+    Armazenamento._salvarLocal('flashcards', flashcards.value);
+    await Armazenamento._putToServer('flashcards', flashcards.value);
+  }
+
+  return { flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard, modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao, reiniciarFlashcards };
 }
 
 function useAdmin() {
@@ -2332,7 +2340,7 @@ const app = createApp({
       { id: 'checklist-conteudos', nome: 'Checklist de Conteúdos', grupo: 'Cronogramas e Planos' },
       { id: 'ciclo-estudos', nome: 'Ciclo de Estudos', grupo: 'Cronogramas e Planos' },
       { id: 'conteudo-programatico', nome: 'Conteúdo Programático', grupo: 'Cronogramas e Planos' },
-      { id: 'cronograma-12-semanas-provas', nome: 'Cronograma 12 Semanas (Provas)', grupo: 'Cronogramas e Planos' },
+
       { id: 'cronograma-cesgranrio', nome: 'Cronograma Cesgranrio', grupo: 'Cronogramas e Planos' },
       { id: 'cronograma-completo', nome: 'Cronograma Completo', grupo: 'Cronogramas e Planos' },
       { id: 'metodologia-estudo', nome: 'Metodologia de Estudo', grupo: 'Cronogramas e Planos' },
@@ -2467,7 +2475,7 @@ const app = createApp({
       flashcards, formFlashcard, editandoFlashcard, carregandoFlashcards, flashcardsAgrupados,
       novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard,
       modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex, cardAtual, progressoRevisao, opcoesRevisao, 
-      abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao,
+      abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao, cancelarConfiguracaoRevisao, reiniciarFlashcards,
       // Expondo tudo do Composable de Ciclo de Estudos
       ciclo, materiaAtual, idxOriginalAtual, cicloCompleto, cicloExpandido, completosPorItem,
       avancarCiclo, reiniciarCiclo,

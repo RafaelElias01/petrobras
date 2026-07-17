@@ -1301,7 +1301,7 @@ button {
 
 @media (max-width: 768px) {
   .cron-topo { flex-direction: column; align-items: stretch; }
-  .cron-nav { justify-content: center; }
+  .cron-nav { justify-content: center; flex-wrap: wrap; gap: 8px; }
   .cron-nav-semana { font-size: 16px; }
   .cron-nav-titulo { font-size: 12px; }
   .cron-select { max-width: 100%; }
