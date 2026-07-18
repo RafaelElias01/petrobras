@@ -5,12 +5,14 @@ $Site = Join-Path $Root "petrobras-quimica-study-plan"
 
 Write-Host "== Iniciando Petrobras Study Tracker ==" -ForegroundColor Cyan
 
-# Mata processo na porta 3000 antes de tudo
-$pids = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue |
-  Select-Object -ExpandProperty OwningProcess -Unique
-foreach ($pid in $pids) {
-  Write-Host "Encerrando processo na porta 3000 (PID: $pid)..." -ForegroundColor Yellow
-  Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+# Mata processo nas portas 3000 e 3001
+foreach ($port in @(3000, 3001)) {
+  $pids = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue |
+    Select-Object -ExpandProperty OwningProcess -Unique
+  foreach ($pid in $pids) {
+    Write-Host "Encerrando processo na porta $port (PID: $pid)..." -ForegroundColor Yellow
+    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+  }
 }
 Start-Sleep -Milliseconds 500
 

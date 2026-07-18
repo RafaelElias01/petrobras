@@ -85,7 +85,7 @@
               <div v-for="d in depoimentos.slice(0, 3)" :key="d.nome" class="depoimento-card">
                 <div class="dep-estrelas"><span v-for="s in d.estrelas">★</span></div>
                 <p class="dep-texto">"{{ d.texto }}"</p>
-                <strong class="dep-nome">— {{ d.nome }}</strong>
+                <div class="dep-nome"><span class="dep-nome-texto">{{ d.nome }}</span> <span class="dep-cidade">{{ d.cidade }}</span></div>
               </div>
             </div>
           </div>

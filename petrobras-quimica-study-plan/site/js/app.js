@@ -2232,11 +2232,15 @@ const app = createApp({
     }
 
     async function comprarPremium() {
+      if (!usuarioAtual.value) {
+        window.open('https://wa.me/5551983098650?text=Ol%C3%A1!%20Quero%20adquirir%20o%20Premium%20da%20Petrobras%20Academy%20por%20R%24%2049%2C90', '_blank');
+        return;
+      }
       try {
         const r = await fetch('/api/mercadopago/preference', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ usuario: usuarioAtual.value?.usuario || '' })
+          body: JSON.stringify({ usuario: usuarioAtual.value.usuario })
         });
         const data = await r.json();
         if (data.init_point) window.location.href = data.init_point;

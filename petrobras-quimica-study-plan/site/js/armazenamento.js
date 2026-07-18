@@ -277,18 +277,13 @@ const Armazenamento = {
 
   // --- Admin (Usuários) ---
   async getAdminUsuarios() {
-    const server = await this._getFromServer('admin_usuarios');
+    const serverData = await this._getFromServer('admin_usuarios');
     const local = this._carregarLocal('admin_usuarios', null);
-    if (server && Array.isArray(server) && server.length > 0) {
-      this._salvarLocal('admin_usuarios', server);
-      return server;
+    if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+      this._salvarLocal('admin_usuarios', serverData);
+      return serverData;
     }
     if (local && Array.isArray(local) && local.length > 0) return local;
-    const server = await this._getFromServer('admin_usuarios');
-    if (server && Array.isArray(server) && server.length > 0) {
-      this._salvarLocal('admin_usuarios', server);
-      return server;
-    }
     return [];
   },
 
