@@ -37,20 +37,36 @@
         </div>
         <div class="login-card">
           <div class="login-card-header">
-            <h2>Acessar Plataforma</h2>
-            <p>Informe suas credenciais</p>
+            <h2>{{ modoCadastro ? 'Criar Conta' : 'Acessar Plataforma' }}</h2>
+            <p>{{ modoCadastro ? 'Crie sua conta gratuita' : 'Informe suas credenciais' }}</p>
           </div>
-          <form @submit.prevent="handleLogin(loginUsuario, loginSenha)" class="login-form">
+
+          <div class="login-tabs">
+            <button class="login-tab" :class="{ active: !modoCadastro }" @click="modoCadastro = false">Entrar</button>
+            <button class="login-tab" :class="{ active: modoCadastro }" @click="modoCadastro = true">Criar Conta</button>
+          </div>
+
+          <form @submit.prevent="modoCadastro ? handleRegister() : handleLogin(loginUsuario, loginSenha)" class="login-form">
             <div class="input-group">
               <label for="loginUsuario">Usuário</label>
-              <input id="loginUsuario" v-model="loginUsuario" type="text" placeholder="Seu nome de usuário" class="input-field" autofocus autocomplete="username">
+              <input id="loginUsuario" v-model="loginUsuario" type="text" placeholder="Seu nome de usuário" class="input-field" autocomplete="username">
               <span class="input-icon">👤</span>
+            </div>
+            <div v-if="modoCadastro" class="input-group">
+              <label for="loginNome">Nome</label>
+              <input id="loginNome" v-model="loginNome" type="text" placeholder="Seu nome completo" class="input-field">
+              <span class="input-icon">📝</span>
+            </div>
+            <div v-if="modoCadastro" class="input-group">
+              <label for="loginEmail">E-mail (opcional)</label>
+              <input id="loginEmail" v-model="loginEmail" type="email" placeholder="seu@email.com" class="input-field">
+              <span class="input-icon">📧</span>
             </div>
             <div class="input-group">
               <label for="loginSenha">Senha</label>
               <div class="campo-senha">
-                <input id="loginSenha" v-model="loginSenha" :type="mostrarSenha ? 'text' : 'password'" placeholder="Sua senha" class="input-field" autocomplete="current-password">
-                <button type="button" class="olho-senha" @click="mostrarSenha = !mostrarSenha" :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+                <input id="loginSenha" v-model="loginSenha" :type="mostrarSenha ? 'text' : 'password'" :placeholder="modoCadastro ? 'Crie uma senha (min 4 caracteres)' : 'Sua senha'" class="input-field" autocomplete="current-password">
+                <button type="button" class="olho-senha" @click="mostrarSenha = !mostrarSenha">
                   <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                     <circle cx="12" cy="12" r="3"/>
@@ -64,16 +80,41 @@
               </div>
             </div>
             <button type="submit" class="btn-entrar">
-              <span>Entrar</span>
+              <span>{{ modoCadastro ? 'Criar Conta' : 'Entrar' }}</span>
               <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
-            <p v-if="erroLogin" class="msg-erro">⚠ Usuário ou senha inválidos. Tente novamente.</p>
+            <p v-if="erroLogin" class="msg-erro">⚠ {{ mensagemErro }}</p>
           </form>
           <div class="login-card-footer">
             <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
           </div>
         </div>
       </div>
+      <div class="login-depoimentos">
+        <h3>📍 O que nossos alunos dizem</h3>
+        <div class="depoimentos-grid">
+          <div v-for="d in depoimentos.slice(0, 4)" :key="d.nome" class="depoimento-card">
+            <div class="dep-avatar">{{ d.avatar }}</div>
+            <div class="dep-content">
+              <div class="dep-estrelas">
+                <span v-for="s in d.estrelas">⭐</span>
+              </div>
+              <p class="dep-texto">"{{ d.texto }}"</p>
+              <strong class="dep-nome">{{ d.nome }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="social-proof" v-if="!autenticado">
+      <div class="sp-visualizacoes">👀 <span id="sp-visitors">47</span> pessoas estão vendo agora</div>
+      <transition-group name="sp-fade" tag="div" class="sp-notificacoes">
+        <div v-for="(n, i) in notificacoes" :key="n.id" class="sp-notificacao">
+          <span class="sp-avatar">{{ n.avatar }}</span>
+          <div><strong>{{ n.nome }}</strong> {{ n.texto }}</div>
+        </div>
+      </transition-group>
     </div>
     <template v-if="autenticado">
     <div v-if="carregando" style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:var(--texto-sec);">
@@ -118,6 +159,9 @@
         </a>
         <a v-if="usuarioAtual?.role === 'admin'" href="#admin" class="nav-item" :class="{ ativa: view === 'admin' }" @click.prevent="irPara('admin')" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;padding-top:12px;">
           <span class="icone">⚙️</span> Admin <span v-if="featureBloqueada('admin')" class="lock-icon">🔒</span>
+        </a>
+        <a v-if="autenticado" href="#premium" class="nav-item" :class="{ ativa: view === 'premium' }" @click.prevent="irPara('premium')">
+          <span class="icone">👑</span> Premium <span v-if="!isPremium" class="badge-premium">R$49,90</span>
         </a>
         <div style="border-top:1px solid rgba(255,255,255,0.08);margin:8px 16px;"></div>
         <a href="#plano" class="nav-item" :class="{ ativa: view === 'plano' }" @click.prevent="irPara('plano')">
@@ -1385,6 +1429,52 @@
 </template>
   </div>
       </transition>
+
+      <!-- PREMIUM -->
+      <template v-if="view === 'premium'">
+        <div class="card premium-banner">
+          <h2>🚀 Petrobras Academy Premium</h2>
+          <p>Acesso vitalício a todas as ferramentas de estudo para o concurso da Petrobras</p>
+          <div v-if="isPremium" style="background:rgba(255,255,255,0.2);border-radius:8px;padding:16px;margin-bottom:16px;">
+            <span style="font-size:48px;">✅</span>
+            <h3 style="color:#fff;margin:8px 0;">Você já é Premium!</h3>
+            <p style="opacity:0.9;">Todas as funcionalidades estão liberadas. Bons estudos!</p>
+          </div>
+          <button v-else class="btn-premium" @click="comprarPremium">
+            💳 Comprar Premium — R$ 49,90
+          </button>
+          <p style="font-size:12px;opacity:0.7;margin-top:8px;">Pagamento via Mercado Pago • Pix, boleto ou cartão</p>
+        </div>
+        <div class="card">
+          <div class="card-titulo">📦 O que está incluído</div>
+          <ul class="premio-features">
+            <li>🔄 <strong>Ciclo de Estudos Inteligente</strong> — rotação ponderada com 24 matérias</li>
+            <li>⏱ <strong>Quadro de Horas</strong> — registre e acompanhe suas horas de estudo</li>
+            <li>📋 <strong>Simulados</strong> — acompanhe seu desempenho nos simulados</li>
+            <li>📕 <strong>Caderno de Erros</strong> — cada erro é um ponto garantido na prova</li>
+            <li>📌 <strong>Diário de Estudos</strong> — checklist diário do concurseiro aprovado</li>
+            <li>📊 <strong>Relatórios</strong> — análise completa de produtividade</li>
+            <li>📝 <strong>Banco de Questões</strong> — prática com questões estilo Cesgranrio</li>
+            <li>⚙️ <strong>Suporte Prioritário</strong> — acesso direto via WhatsApp</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-titulo">💬 O que nossos alunos dizem</div>
+          <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
+            <div v-for="d in depoimentos" :key="d.nome" style="background:var(--fundo-sec);padding:16px;border-radius:8px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="font-size:28px;">{{ d.avatar }}</span>
+                <div>
+                  <strong>{{ d.nome }}</strong>
+                  <div><span v-for="s in d.estrelas" style="font-size:14px;">⭐</span></div>
+                </div>
+              </div>
+              <p style="font-size:14px;color:var(--texto-sec);font-style:italic;">"{{ d.texto }}"</p>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
         <div class="overlay-card" @click.stop>
           <button class="overlay-fechar" @click="irPara('dashboard')">✕</button>
@@ -1409,7 +1499,7 @@
 
     <footer class="rodape">
       <div class="conteudo-rodape">
-        <p>🎓 Desenvolvido por <strong>Rafael Elias Ioppi</strong></p>
+         <p>🎓 <strong>Petrobras Academy</strong></p>
         <p style="font-size:12px;color:var(--texto-sec);margin-top:4px;">
           Plano de Estudos | Concurso Petrobras 2026 | Cesgranrio
         </p>

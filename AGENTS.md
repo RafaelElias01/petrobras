@@ -56,6 +56,7 @@ petrobras-quimica-study-plan/    # Site estatico + servidor
 - Recursos **liberados**: Dashboard, Conteudos, Flashcards, Plano de Estudos
 - Overlay cobre a tela com backdrop blur, impede interacao/scroll
 - Sidebar mostra 🔒 nos itens bloqueados
+- Sidebar mostra badge `R$49,90` no item Premium se `!isPremium`
 
 ## Persistencia (toda feature)
 1. **Cache** — estado reativo
@@ -84,16 +85,30 @@ petrobras-quimica-study-plan/    # Site estatico + servidor
 | `#plano` | Plano.vue | Documentos |
 | `#cronograma` | Cronograma.vue / cronograma in site/ | Cronograma semanal interativo |
 | `#flashcards` | Flashcards.vue | Revisao com flashcards |
-| `#login` | Login.vue | Autenticacao |
+| `#premium` | index.html/app.js | Tela de compra Premium 👑 |
+
+## Login e Cadastro
+- **Abas "Entrar" / "Criar Conta"** no formulário de login (alterna `modoCadastro`)
+- `handleRegister()` envia POST `/api/auth/register` → salva em `dados/usuarios.json`
+- `handleLogin()` melhorado: chama `autenticar()` + `verificarPremium()` após login
+- Senhas em texto plano (MVP), podem ser hashadas depois
+
+## Premium / Pagamento
+- **Preço**: R$ 49,90 (pagamento único, acesso vitalício)
+- **Gateway**: Mercado Pago (`mercadopago` SDK)
+- `comprarPremium()` → POST `/api/mercadopago/preference` → redireciona ao checkout MP
+- Webhook `/api/mercadopago/webhook` atualiza `dados/premium.json`
+- `verificarPremium()` → GET `/api/premium/status/:usuario` → libera recursos
+- Sidebar mostra badge `R$49,90` se `!isPremium`
+- Premium libera: Ciclo, Horas, Simulados, Erros, Diario, Relatorio, Questoes, Admin
+
+## Provas Sociais
+- `notificacoes` — notificações flutuantes estilo "João acabou de comprar o Premium!"
+- `iniciarSocialProof()` — intervalo aleatório 4-8s, notificação some após 5s
+- `depoimentos` — array de 10 depoimentos com nome, avatar, texto e estrelas
+- Exibidos na tela de login (grade 4 cards) e na página Premium (grade completa)
 
 ## Padroes
-- `use[Nome].js` — Composables singleton
-- `<style scoped>` em cada componente
-- Variaveis CSS: `--primaria`, `--bg`, `--card`, `--texto`, `--borda`, `--sucesso`, `--erro`, `--aviso`
-- 3 breakpoints: 1024px, 768px, 600px
-- `color-mix()` para backgrounds (fallback implicito)
-- Rotas hash-based (sem Vue Router)
-- GPG signing ativado no git — commitar com `-c commit.gpgsign=false`
 
 ## CI/CD
 - `.github/workflows/deploy.yml` — push no main → copia site/ → deploy no gh-pages
