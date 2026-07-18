@@ -2163,9 +2163,6 @@ const app = createApp({
     const loginUsuario = ref('');
     const loginSenha = ref('');
     const mostrarSenha = ref(false);
-    const modoCadastro = ref(false);
-    const loginNome = ref('');
-    const loginEmail = ref('');
     const mensagemErro = ref('');
     const isPremium = ref(false);
     const visitantesOnline = ref(0);
@@ -2216,34 +2213,6 @@ const app = createApp({
         usuarioAtual.value = localParsed.user;
         autenticado.value = true;
       } catch { logout() }
-    }
-
-    // === REGISTER & PREMIUM ===
-    async function handleRegister() {
-      erroLogin.value = false;
-      mensagemErro.value = '';
-      if (!loginUsuario.value || !loginSenha.value || !loginNome.value) {
-        mensagemErro.value = 'Preencha usuario, nome e senha';
-        erroLogin.value = true;
-        return;
-      }
-      try {
-        const r = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ usuario: loginUsuario.value, senha: loginSenha.value, nome: loginNome.value, email: loginEmail.value })
-        });
-        const data = await r.json();
-        if (!data.ok) {
-          mensagemErro.value = data.erro || 'Erro ao criar conta';
-          erroLogin.value = true;
-          return;
-        }
-        await handleLogin(loginUsuario.value, loginSenha.value);
-      } catch {
-        mensagemErro.value = 'Erro de conexao com o servidor';
-        erroLogin.value = true;
-      }
     }
 
     async function handleLogin(usuario, senha) {
@@ -2585,9 +2554,8 @@ const app = createApp({
 
     return {
       usuarioAtual, autenticado, erroLogin, usuarioLogado,
-      handleLogin, logout, loginUsuario, loginSenha, mostrarSenha,
-      modoCadastro, loginNome, loginEmail, mensagemErro,
-      handleRegister, comprarPremium, isPremium, depoimentos,
+      handleLogin, logout, loginUsuario, loginSenha, mostrarSenha, mensagemErro,
+      comprarPremium, isPremium, depoimentos,
       visitantesOnline, registrarVisita, carregarVisitas, carregandoVisitas,
       view, menuAberta, semanaAtual,
       tema, diasSemana, carregando,

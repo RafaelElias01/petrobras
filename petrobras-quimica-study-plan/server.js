@@ -57,6 +57,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Security headers
+app.use((req, res, next) => {
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'DENY');
+  res.header('X-XSS-Protection', '1; mode=block');
+  res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
+
 app.get('/api/arquivos', async (req, res) => {
   try {
     const files = await fsPromises.readdir(DADOS_DIR);
