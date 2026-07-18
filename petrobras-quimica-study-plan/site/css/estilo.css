@@ -1303,14 +1303,16 @@ button {
   padding: 10px 14px;
   border: 1px solid var(--borda);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-family: inherit;
   background: var(--card);
   color: var(--texto);
   cursor: pointer;
   outline: none;
-  max-width: 320px;
-  width: 100%;
+  min-width: 200px;
+  max-width: 100%;
+  width: auto;
+  flex-shrink: 0;
 }
 
 .cron-select:focus { border-color: var(--primaria); }
@@ -1435,7 +1437,7 @@ button {
   .cron-nav { justify-content: center; flex-wrap: wrap; gap: 8px; }
   .cron-nav-semana { font-size: 16px; }
   .cron-nav-titulo { font-size: 12px; }
-  .cron-select { max-width: 100%; }
+  .cron-select { min-width: 0; width: 100%; }
   .cron-dia-label { font-size: 12px; padding: 12px 8px; width: 80px; }
   .cron-cell { padding: 8px; }
   .cron-conteudo { font-size: 12px; }

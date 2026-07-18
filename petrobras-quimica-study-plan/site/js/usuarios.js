@@ -1,7 +1,7 @@
 const PREFIXO = 'petrobras_quimica_';
 
 const USUARIOS_PADRAO_HASHED = [
-  { usuario: 'admin', senhaHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', nome: 'Administrador', role: 'admin' },
+  { usuario: 'admin', senhaHash: 'a882a1c625f7558e72c23e62ccc60900d3f5b9003aefd278500996ea20fd55e4', nome: 'Administrador', role: 'admin' },
   { usuario: 'estudante', senhaHash: '1cf9665547766da64f3e5d8e57222fc171028125298ad015ce194b2e5e3a024e', nome: 'Estudante', role: 'user' },
 ];
 
