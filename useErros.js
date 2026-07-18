@@ -55,7 +55,7 @@ export function useErros() {
   });
 
   const errosFrequentes = computed(() => {
-    return erros.value.filter(e => e.classificacao === 'A' || e.classificacao === 'B' || (e.tipo && e.tipo !== 'C'));
+    return erros.value.filter(e => (e.classificacao || e.tipo) === 'A' || (e.classificacao || e.tipo) === 'B');
   });
 
   function novoErro() {

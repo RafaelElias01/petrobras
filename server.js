@@ -9,6 +9,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = 3000;
 
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';");
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 const frontendDistPath = path.join(__dirname, 'dist');
 
 if (!fs.existsSync(frontendDistPath)) {
@@ -47,7 +55,8 @@ app.get('/api/planos', (req, res) => {
 
 app.get(/^\/api\/plano\/(.+)$/, (req, res) => {
   const id = req.params[0];
-  const filePath = path.join(__dirname, 'petrobras-quimica-study-plan', `${id}.md`);
+  const idSanitized = id.replace(/\.\.\//g, '').replace(/\.\.\\/g, '').replace(/\//g, path.sep);
+  const filePath = path.join(__dirname, 'petrobras-quimica-study-plan', `${idSanitized}.md`);
   if (fs.existsSync(filePath)) {
     res.sendFile(filePath);
   } else {

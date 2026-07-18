@@ -7,6 +7,21 @@ const {
   planoHtml, fetchPlanos, carregarPlano
 } = usePlano();
 
+function sanitizeHTML(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const scripts = doc.querySelectorAll('script, iframe, object, embed, link[rel="import"]');
+  scripts.forEach(el => el.remove());
+  const allElements = doc.querySelectorAll('*');
+  allElements.forEach(el => {
+    Array.from(el.attributes).forEach(attr => {
+      if (attr.name.startsWith('on') || attr.value.startsWith('javascript:')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return doc.body.innerHTML;
+}
+
 const planosGrupos = computed(() => [...new Set(planos.value.map(p => p.grupo))]);
 const planosFiltrados = (g) => planos.value.filter(p => p.grupo === g);
 
@@ -35,7 +50,7 @@ onMounted(async () => {
       </div>
     </div>
     <div class="card" v-if="carregandoPlano" style="text-align:center;padding:40px;color:var(--texto-sec);">Carregando...</div>
-    <div class="card plano-conteudo" v-if="!carregandoPlano && planoHtml" v-html="planoHtml"></div>
+    <div class="card plano-conteudo" v-if="!carregandoPlano && planoHtml" v-html="sanitizeHTML(planoHtml)"></div>
     <div class="card" v-if="!carregandoPlano && !planoHtml" style="text-align:center;padding:40px;color:var(--texto-sec);">Selecione um documento acima para visualizar.</div>
   </div>
 </template>

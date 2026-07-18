@@ -23,6 +23,7 @@ export function useCiclo() {
 
   if (ciclo.value.posicao >= totalPonderado.value) {
     ciclo.value.posicao = 0;
+    Armazenamento.salvar('ciclo', ciclo.value);
   }
 
   const cicloExpandido = ref(false);

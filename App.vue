@@ -1,20 +1,21 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
 
 import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
-import Checklist from './Checklist.vue';
-import Horas from './Horas.vue';
-import Ciclo from './Ciclo.vue';
-import Simulados from './Simulados.vue';
-import Erros from './Erros.vue';
-import Flashcards from './Flashcards.vue';
-import Diario from './Diario.vue';
-import Plano from './Plano.vue';
-import Relatorio from './Relatorio.vue';
-import Exercicios from './Exercicios.vue';
-import Admin from './Admin.vue';
 import { autenticar } from './usuarios.js';
+
+const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
+const Horas = defineAsyncComponent(() => import('./Horas.vue'));
+const Ciclo = defineAsyncComponent(() => import('./Ciclo.vue'));
+const Simulados = defineAsyncComponent(() => import('./Simulados.vue'));
+const Erros = defineAsyncComponent(() => import('./Erros.vue'));
+const Flashcards = defineAsyncComponent(() => import('./Flashcards.vue'));
+const Diario = defineAsyncComponent(() => import('./Diario.vue'));
+const Plano = defineAsyncComponent(() => import('./Plano.vue'));
+const Relatorio = defineAsyncComponent(() => import('./Relatorio.vue'));
+const Exercicios = defineAsyncComponent(() => import('./Exercicios.vue'));
+const Admin = defineAsyncComponent(() => import('./Admin.vue'));
 
 const SESSAO_KEY = 'petro_quimica_sessao';
 function gerarToken() {
@@ -77,8 +78,8 @@ function navegarHash() {
   if (hash && views[hash]) view.value = hash;
 }
 
-function handleLogin(usuario, senha) {
-  const user = autenticar(usuario, senha);
+async function handleLogin(usuario, senha) {
+  const user = await autenticar(usuario, senha);
   if (user) {
     usuarioAtual.value = user;
     autenticado.value = true;
@@ -106,10 +107,11 @@ function verificarSessao() {
     if (local) {
       try {
         const parsed = JSON.parse(local);
+        if (!parsed?.user?.usuario) { logout(); return; }
         usuarioAtual.value = parsed.user;
         autenticado.value = true;
         sessionStorage.setItem(SESSAO_KEY, local);
-      } catch { verificarSessao() }
+      } catch { logout() }
     }
     return;
   }
@@ -117,6 +119,7 @@ function verificarSessao() {
   try {
     const localParsed = JSON.parse(local);
     const sessionParsed = JSON.parse(session);
+    if (!localParsed || !sessionParsed) { logout(); return; }
     if (localParsed.token !== sessionParsed.token) { logout(); }
   } catch { logout() }
 }
@@ -223,8 +226,9 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
             :usuarioLogado="view === 'admin' ? usuarioAtual?.usuario : undefined"
           />
         </transition>
-        <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click.prevent @scroll.prevent @wheel.prevent @touchmove.prevent>
-          <div class="overlay-card">
+        <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
+          <div class="overlay-card" @click.stop>
+            <button class="overlay-fechar" @click="irPara('dashboard')">✕</button>
             <div class="overlay-crown">👑</div>
             <h3>Versão Premium</h3>
             <p>Esta funcionalidade está bloqueada na conta de demonstração.</p>
@@ -277,7 +281,9 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
 }
 
 .overlay-card {
-  background: var(--card);
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--borda);
   border-radius: 20px;
   padding: 48px 40px 40px;
@@ -286,6 +292,27 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
   text-align: center;
   animation: overlayIn 0.4s ease-out;
   box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.overlay-fechar {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--texto-sec);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.overlay-fechar:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--texto);
 }
 
 @keyframes overlayIn {

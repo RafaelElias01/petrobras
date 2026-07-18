@@ -32,7 +32,7 @@ export function useHoras() {
       const data = sem;
       const materia = dia;
       if (!horas.value[data]) horas.value[data] = {};
-      horas.value[data][materia] = Math.max(0, Number(mat) || 0);
+      horas.value[data][materia] = Math.max(0, Number(val) || 0);
     } else {
       if (!horas.value[sem]) horas.value[sem] = {};
       if (!horas.value[sem][dia]) horas.value[sem][dia] = {};

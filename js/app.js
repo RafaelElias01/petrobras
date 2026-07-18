@@ -2164,8 +2164,8 @@ const app = createApp({
     const loginSenha = ref('');
     const mostrarSenha = ref(false);
 
-    function handleLogin(usuario, senha) {
-      const user = autenticar(usuario, senha);
+    async function handleLogin(usuario, senha) {
+      const user = await autenticar(usuario, senha);
       if (user) {
         usuarioAtual.value = user;
         autenticado.value = true;
@@ -2193,10 +2193,11 @@ const app = createApp({
         if (local) {
           try {
             const parsed = JSON.parse(local);
+            if (!parsed?.user?.usuario) { logout(); return; }
             usuarioAtual.value = parsed.user;
             autenticado.value = true;
             sessionStorage.setItem(SESSAO_KEY, local);
-          } catch {}
+          } catch { logout() }
         }
         return;
       }
@@ -2204,6 +2205,7 @@ const app = createApp({
       try {
         const localParsed = JSON.parse(local);
         const sessionParsed = JSON.parse(session);
+        if (!localParsed || !sessionParsed) { logout(); return; }
         if (localParsed.token !== sessionParsed.token) { logout(); }
       } catch { logout() }
     }

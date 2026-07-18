@@ -1,13 +1,13 @@
 import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
-import { USUARIOS_PADRAO } from './usuarios.js';
+import { getDefaultUsuarios, hashPassword } from './usuarios.js';
 
 let instance;
 
 export function useAdmin() {
   if (instance) return instance;
 
-  const usuarios = ref(Armazenamento.carregar('admin_usuarios', USUARIOS_PADRAO));
+  const usuarios = ref([]);
   const editandoUsuario = ref(null);
   const carregado = ref(false);
 
@@ -19,9 +19,24 @@ export function useAdmin() {
     Armazenamento.salvar('admin_usuarios', novoValor);
   }, { deep: true });
 
-  function carregarUsuarios() {
+  async function carregarUsuarios() {
     if (carregado.value) return;
-    usuarios.value = Armazenamento.carregar('admin_usuarios', USUARIOS_PADRAO);
+    const data = await Armazenamento.carregar('admin_usuarios', null);
+    if (data && Array.isArray(data) && data.length > 0) {
+      if (data[0].senha && !data[0].senhaHash) {
+        const migrados = await Promise.all(data.map(async u => ({
+          ...u,
+          senhaHash: await hashPassword(u.senha),
+          senha: undefined
+        })));
+        usuarios.value = migrados;
+        Armazenamento.salvar('admin_usuarios', migrados);
+      } else {
+        usuarios.value = data;
+      }
+    } else {
+      usuarios.value = getDefaultUsuarios();
+    }
     carregado.value = true;
   }
 
@@ -30,17 +45,26 @@ export function useAdmin() {
   }
 
   function editarUsuario(u) {
-    editandoUsuario.value = { ...u };
+    editandoUsuario.value = { ...u, senha: '' };
   }
 
-  function salvarUsuario() {
+  async function salvarUsuario() {
     if (!editandoUsuario.value) return;
     const u = { ...editandoUsuario.value };
-    if (!u.usuario || !u.senha || !u.nome) return;
+    if (!u.usuario || !u.nome) return;
     const idx = usuarios.value.findIndex(ex => ex.usuario === u.usuario);
     if (idx > -1) {
+      if (u.senha) {
+        u.senhaHash = await hashPassword(u.senha);
+      } else {
+        u.senhaHash = usuarios.value[idx].senhaHash;
+      }
+      u.senha = undefined;
       usuarios.value[idx] = u;
     } else {
+      if (!u.senha) return;
+      u.senhaHash = await hashPassword(u.senha);
+      u.senha = undefined;
       usuarios.value.push(u);
     }
     editandoUsuario.value = null;

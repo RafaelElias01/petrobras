@@ -48,8 +48,20 @@
             </div>
             <div class="input-group">
               <label for="loginSenha">Senha</label>
-              <input id="loginSenha" v-model="loginSenha" :type="mostrarSenha ? 'text' : 'password'" placeholder="Sua senha" class="input-field" autocomplete="current-password">
-              <span class="input-icon" @click="mostrarSenha = !mostrarSenha" style="cursor:pointer;">{{ mostrarSenha ? '👁' : '🔒' }}</span>
+              <div class="campo-senha">
+                <input id="loginSenha" v-model="loginSenha" :type="mostrarSenha ? 'text' : 'password'" placeholder="Sua senha" class="input-field" autocomplete="current-password">
+                <button type="button" class="olho-senha" @click="mostrarSenha = !mostrarSenha" :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+                  <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="olho-icon olho-fechado" :class="{ soma: !mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <button type="submit" class="btn-entrar">
               <span>Entrar</span>
@@ -1373,8 +1385,9 @@
 </template>
   </div>
       </transition>
-      <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click.prevent @scroll.prevent @wheel.prevent @touchmove.prevent>
-        <div class="overlay-card">
+      <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
+        <div class="overlay-card" @click.stop>
+          <button class="overlay-fechar" @click="irPara('dashboard')">✕</button>
           <div class="overlay-crown">👑</div>
           <h3>Versão Premium</h3>
           <p>Esta funcionalidade está bloqueada na conta de demonstração.</p>

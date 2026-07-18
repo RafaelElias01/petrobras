@@ -64,15 +64,32 @@ function submeter() {
           </div>
           <div class="input-group">
             <label for="senha">Senha</label>
-            <input
-              id="senha"
-              v-model="senhaDigitada"
-              :type="mostrarSenha ? 'text' : 'password'"
-              placeholder="Sua senha"
-              class="input-field"
-              autocomplete="current-password"
-            />
-            <span class="input-icon" @click="mostrarSenha = !mostrarSenha" style="cursor:pointer;">{{ mostrarSenha ? '👁' : '🔒' }}</span>
+            <div class="campo-senha">
+              <input
+                id="senha"
+                v-model="senhaDigitada"
+                :type="mostrarSenha ? 'text' : 'password'"
+                placeholder="Sua senha"
+                class="input-field"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="olho-senha"
+                @click="mostrarSenha = !mostrarSenha"
+                :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'"
+              >
+                <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="olho-icon olho-fechado" :class="{ soma: !mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn-entrar">
             <span>Entrar</span>
@@ -185,7 +202,7 @@ function submeter() {
 
 .brand-subtitle {
   font-size: 16px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.65);
   margin-bottom: 40px;
 }
 
@@ -200,7 +217,7 @@ function submeter() {
   align-items: center;
   gap: 12px;
   font-size: 14px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.8);
   animation: slideUp 0.8s ease-out forwards;
   opacity: 0;
 }
@@ -223,10 +240,10 @@ function submeter() {
 
 .login-card {
   width: 380px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 20px;
   padding: 40px 36px;
   animation: slideUp 0.8s ease-out 0.1s both;
@@ -247,7 +264,7 @@ function submeter() {
 
 .login-card-header p {
   font-size: 14px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.65);
 }
 
 .login-form {
@@ -272,8 +289,8 @@ function submeter() {
   width: 100%;
   padding: 14px 16px 14px 44px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.07);
   color: #fff;
   font-size: 15px;
   font-family: inherit;
@@ -283,13 +300,13 @@ function submeter() {
 }
 
 .input-field::placeholder {
-  color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.45);
 }
 
 .input-field:focus {
   border-color: #6366f1;
-  background: rgba(99,102,241,0.06);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  background: rgba(99,102,241,0.1);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
 }
 
 .input-icon {
@@ -297,7 +314,66 @@ function submeter() {
   left: 14px;
   bottom: 14px;
   font-size: 18px;
-  opacity: 0.3;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.campo-senha {
+  position: relative;
+}
+
+.olho-senha {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: rgba(255,255,255,0.5);
+  transition: color 0.2s, background 0.2s;
+}
+
+.olho-senha:hover {
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.1);
+}
+
+.olho-senha:active {
+  background: rgba(255,255,255,0.1);
+}
+
+.olho-icon {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.olho-aberto {
+  opacity: 0;
+  transform: scale(0.5) rotate(-60deg);
+}
+
+.olho-aberto.soma {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.olho-fechado {
+  opacity: 0;
+  transform: scale(0.5) rotate(60deg);
+}
+
+.olho-fechado.soma {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
 }
 
 .btn-entrar {
@@ -351,16 +427,16 @@ function submeter() {
   margin-top: 24px;
   text-align: center;
   padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .login-card-footer p {
   font-size: 12px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.55);
 }
 
 .login-card-footer strong {
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.8);
 }
 
 @keyframes slideUp {
@@ -424,6 +500,15 @@ function submeter() {
   .input-field {
     padding: 12px 14px 12px 40px;
     font-size: 14px;
+  }
+  .olho-senha {
+    right: 6px;
+    width: 32px;
+    height: 32px;
+  }
+  .olho-icon {
+    width: 17px;
+    height: 17px;
   }
   .btn-entrar {
     padding: 12px;
