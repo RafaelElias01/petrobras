@@ -63,13 +63,16 @@ petrobras-quimica-study-plan/    # Site estatico + servidor
 2. **localStorage** — `_salvarLocal()` com prefixo `petrobras_quimica_`
 3. **Servidor** — `_putToServer()` com debounce 1s
 
-## Ciclo de Estudos
-- `CICLO_PONDERADO` expande por `peso` (total 24 slots)
-- `posicao` indexa nos 24, wrap no fim
-- `concluido` usa `item-{idx}` com contador
-- `cicloCompleto` limitado a 100%
-- `CICLO_MAP` em `dados.js` mapeia nome da materia para ID de CONTEUDOS
-- `idxOriginalAtual` e `completosPorItem` expostos para UI
+## Memorias Fixas (nao errar de novo)
+- **Site estatico** (`site/index.html`): SEMPRE incluir `<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>` ANTES dos scripts locais (dados.js, armazenamento.js, app.js). A versao Vite (raiz) nao precisa, mas o site estatico sim.
+- **Cache busting**: ao alterar CSS/JS, atualizar `?v=` nos links. Usar data + letra (ex: `20260718a`).
+- **Variáveis Vue no template**: qualquer `ref()` criada em app.js precisa estar no `return {}` do `setup()`, senao dá `Property not defined on instance`.
+- **armazenamento.js**: nao usar `const server` duas vezes no mesmo escopo (erro `Identifier 'server' has already been declared`). Renomear para `serverData` na segunda.
+- **Depoimentos**: usar glassmorphism (`rgba(255,255,255,0.05)`, `backdrop-filter`) no lugar de `var(--card)` pra fundo escuro. Exibir `cidade` junto com `nome`.
+- **Contador visitantes**: sempre aplicar `Math.max(32, valor)` pra nunca ficar abaixo de 32. Usar `requestAnimationFrame` pra animacao suave.
+- **Comprar Premium**: se `usuarioAtual` for null (tela de login), redirecionar pra WhatsApp. Se logado, criar preference no Mercado Pago.
+- **Login footer**: usar `<button @click>` em vez de `<a href>` pra evitar popup blocker e garantir que o clique sempre dispare acao.
+- **Ciclo de Estudos**: `CICLO_PONDERADO` expande por `peso` (total 24 slots). `posicao` indexa nos 24, wrap no fim. `concluido` usa `item-{idx}` com contador.
 
 ## Telas
 | Rota | Arquivo | Proposito |
