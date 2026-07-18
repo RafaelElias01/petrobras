@@ -2164,6 +2164,7 @@ const app = createApp({
     const loginSenha = ref('');
     const mostrarSenha = ref(false);
     const mensagemErro = ref('');
+    const mostrarInfoPremium = ref(false);
     const isPremium = ref(false);
     const visitantesOnline = ref(0);
     const visitasLista = ref([]);
@@ -2559,7 +2560,7 @@ const app = createApp({
     return {
       usuarioAtual, autenticado, erroLogin, usuarioLogado,
       handleLogin, logout, loginUsuario, loginSenha, mostrarSenha, mensagemErro,
-      comprarPremium, isPremium, depoimentos,
+      comprarPremium, isPremium, mostrarInfoPremium, depoimentos,
       visitantesOnline, registrarVisita, carregarVisitas, carregandoVisitas,
       view, menuAberta, semanaAtual,
       tema, diasSemana, carregando,
