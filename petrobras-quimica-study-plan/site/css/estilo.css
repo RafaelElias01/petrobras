@@ -122,6 +122,16 @@ body {
   animation: overlayIn 0.4s ease-out;
   box-shadow: 0 25px 60px rgba(0,0,0,0.5);
   position: relative;
+  max-height: min(85vh, 560px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+html.overlay-open,
+html.overlay-open body {
+  overflow: hidden;
+  height: 100%;
 }
 
 .overlay-fechar {
@@ -1360,6 +1370,9 @@ button {
 }
 
 @media (max-width: 600px) {
+  .overlay-card {
+    padding: 32px 20px 24px;
+  }
   .login-container {
     padding: 16px;
     gap: 24px;

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estudo Petrobras - Técnico em Química</title>
-  <link rel="stylesheet" href="css/estilo.css?v=20260718a">
+  <link rel="stylesheet" href="css/estilo.css?v=20260718b">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
 </head>
@@ -98,7 +98,7 @@
           </div>
         </div>
       </div>
-      <div v-if="mostrarInfoPremium" class="overlay-bloqueio" @click="mostrarInfoPremium = false" @scroll.prevent @wheel.prevent @touchmove.prevent>
+      <div v-if="mostrarInfoPremium" class="overlay-bloqueio" @click="mostrarInfoPremium = false">
         <div class="overlay-card" @click.stop>
           <button class="overlay-fechar" @click="mostrarInfoPremium = false">✕</button>
           <div class="overlay-crown">👑</div>
@@ -1486,7 +1486,7 @@
         </div>
       </template>
 
-      <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
+      <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')">
         <div class="overlay-card" @click.stop>
           <button class="overlay-fechar" @click="irPara('dashboard')">✕</button>
           <div class="overlay-crown">👑</div>
@@ -1533,6 +1533,6 @@
   <script src="js/dados.js?v=20260718a"></script>
   <script src="js/armazenamento.js?v=20260718a"></script>
   <script src="js/usuarios.js?v=20260718a"></script>
-  <script src="js/app.js?v=20260718a"></script>
+  <script src="js/app.js?v=20260718b"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const { createApp, ref, computed, watch, onMounted } = Vue;
+const { createApp, ref, computed, watch, onMounted, onUnmounted } = Vue;
 
 //  COMPOSABLES - Lógica de Negócio Modularizada
 // ===================================================================
@@ -2202,6 +2202,7 @@ const app = createApp({
     ];
 
     function logout() {
+      mostrarInfoPremium.value = false;
       usuarioAtual.value = null;
       autenticado.value = false;
       sessionStorage.removeItem(SESSAO_KEY);
@@ -2238,6 +2239,7 @@ const app = createApp({
     async function handleLogin(usuario, senha) {
       const user = await autenticar(usuario, senha);
       if (user) {
+        mostrarInfoPremium.value = false;
         usuarioAtual.value = user;
         autenticado.value = true;
         erroLogin.value = false;
@@ -2410,6 +2412,16 @@ const app = createApp({
       if (novaView === 'admin') {
         admin.carregarAdmin();
       }
+    });
+
+    // Bloqueia scroll do body quando overlay estiver aberto
+    watch([mostrarInfoPremium, view, autenticado], () => {
+      const aberta = (!autenticado.value && mostrarInfoPremium.value) || (autenticado.value && featureBloqueada(view.value));
+      document.documentElement.classList.toggle('overlay-open', aberta);
+    }, { immediate: true });
+
+    onUnmounted(() => {
+      document.documentElement.classList.remove('overlay-open');
     });
 
     const tituloView = computed(() => ({
