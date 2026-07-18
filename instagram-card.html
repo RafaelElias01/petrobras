@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Post - Petrobras 2026</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px; gap: 40px; background: #f0f2f5; }
+
+.card { width: 540px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative; }
+
+/* SLIDE 1 - CAPA */
+.slide-capa {
+  background: linear-gradient(135deg, #0a0c14 0%, #1a1f2e 50%, #0f1219 100%);
+  padding: 60px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.slide-capa::before {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(99,102,241,0.15), transparent);
+  top: -100px; right: -100px;
+  border-radius: 50%;
+}
+.slide-capa::after {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(6,182,212,0.1), transparent);
+  bottom: -80px; left: -80px;
+  border-radius: 50%;
+}
+.capa-icone { font-size: 64px; margin-bottom: 20px; position: relative; z-index: 1; }
+.capa-titulo { font-size: 36px; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 8px; position: relative; z-index: 1; }
+.capa-titulo span { background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.capa-sub { font-size: 18px; color: rgba(255,255,255,0.5); margin-bottom: 32px; position: relative; z-index: 1; }
+.capa-tag {
+  display: inline-block;
+  padding: 8px 20px;
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 30px;
+  color: #818cf8;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative; z-index: 1;
+}
+.capa-seta {
+  margin-top: 30px;
+  color: rgba(255,255,255,0.2);
+  font-size: 28px;
+  animation: bounce 2s infinite;
+  position: relative; z-index: 1;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* SLIDE 2 - PROBLEMA */
+.slide-problema {
+  background: #12141e;
+  padding: 50px 40px;
+}
+.problema-titulo { font-size: 20px; color: #f87171; font-weight: 700; margin-bottom: 28px; }
+.problema-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.problema-item:last-child { margin-bottom: 0; }
+.problema-icone { font-size: 20px; flex-shrink: 0; }
+.problema-texto { color: rgba(255,255,255,0.6); font-size: 15px; }
+.problema-conclusao {
+  margin-top: 28px;
+  padding: 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.problema-conclusao p { color: rgba(255,255,255,0.4); font-size: 14px; line-height: 1.6; }
+.problema-conclusao strong { color: #818cf8; }
+
+/* SLIDE 3 - SOLUCAO */
+.slide-solucao {
+  background: linear-gradient(135deg, #0f1117 0%, #1a1040 100%);
+  padding: 50px 40px;
+}
+.solucao-titulo { font-size: 20px; color: #34d399; font-weight: 700; margin-bottom: 28px; }
+.solucao-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.solucao-item:last-child { border-bottom: none; }
+.solucao-icone { font-size: 22px; width: 40px; text-align: center; flex-shrink: 0; }
+.solucao-texto { color: rgba(255,255,255,0.75); font-size: 15px; }
+.solucao-destaque { color: #6366f1; font-weight: 700; }
+
+/* SLIDE 4 - PRINT */
+.slide-print {
+  background: #0d0f17;
+  padding: 50px 40px;
+  text-align: center;
+}
+.mockup-dashboard {
+  background: #1a1d29;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+.mockup-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.mockup-header h4 { color: rgba(255,255,255,0.8); font-size: 14px; }
+.mockup-header span { color: rgba(255,255,255,0.3); font-size: 12px; }
+.mockup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mockup-stat {
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  padding: 14px 12px;
+}
+.mockup-stat .num { font-size: 22px; font-weight: 700; color: #6366f1; }
+.mockup-stat .label { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+.mockup-stat .bar {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.mockup-stat .bar-inner { height: 100%; width: 65%; background: #6366f1; border-radius: 4px; }
+.mockup-stat .bar-inner.w70 { width: 70%; }
+.mockup-stat .bar-inner.w45 { width: 45%; }
+.mockup-stat .bar-inner.w80 { width: 80%; }
+.print-cta { margin-top: 20px; }
+.print-link {
+  display: inline-block;
+  padding: 14px 36px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+.print-demo { font-size: 13px; color: rgba(255,255,255,0.35); }
+.print-demo code {
+  background: rgba(255,255,255,0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: rgba(255,255,255,0.5);
+  font-family: 'SF Mono', monospace;
+  font-size: 12px;
+}
+
+/* SLIDE 5 - CTA */
+.slide-cta {
+  background: linear-gradient(135deg, #1a1040 0%, #0f172a 100%);
+  padding: 50px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.slide-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(99,102,241,0.08), transparent 70%);
+}
+.cta-emoji { font-size: 48px; margin-bottom: 16px; position: relative; z-index: 1; }
+.cta-titulo { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; position: relative; z-index: 1; }
+.cta-sub { font-size: 16px; color: rgba(255,255,255,0.4); margin-bottom: 28px; position: relative; z-index: 1; }
+.cta-botao {
+  display: inline-block;
+  padding: 16px 48px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border-radius: 16px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
+  margin-bottom: 20px;
+  position: relative; z-index: 1;
+  transition: transform 0.2s;
+}
+.cta-botao:hover { transform: translateY(-2px); }
+.cta-info { font-size: 13px; color: rgba(255,255,255,0.3); position: relative; z-index: 1; }
+.cta-hashtags { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; position: relative; z-index: 1; }
+.cta-hashtags span {
+  font-size: 11px;
+  color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.04);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* LEGENDA */
+.legenda {
+  width: 540px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #262626;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+.legenda strong { color: #0095f6; }
+.legenda a { color: #00376b; text-decoration: none; font-weight: 600; }
+.legenda .hashtags { margin-top: 12px; color: #00376b; font-size: 13px; line-height: 1.8; }
+.legenda .bar { border: none; border-top: 1px solid #efefef; margin: 16px 0; }
+
+@media (max-width: 600px) {
+  .card, .legenda { width: 100%; max-width: 540px; }
+  body { padding: 16px; gap: 24px; }
+  .capa-titulo { font-size: 28px; }
+  .slide-capa, .slide-problema, .slide-solucao, .slide-print, .slide-cta { padding: 36px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 - CAPA -->
+<div class="card slide-capa">
+  <div class="capa-icone">🧪</div>
+  <div class="capa-titulo">CONCURSO<br><span>PETROBRAS 2026</span></div>
+  <div class="capa-sub">TÉCNICO EM QUÍMICA • CESGRANRIO</div>
+  <div class="capa-tag">📘 100% Gratuito</div>
+  <div class="capa-seta">⬇</div>
+</div>
+
+<!-- SLIDE 2 - PROBLEMA -->
+<div class="card slide-problema">
+  <div class="problema-titulo">😫 Cansado de:</div>
+  <div class="problema-item">
+    <span class="problema-icone">❌</span>
+    <span class="problema-texto">Planilhas infinitas que ninguém mantém</span>
+  </div>
+  <div class="problema-item">
+    <span class="problema-icone">❌</span>
+    <span class="problema-texto">Cronograma que não se adapta ao seu ritmo</span>
+  </div>
+  <div class="problema-item">
+    <span class="problema-icone">❌</span>
+    <span class="problema-texto">Perder horas organizando em vez de estudar</span>
+  </div>
+  <div class="problema-conclusao">
+    <p>Você não precisa de <strong>mais conteúdo</strong>.<br>Você precisa de um <strong style="color:#34d399;">SISTEMA</strong>.</p>
+  </div>
+</div>
+
+<!-- SLIDE 3 - SOLUÇÃO -->
+<div class="card slide-solucao">
+  <div class="solucao-titulo">✅ Uma plataforma completa:</div>
+  <div class="solucao-item">
+    <span class="solucao-icone">📊</span>
+    <span class="solucao-texto">Dashboard com <span class="solucao-destaque">métricas reais</span> de progresso</span>
+  </div>
+  <div class="solucao-item">
+    <span class="solucao-icone">🔄</span>
+    <span class="solucao-texto"><span class="solucao-destaque">Ciclo de Estudos Ponderado</span> — peso certo pra cada matéria</span>
+  </div>
+  <div class="solucao-item">
+    <span class="solucao-icone">🧠</span>
+    <span class="solucao-texto">Flashcards com <span class="solucao-destaque">revisão espaçada</span></span>
+  </div>
+  <div class="solucao-item">
+    <span class="solucao-icone">📕</span>
+    <span class="solucao-texto">Caderno de Erros — método <span class="solucao-destaque">A/B/C</span></span>
+  </div>
+  <div class="solucao-item">
+    <span class="solucao-icone">📝</span>
+    <span class="solucao-texto"><span class="solucao-destaque">100+ questões</span> estilo Cesgranrio</span>
+  </div>
+  <div class="solucao-item">
+    <span class="solucao-icone">⏱</span>
+    <span class="solucao-texto">Grade de horas + <span class="solucao-destaque">relatórios</span> de produtividade</span>
+  </div>
+</div>
+
+<!-- SLIDE 4 - PRINTSCREEN SIMULADO -->
+<div class="card slide-print">
+  <div class="mockup-dashboard">
+    <div class="mockup-header">
+      <h4>📊 Dashboard</h4>
+      <span>Petrobras 2026</span>
+    </div>
+    <div class="mockup-grid">
+      <div class="mockup-stat">
+        <div class="num">24</div>
+        <div class="label">Horas no mês</div>
+        <div class="bar"><div class="bar-inner"></div></div>
+      </div>
+      <div class="mockup-stat">
+        <div class="num">7</div>
+        <div class="label">Simulados</div>
+        <div class="bar"><div class="bar-inner w70"></div></div>
+      </div>
+      <div class="mockup-stat">
+        <div class="num">65%</div>
+        <div class="label">Conteúdo</div>
+        <div class="bar"><div class="bar-inner w45"></div></div>
+      </div>
+      <div class="mockup-stat">
+        <div class="num">12</div>
+        <div class="label">Erros revisados</div>
+        <div class="bar"><div class="bar-inner w80"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="print-cta">
+    <div class="print-link">🎯 Testar Agora</div>
+    <div class="print-demo">
+      Conta demo: <code>estudante</code> / <code>petro2026</code>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5 - CTA -->
+<div class="card slide-cta">
+  <div class="cta-emoji">🚀</div>
+  <div class="cta-titulo">SUA APROVAÇÃO<br>COMEÇA AQUI</div>
+  <div class="cta-sub">Técnico em Química • Cesgranrio • 100% Gratuito</div>
+  <a class="cta-botao" href="https://rafaeleliasioppi.github.io/petrobras/" target="_blank">🔗 ACESSAR AGORA</a>
+  <div class="cta-info">👇 Teste com a conta demo</div>
+  <div class="cta-info" style="margin-top:4px;font-family:monospace;font-size:14px;color:rgba(255,255,255,0.4);">estudante / petro2026</div>
+  <div class="cta-hashtags">
+    <span>#Petrobras2026</span>
+    <span>#Cesgranrio</span>
+    <span>#ConcursoPetrobras</span>
+    <span>#TecnicoEmQuimica</span>
+    <span>#ConcursoPublico</span>
+    <span>#EstudosParaConcurso</span>
+    <span>#Flashcards</span>
+    <span>#Aprovacao</span>
+    <span>#Petrobras</span>
+    <span>#Concurso2026</span>
+    <span>#Quimica</span>
+    <span>#CarreiraPublica</span>
+  </div>
+</div>
+
+<!-- LEGENDA -->
+<div class="legenda">
+  <p><strong>rafaeleliasioppi</strong> 📌 A 6 meses da prova da <strong>Petrobras</strong>, você vai confiar na sorte?</p>
+  <hr class="bar">
+  <p>Eu desenvolvi uma plataforma <strong>COMPLETA</strong> e <strong>GRATUITA</strong> pra organizar seus estudos pro concurso de <strong>Técnico em Química</strong> da <strong>Cesgranrio</strong>.</p>
+  <br>
+  <p>✅ Ciclo ponderado (cada matéria com o peso certo)</p>
+  <p>✅ Flashcards com revisão espaçada</p>
+  <p>✅ Caderno de erros classificado A/B/C</p>
+  <p>✅ 100+ questões estilo Cesgranrio</p>
+  <p>✅ Grade de horas e relatórios</p>
+  <br>
+  <p>Sem assinatura. Sem anúncios. Sem pegadinha. 💯</p>
+  <br>
+  <p>👉 <a href="https://rafaeleliasioppi.github.io/petrobras/">
+  rafaeleliasioppi.github.io/petrobras/</a></p>
+  <p>Conta demo: <strong>estudante</strong> / <strong>petro2026</strong></p>
+  <br>
+  <p>Marque um amigo que vai prestar essa prova! 🎯</p>
+  <div class="hashtags">
+    #Petrobras2026 #Cesgranrio #ConcursoPetrobras #TecnicoEmQuimica #ConcursoPublico #EstudosParaConcurso #Aprovacao #Petrobras #Concurso2026 #Estudar #Quimica #Oportunidade #CarreiraPublica
+  </div>
+</div>
+
+</body>
+</html>
