@@ -154,6 +154,30 @@ body {
 .overlay-card p { font-size: 14px; color: var(--texto-sec); line-height: 1.5; margin-bottom: 4px; }
 .overlay-destaque { margin-top: 8px; font-weight: 600; color: var(--primaria) !important; }
 
+.overlay-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 12px;
+  padding: 14px 28px;
+  background: #25D366;
+  color: #fff;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+
+.overlay-whatsapp:hover {
+  background: #1ebe5d;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37,211,102,0.35);
+}
+
+.overlay-whatsapp svg { flex-shrink: 0; }
+
 .overlay-features {
   display: flex; flex-wrap: wrap; gap: 8px;
   justify-content: center; margin-top: 20px;
