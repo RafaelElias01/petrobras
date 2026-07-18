@@ -251,6 +251,10 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 0;
+  flex-wrap: wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.5;
 }
 
 .grupo-titulo:hover { color: var(--texto); }
@@ -603,6 +607,11 @@ body {
   .grupo-titulo {
     font-size: 12px;
     padding: 5px 0;
+  }
+  .conteudo h3 {
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.5;
   }
   .item-check {
     font-size: 12px;

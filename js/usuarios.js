@@ -38,6 +38,18 @@ async function carregarUsuarios() {
 }
 
 async function autenticar(usuario, senha) {
+  // First try server API
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, senha })
+    });
+    const data = await r.json();
+    if (data.ok && data.usuario) return data.usuario;
+  } catch (e) {}
+
+  // Fallback to localStorage
   let lista = await carregarUsuarios();
   const senhaHash = await hashPassword(senha);
   let encontrado = lista.find(u => u.usuario === usuario && u.senhaHash === senhaHash);

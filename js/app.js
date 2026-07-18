@@ -2163,20 +2163,24 @@ const app = createApp({
     const loginUsuario = ref('');
     const loginSenha = ref('');
     const mostrarSenha = ref(false);
-
-    async function handleLogin(usuario, senha) {
-      const user = await autenticar(usuario, senha);
-      if (user) {
-        usuarioAtual.value = user;
-        autenticado.value = true;
-        erroLogin.value = false;
-        const sessao = { user, token: gerarToken(), timestamp: Date.now() };
-        sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
-        localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
-      } else {
-        erroLogin.value = true;
-      }
-    }
+    const modoCadastro = ref(false);
+    const loginNome = ref('');
+    const loginEmail = ref('');
+    const mensagemErro = ref('');
+    const notificacoes = ref([]);
+    const isPremium = ref(false);
+    const depoimentos = [
+      { nome: 'Carlos Silva', avatar: '👨‍🔬', texto: 'Conteúdo muito bom, melhorou muito meus estudos!', estrelas: 5 },
+      { nome: 'Ana Oliveira', avatar: '👩‍💻', texto: 'Gostei das questões, muito parecidas com a prova.', estrelas: 5 },
+      { nome: 'Pedro Santos', avatar: '👨‍🎓', texto: 'Custo-benefício ótimo, recomendo para todos!', estrelas: 5 },
+      { nome: 'Juliana Costa', avatar: '👩‍🔬', texto: 'Flashcards salvadores, aprendi muito mais rápido.', estrelas: 5 },
+      { nome: 'Marcos Lima', avatar: '👨‍🏫', texto: 'Plano de estudos muito bem organizado. Aprovado!', estrelas: 5 },
+      { nome: 'Fernanda Rocha', avatar: '👩‍🎓', texto: 'Material completo e atualizado com o edital.', estrelas: 4 },
+      { nome: 'Lucas Pereira', avatar: '👨‍💼', texto: 'O ciclo de estudos é genial, super eficiente!', estrelas: 5 },
+      { nome: 'Camila Souza', avatar: '👩‍🏫', texto: 'Questões no estilo Cesgranrio, idênticas à prova.', estrelas: 5 },
+      { nome: 'Rafael Costa', avatar: '👨‍🔬', texto: 'Comprei o Premium e não me arrependo. Vale cada centavo!', estrelas: 5 },
+      { nome: 'Beatriz Martins', avatar: '👩‍💼', texto: 'Dashboard completo, consigo ver meu progresso todo dia.', estrelas: 5 }
+    ];
 
     function logout() {
       usuarioAtual.value = null;
@@ -2206,11 +2210,107 @@ const app = createApp({
         const localParsed = JSON.parse(local);
         const sessionParsed = JSON.parse(session);
         if (!localParsed || !sessionParsed) { logout(); return; }
-        if (localParsed.token !== sessionParsed.token) { logout(); }
+        if (localParsed.token !== sessionParsed.token) { logout(); return; }
+        usuarioAtual.value = localParsed.user;
+        autenticado.value = true;
       } catch { logout() }
     }
 
-    const usuarioLogado = computed(() => usuarioAtual.value?.nome || 'Usuário');
+    // === SOCIAL PROOF ===
+    const SP_NOMES = [
+      { nome: 'Carlos Silva', avatar: '👨‍🔬', texto: 'acabou de comprar o Premium!', cidade: 'SP' },
+      { nome: 'Ana Oliveira', avatar: '👩‍💻', texto: 'acabou de comprar o Premium!', cidade: 'RJ' },
+      { nome: 'Pedro Santos', avatar: '👨‍🎓', texto: 'está estudando Química agora', cidade: 'MG' },
+      { nome: 'Juliana Costa', avatar: '👩‍🔬', texto: 'acabou de comprar o Premium!', cidade: 'RS' },
+      { nome: 'Marcos Lima', avatar: '👨‍🏫', texto: 'está resolvendo questões', cidade: 'BA' },
+      { nome: 'Fernanda Rocha', avatar: '👩‍🎓', texto: 'acabou de comprar o Premium!', cidade: 'PR' },
+      { nome: 'Lucas Pereira', avatar: '👨‍💼', texto: 'está no Ciclo de Estudos', cidade: 'DF' },
+      { nome: 'Camila Souza', avatar: '👩‍🏫', texto: 'acabou de comprar o Premium!', cidade: 'SC' },
+      { nome: 'Rafael Costa', avatar: '👨‍🔬', texto: 'está fazendo flashcards', cidade: 'PE' },
+      { nome: 'Beatriz Martins', avatar: '👩‍💼', texto: 'acabou de comprar o Premium!', cidade: 'CE' }
+    ];
+    let spInterval;
+
+    function iniciarSocialProof() {
+      if (spInterval) clearInterval(spInterval);
+      spInterval = setInterval(() => {
+        const p = SP_NOMES[Math.floor(Math.random() * SP_NOMES.length)];
+        const id = Date.now() + Math.random();
+        notificacoes.value.push({ id, ...p });
+        setTimeout(() => {
+          notificacoes.value = notificacoes.value.filter(n => n.id !== id);
+        }, 5000);
+      }, 4000 + Math.random() * 4000);
+    }
+
+    // === REGISTER & PREMIUM ===
+    async function handleRegister() {
+      erroLogin.value = false;
+      mensagemErro.value = '';
+      if (!loginUsuario.value || !loginSenha.value || !loginNome.value) {
+        mensagemErro.value = 'Preencha usuario, nome e senha';
+        erroLogin.value = true;
+        return;
+      }
+      try {
+        const r = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: loginUsuario.value, senha: loginSenha.value, nome: loginNome.value, email: loginEmail.value })
+        });
+        const data = await r.json();
+        if (!data.ok) {
+          mensagemErro.value = data.erro || 'Erro ao criar conta';
+          erroLogin.value = true;
+          return;
+        }
+        await handleLogin(loginUsuario.value, loginSenha.value);
+      } catch {
+        mensagemErro.value = 'Erro de conexao com o servidor';
+        erroLogin.value = true;
+      }
+    }
+
+    async function handleLogin(usuario, senha) {
+      const user = await autenticar(usuario, senha);
+      if (user) {
+        usuarioAtual.value = user;
+        autenticado.value = true;
+        erroLogin.value = false;
+        const sessao = { user, token: gerarToken(), timestamp: Date.now() };
+        sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+        localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+        verificarPremium();
+      } else {
+        erroLogin.value = true;
+        mensagemErro.value = 'Usuario ou senha invalidos';
+      }
+    }
+
+    async function comprarPremium() {
+      try {
+        const r = await fetch('/api/mercadopago/preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuarioAtual.value?.usuario || '' })
+        });
+        const data = await r.json();
+        if (data.init_point) window.location.href = data.init_point;
+        else alert('Erro ao gerar pagamento. Tente novamente.');
+      } catch {
+        alert('Erro de conexao. Tente novamente.');
+      }
+    }
+
+    async function verificarPremium() {
+      const user = usuarioAtual.value;
+      if (!user) { isPremium.value = false; return; }
+      try {
+        const r = await fetch(`/api/premium/status/${user.usuario}`);
+        const data = await r.json();
+        isPremium.value = data.premium;
+      } catch { isPremium.value = false; }
+    }
 
     // --- Estado da UI e Navegação ---
     const view = ref('dashboard');
@@ -2280,6 +2380,7 @@ const app = createApp({
         if (e.key === SESSAO_KEY) verificarSessao();
       });
       verificarSessao();
+      iniciarSocialProof();
 
       carregando.value = true;
       const config = await Armazenamento.getConfig();
@@ -2328,6 +2429,7 @@ const app = createApp({
       cronograma: 'Cronograma Semanal',
       exercicios: 'Banco de Questões',
       plano: 'Plano de Estudos',
+      premium: 'Petrobras Academy Premium',
       admin: 'Administração'
     })[view.value]);
 
@@ -2343,6 +2445,7 @@ const app = createApp({
       cronograma: 'Cronograma detalhado semana a semana',
       exercicios: 'Pratique com questões estilo Cesgranrio',
       plano: 'Consulte o cronograma e conteúdos programáticos',
+      premium: 'Desbloqueie todas as ferramentas de estudo',
       admin: 'Gerenciar usuários da plataforma'
     })[view.value]);
 
@@ -2482,6 +2585,8 @@ const app = createApp({
     return {
       usuarioAtual, autenticado, erroLogin, usuarioLogado,
       handleLogin, logout, loginUsuario, loginSenha, mostrarSenha,
+      modoCadastro, loginNome, loginEmail, mensagemErro,
+      handleRegister, comprarPremium, isPremium, depoimentos, notificacoes,
       view, menuAberta, semanaAtual,
       tema, diasSemana, carregando,
       tituloView, subtituloView,

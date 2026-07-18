@@ -120,7 +120,9 @@ function verificarSessao() {
     const localParsed = JSON.parse(local);
     const sessionParsed = JSON.parse(session);
     if (!localParsed || !sessionParsed) { logout(); return; }
-    if (localParsed.token !== sessionParsed.token) { logout(); }
+    if (localParsed.token !== sessionParsed.token) { logout(); return; }
+    usuarioAtual.value = localParsed.user;
+    autenticado.value = true;
   } catch { logout() }
 }
 
