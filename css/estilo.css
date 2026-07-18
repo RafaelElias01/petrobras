@@ -847,6 +847,7 @@ button {
   position: relative;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -986,7 +987,7 @@ button {
 .dep-nome { font-size: 12px; color: var(--texto-sec); font-weight: 600; }
 
 .login-footer {
-  max-width: 720px; margin: 24px auto 0;
+  width: 100%; max-width: 440px; margin: 0 auto; padding: 20px;
   position: relative; z-index: 2;
 }
 .login-footer-grid {
