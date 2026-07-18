@@ -75,19 +75,29 @@
           </div>
         </div>
       </div>
-      <div class="login-depoimentos">
-        <div class="depoimentos-grid">
-          <div v-for="d in depoimentos.slice(0, 3)" :key="d.nome" class="depoimento-card">
-            <div class="dep-estrelas"><span v-for="s in d.estrelas">★</span></div>
-            <p class="dep-texto">"{{ d.texto }}"</p>
-            <strong class="dep-nome">— {{ d.nome }}</strong>
-          </div>
-        </div>
-      </div>
       </div>
     </div>
     <div class="social-proof" v-if="!autenticado">
       <div class="sp-visualizacoes">👀 <strong>{{ visitantesOnline }}</strong> pessoas estudando agora</div>
+    </div>
+    <div class="login-footer" v-if="!autenticado">
+      <div class="login-footer-grid">
+        <div class="login-depoimentos">
+          <div class="depoimentos-grid">
+            <div v-for="d in depoimentos.slice(0, 3)" :key="d.nome" class="depoimento-card">
+              <div class="dep-estrelas"><span v-for="s in d.estrelas">★</span></div>
+              <p class="dep-texto">"{{ d.texto }}"</p>
+              <strong class="dep-nome">— {{ d.nome }}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="login-premium-cta">
+          <a href="https://wa.me/5551983098650?text=Ol%C3%A1!%20Quero%20adquirir%20o%20Premium%20da%20Petrobras%20Academy%20por%20R%24%2049%2C90" target="_blank" rel="noopener noreferrer" class="login-premium-link">
+            👑 Seja Premium — <strong>R$ 49,90</strong>
+          </a>
+          <span class="login-premium-sub">Pagamento único • Acesso vitalício • Via WhatsApp</span>
+        </div>
+      </div>
     </div>
     <template v-if="autenticado">
     <div v-if="carregando" style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:var(--texto-sec);">
