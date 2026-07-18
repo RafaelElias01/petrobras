@@ -37,35 +37,20 @@
         </div>
         <div class="login-card">
           <div class="login-card-header">
-            <h2>{{ modoCadastro ? 'Criar Conta' : 'Acessar Plataforma' }}</h2>
-            <p>{{ modoCadastro ? 'Crie sua conta gratuita' : 'Informe suas credenciais' }}</p>
+            <h2>Acessar Plataforma</h2>
+            <p>Informe suas credenciais</p>
           </div>
 
-          <div class="login-tabs">
-            <button class="login-tab" :class="{ active: !modoCadastro }" @click="modoCadastro = false">Entrar</button>
-            <button class="login-tab" :class="{ active: modoCadastro }" @click="modoCadastro = true">Criar Conta</button>
-          </div>
-
-          <form @submit.prevent="modoCadastro ? handleRegister() : handleLogin(loginUsuario, loginSenha)" class="login-form">
+          <form @submit.prevent="handleLogin(loginUsuario, loginSenha)" class="login-form">
             <div class="input-group">
               <label for="loginUsuario">Usuário</label>
               <input id="loginUsuario" v-model="loginUsuario" type="text" placeholder="Seu nome de usuário" class="input-field" autocomplete="username">
               <span class="input-icon">👤</span>
             </div>
-            <div v-if="modoCadastro" class="input-group">
-              <label for="loginNome">Nome</label>
-              <input id="loginNome" v-model="loginNome" type="text" placeholder="Seu nome completo" class="input-field">
-              <span class="input-icon">📝</span>
-            </div>
-            <div v-if="modoCadastro" class="input-group">
-              <label for="loginEmail">E-mail (opcional)</label>
-              <input id="loginEmail" v-model="loginEmail" type="email" placeholder="seu@email.com" class="input-field">
-              <span class="input-icon">📧</span>
-            </div>
             <div class="input-group">
               <label for="loginSenha">Senha</label>
               <div class="campo-senha">
-                <input id="loginSenha" v-model="loginSenha" :type="mostrarSenha ? 'text' : 'password'" :placeholder="modoCadastro ? 'Crie uma senha (min 4 caracteres)' : 'Sua senha'" class="input-field" autocomplete="current-password">
+                <input id="loginSenha" v-model="loginSenha" :type="mostrarSenha ? 'text' : 'password'" placeholder="Sua senha" class="input-field" autocomplete="current-password">
                 <button type="button" class="olho-senha" @click="mostrarSenha = !mostrarSenha">
                   <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -80,7 +65,7 @@
               </div>
             </div>
             <button type="submit" class="btn-entrar">
-              <span>{{ modoCadastro ? 'Criar Conta' : 'Entrar' }}</span>
+              <span>Entrar</span>
               <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
             <p v-if="erroLogin" class="msg-erro">⚠ {{ mensagemErro }}</p>
