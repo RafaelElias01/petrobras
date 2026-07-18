@@ -24,22 +24,29 @@ async function hashLista(lista) {
 export async function carregarUsuarios() {
   try {
     const dados = localStorage.getItem(PREFIXO + 'admin_usuarios');
-    if (dados) {
-      const parsed = JSON.parse(dados);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        if (parsed[0].senha && !parsed[0].senhaHash) {
-          const migrados = await hashLista(parsed);
-          localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(migrados));
-          return migrados;
-        }
-        return parsed;
-      }
+    if (!dados) {
+      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
+      return USUARIOS_PADRAO_HASHED;
     }
-  } catch {}
-  if (!localStorage.getItem(PREFIXO + 'admin_usuarios')) {
+
+    const parsed = JSON.parse(dados);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
+      return USUARIOS_PADRAO_HASHED;
+    }
+
+    if (parsed[0].senha && !parsed[0].senhaHash) {
+      const migrados = await hashLista(parsed);
+      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(migrados));
+      return migrados;
+    }
+
+    return parsed;
+  } catch (e) {
+    console.error("Erro ao carregar ou migrar usuários. Resetando para o padrão.", e);
     localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
+    return USUARIOS_PADRAO_HASHED;
   }
-  return USUARIOS_PADRAO_HASHED;
 }
 
 export async function salvarUsuarios(usuarios) {
@@ -53,16 +60,12 @@ export function getDefaultUsuarios() {
 export { hashPassword };
 
 export async function autenticar(usuario, senha) {
-  let lista = await carregarUsuarios();
+  const lista = await carregarUsuarios();
   const senhaHash = await hashPassword(senha);
-  let encontrado = lista.find(u => u.usuario === usuario && u.senhaHash === senhaHash);
-  if (!encontrado) {
-    encontrado = USUARIOS_PADRAO_HASHED.find(u => u.usuario === usuario && u.senhaHash === senhaHash);
-    if (encontrado) {
-      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
-    }
-  }
+  const encontrado = lista.find(u => u.usuario.toLowerCase() === usuario.toLowerCase() && u.senhaHash === senhaHash);
+
   if (!encontrado) return null;
+
   return { usuario: encontrado.usuario, nome: encontrado.nome, role: encontrado.role };
 }
 

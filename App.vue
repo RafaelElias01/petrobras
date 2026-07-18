@@ -3,6 +3,7 @@ import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
 
 import Login from './Login.vue';
 import Dashboard from './Dashboard.vue'; // Importado estaticamente para performance inicial
+import ErrorBoundary from './ErrorBoundary.vue';
 import { autenticar, carregarUsuarios, hashPassword, salvarUsuarios } from './usuarios.js';
 
 const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
@@ -225,13 +226,15 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
       </div>
 
       <div class="view-wrapper" :class="{ 'view-bloqueada': featureBloqueada(view) }">
-        <transition name="fade" mode="out-in">
-          <component
-            :is="views[view]"
-            :key="view"
-            :usuarioLogado="view === 'admin' ? usuarioAtual?.usuario : undefined"
-          />
-        </transition>
+        <ErrorBoundary :key="view">
+          <transition name="fade" mode="out-in">
+            <component
+              :is="views[view]"
+              :key="view"
+              :usuarioLogado="view === 'admin' ? usuarioAtual?.usuario : undefined"
+            />
+          </transition>
+        </ErrorBoundary>
         <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
           <div class="overlay-card" @click.stop>
             <button class="overlay-fechar" @click="irPara('dashboard')">✕</button>
