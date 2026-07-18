@@ -2582,7 +2582,7 @@ const app = createApp({
       usuarioAtual, autenticado, erroLogin, usuarioLogado,
       handleLogin, logout, loginUsuario, loginSenha, mostrarSenha, mensagemErro,
       comprarPremium, isPremium, mostrarInfoPremium, depoimentos,
-      visitantesOnline, registrarVisita, carregarVisitas, carregandoVisitas,
+      visitantesOnline, visitantesExibir, registrarVisita, carregarVisitas, carregandoVisitas,
       view, menuAberta, semanaAtual,
       tema, diasSemana, carregando,
       tituloView, subtituloView,
