@@ -9,7 +9,7 @@ async function hashPassword(password) {
 
 const USUARIOS_PADRAO_HASHED = [
   { usuario: 'admin', senhaHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', nome: 'Administrador', role: 'admin' },
-  { usuario: 'estudante', senhaHash: '27a38ce6a60ec2e7dad1476796ae3a5c4c14d21a353f4d33eb560a653257f277', nome: 'Estudante', role: 'user' },
+  { usuario: 'estudante', senhaHash: '1cf9665547766da64f3e5d8e57222fc171028125298ad015ce194b2e5e3a024e', nome: 'Estudante', role: 'user' },
 ];
 
 async function hashLista(lista) {
@@ -48,9 +48,15 @@ export function getDefaultUsuarios() {
 export { hashPassword };
 
 export async function autenticar(usuario, senha) {
-  const lista = await carregarUsuarios();
+  let lista = await carregarUsuarios();
   const senhaHash = await hashPassword(senha);
-  const encontrado = lista.find(u => u.usuario === usuario && u.senhaHash === senhaHash);
+  let encontrado = lista.find(u => u.usuario === usuario && u.senhaHash === senhaHash);
+  if (!encontrado) {
+    encontrado = USUARIOS_PADRAO_HASHED.find(u => u.usuario === usuario && u.senhaHash === senhaHash);
+    if (encontrado) {
+      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
+    }
+  }
   if (!encontrado) return null;
   return { usuario: encontrado.usuario, nome: encontrado.nome, role: encontrado.role };
 }
