@@ -356,7 +356,7 @@ function voltarParaLogin() {
 .btn-voltar {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.75);
   font-size: 13px;
   cursor: pointer;
   margin-top: 16px;
@@ -400,20 +400,20 @@ function voltarParaLogin() {
   justify-content: center;
   background: rgba(255,255,255,0.06);
   border-radius: 12px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.7);
   font-size: 14px;
 }
 
 .pix-label {
   font-size: 13px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.75);
   margin-top: 8px;
   margin-bottom: 8px;
 }
 
 .pix-help {
   font-size: 13px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.8);
   margin-bottom: 12px;
   line-height: 1.5;
 }
@@ -565,7 +565,7 @@ function voltarParaLogin() {
 .highlight-label {
   display: block;
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.75);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -637,7 +637,7 @@ function voltarParaLogin() {
 
 .login-card-header p {
   font-size: 14px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255,255,255,0.8);
 }
 
 .login-form {
@@ -654,7 +654,7 @@ function voltarParaLogin() {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.8);
   margin-bottom: 6px;
 }
 
@@ -673,7 +673,7 @@ function voltarParaLogin() {
 }
 
 .input-field::placeholder {
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.6);
 }
 
 .input-field:focus {
@@ -709,7 +709,7 @@ function voltarParaLogin() {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.7);
   transition: color 0.2s, background 0.2s;
 }
 
@@ -831,12 +831,12 @@ function voltarParaLogin() {
   display: block;
   margin-top: 8px;
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.75);
 }
 
 .login-card-footer p {
   font-size: 12px;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255,255,255,0.75);
 }
 
 .login-card-footer strong {
@@ -900,7 +900,7 @@ function voltarParaLogin() {
 .depoimento-texto {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.88);
   margin-bottom: 14px;
   font-style: italic;
 }

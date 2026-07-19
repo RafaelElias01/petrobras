@@ -128,24 +128,24 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
     <div class="card">
       <div class="card-titulo">📊 Últimas Visitas</div>
       <div class="tabela-wrapper">
-        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <table class="admin-table admin-table-sm">
           <thead>
             <tr>
-              <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--texto-sec);border-bottom:1px solid var(--borda);">Usuário</th>
-              <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--texto-sec);border-bottom:1px solid var(--borda);">IP</th>
-              <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--texto-sec);border-bottom:1px solid var(--borda);">Data</th>
-              <th style="padding:8px 10px;text-align:left;font-weight:600;color:var(--texto-sec);border-bottom:1px solid var(--borda);">Hora</th>
+              <th>Usuário</th>
+              <th>IP</th>
+              <th>Data</th>
+              <th>Hora</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="v in visitas" :key="v.timestamp">
-              <td style="padding:8px 10px;border-bottom:1px solid var(--borda);">{{ v.usuario }}</td>
-              <td style="padding:8px 10px;border-bottom:1px solid var(--borda);font-family:monospace;font-size:12px;">{{ v.ip || '-' }}</td>
-              <td style="padding:8px 10px;border-bottom:1px solid var(--borda);">{{ v.data }}</td>
-              <td style="padding:8px 10px;border-bottom:1px solid var(--borda);">{{ v.hora }}</td>
+              <td>{{ v.usuario }}</td>
+              <td class="cell-ip">{{ v.ip || '-' }}</td>
+              <td>{{ v.data }}</td>
+              <td>{{ v.hora }}</td>
             </tr>
             <tr v-if="visitas.length === 0">
-              <td colspan="3" style="padding:20px;text-align:center;color:var(--texto-sec);">Nenhuma visita registrada ainda.</td>
+              <td colspan="4" class="empty-cell">Nenhuma visita registrada ainda.</td>
             </tr>
           </tbody>
         </table>
@@ -158,29 +158,29 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
         <button v-if="!editando" @click="handleNovo" class="btn-novo-usuario">+ Novo Usuário</button>
       </div>
       <div class="tabela-wrapper">
-        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <table class="admin-table">
           <thead>
             <tr>
-              <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--texto-sec);font-size:13px;border-bottom:1px solid var(--borda);">Usuário</th>
-              <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--texto-sec);font-size:13px;border-bottom:1px solid var(--borda);">Nome</th>
-              <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--texto-sec);font-size:13px;border-bottom:1px solid var(--borda);">Role</th>
-              <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--texto-sec);font-size:13px;border-bottom:1px solid var(--borda);">Ações</th>
+              <th>Usuário</th>
+              <th>Nome</th>
+              <th>Role</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="u in usuarios" :key="u.usuario">
-              <td style="padding:10px 12px;border-bottom:1px solid var(--borda);">{{ u.usuario }}</td>
-              <td style="padding:10px 12px;border-bottom:1px solid var(--borda);">{{ u.nome }}</td>
-              <td style="padding:10px 12px;border-bottom:1px solid var(--borda);">
-                <span :style="{background:u.role==='admin'?'var(--aviso)':'var(--primaria)',color:'#fff',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}">{{ u.role }}</span>
+              <td>{{ u.usuario }}</td>
+              <td>{{ u.nome }}</td>
+              <td>
+                <span class="role-badge" :class="u.role === 'admin' ? 'role-admin' : 'role-user'">{{ u.role }}</span>
               </td>
-              <td style="padding:10px 12px;border-bottom:1px solid var(--borda);">
-                <button @click="handleEditar(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao" :style="{opacity: u.usuario === usuarioLogado ? 0.4 : 1, color: 'var(--primaria)'}">✏️</button>
-                <button @click="handleRemover(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao" :style="{opacity: u.usuario === usuarioLogado ? 0.4 : 1, color: 'var(--erro)'}">✕</button>
+              <td>
+                <button @click="handleEditar(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-edit" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }">✏️</button>
+                <button @click="handleRemover(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-delete" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }">✕</button>
               </td>
             </tr>
             <tr v-if="usuarios.length === 0">
-              <td colspan="4" style="padding:20px;text-align:center;color:var(--texto-sec);">Nenhum usuário cadastrado.</td>
+              <td colspan="4" class="empty-cell">Nenhum usuário cadastrado.</td>
             </tr>
           </tbody>
         </table>
@@ -189,34 +189,34 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
 
     <div v-if="editando" class="card">
       <div class="card-titulo">{{ tituloForm }}</div>
-      <p v-if="erroForm" style="color:var(--erro);font-size:13px;margin-bottom:12px;">{{ erroForm }}</p>
+      <p v-if="erroForm" class="erro-form">{{ erroForm }}</p>
       <div class="form-simulado">
         <div>
           <label>Usuário</label>
-          <input type="text" v-model="formUsuario" :disabled="editandoExistente" :style="{opacity: editandoExistente ? 0.6 : 1}">
+          <input type="text" v-model="formUsuario" :disabled="editandoExistente" class="admin-input" :class="{ 'input-disabled': editandoExistente }">
         </div>
         <div>
           <label>Nome</label>
-          <input type="text" v-model="formNome">
+          <input type="text" v-model="formNome" class="admin-input">
         </div>
         <div>
           <label>Senha</label>
-          <input type="password" v-model="formSenha">
+          <input type="password" v-model="formSenha" class="admin-input">
         </div>
         <div>
           <label>Confirmar Senha</label>
-          <input type="password" v-model="formConfirmar">
+          <input type="password" v-model="formConfirmar" class="admin-input">
         </div>
         <div>
           <label>Role</label>
-          <select v-model="formRole" style="width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:6px;font-size:14px;font-family:inherit;outline:none;background:var(--card);color:var(--texto);">
+          <select v-model="formRole" class="admin-select">
             <option value="user">user</option>
             <option value="admin">admin</option>
           </select>
         </div>
-        <div style="display:flex;gap:8px;align-items:end;">
-          <button @click="handleSalvar" style="padding:8px 20px;background:var(--primaria);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;">Salvar</button>
-          <button @click="handleCancelar" style="padding:8px 20px;background:transparent;color:var(--texto-sec);border:1px solid var(--borda);border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;">Cancelar</button>
+        <div class="form-actions">
+          <button @click="handleSalvar" class="btn-salvar">Salvar</button>
+          <button @click="handleCancelar" class="btn-cancelar">Cancelar</button>
         </div>
       </div>
     </div>
@@ -229,6 +229,57 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
   -webkit-overflow-scrolling: touch;
 }
 
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.admin-table-sm {
+  font-size: 13px;
+}
+.admin-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--texto-sec);
+  font-size: 13px;
+  border-bottom: 1px solid var(--borda);
+}
+.admin-table-sm th {
+  padding: 8px 10px;
+}
+.admin-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--borda);
+}
+.admin-table-sm td {
+  padding: 8px 10px;
+}
+.cell-ip {
+  font-family: monospace;
+  font-size: 12px;
+}
+.empty-cell {
+  padding: 20px;
+  text-align: center;
+  color: var(--texto-sec);
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+.role-admin {
+  background: var(--aviso);
+}
+.role-user {
+  background: var(--primaria);
+}
+
 .btn-novo-usuario {
   padding: 6px 14px;
   background: var(--primaria);
@@ -239,6 +290,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
   font-size: 13px;
   font-family: inherit;
   white-space: nowrap;
+  min-height: 36px;
 }
 
 .btn-acao {
@@ -247,19 +299,107 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
   cursor: pointer;
   font-size: 16px;
   padding: 6px 10px;
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 6px;
   transition: background 0.2s;
 }
 .btn-acao:hover {
   background: var(--bg);
 }
+.btn-acao-edit {
+  color: var(--primaria);
+}
+.btn-acao-delete {
+  color: var(--erro);
+}
+.btn-desabilitado {
+  opacity: 0.4;
+}
+
+.admin-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  background: var(--card);
+  color: var(--texto);
+}
+.admin-input:focus {
+  border-color: var(--primaria);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+}
+.input-disabled {
+  opacity: 0.6;
+}
+
+.admin-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  background: var(--card);
+  color: var(--texto);
+}
+.admin-select:focus {
+  border-color: var(--primaria);
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+}
+
+.btn-salvar {
+  padding: 8px 20px;
+  background: var(--primaria);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  min-height: 36px;
+}
+.btn-salvar:hover {
+  background: var(--primaria-hover);
+}
+
+.btn-cancelar {
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--texto-sec);
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  min-height: 36px;
+}
+
+.erro-form {
+  color: var(--erro);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
 
 @media (max-width: 600px) {
   .btn-novo-usuario {
     font-size: 12px;
     padding: 5px 10px;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  .form-actions button {
+    width: 100%;
   }
 }
 </style>
