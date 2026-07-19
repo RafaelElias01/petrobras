@@ -174,6 +174,7 @@ import { ref, ... } from 'vue'
 ## Memorias Fixas (nao errar de novo)
 
 - **🚨 VM**: nunca mexer em nginx, systemd, firewall, portas, SSL sem permissao. Nao tem git la — deploy via CI ou scp manual.
+- **🚨 VM sempre atualizada**: apos qualquer alteracao de codigo, fazer build + scp pra VM + restart. CI faz automaticamente no push, mas sempre verificar se o servico rodou sem erros (`journalctl -u petrobras.service -n 20`).
 - **CI**: .github/workflows/deploy.yml faz build + gh-pages + VM. Se adicionar dep npm no server, VM precisa `npm install`.
 - **site/index.html**: `<script src="cdn/vue@3">` ANTES dos scripts locais. Vite root nao precisa.
 - **Cache busting CSS/JS**: `?v=YYYYMMDDa`
