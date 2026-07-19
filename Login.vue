@@ -1,5 +1,7 @@
-JA<script setup>
-import { ref } from 'vue';
+<script setup>
+import { ref, onMounted } from 'vue';
+import QRCode from 'qrcode';
+import { gerarPayloadPix } from './pix.js';
 
 const props = defineProps({
   erro: Boolean,
@@ -11,14 +13,32 @@ const usuarioDigitado = ref('');
 const senhaDigitada = ref('');
 const mostrarSenha = ref(false);
 const instrucaoPremium = ref(false);
+const qrCodeUrl = ref('');
+
+const PIX_KEY = '+5551983098650';
+const PIX_NOME = 'PETROBRAS ACADEMY';
+const PIX_CIDADE = 'SAO PAULO';
+const PIX_VALOR = 49.90;
+
+onMounted(async () => {
+  const payload = gerarPayloadPix({
+    chave: PIX_KEY,
+    nome: PIX_NOME,
+    cidade: PIX_CIDADE,
+    valor: PIX_VALOR,
+  });
+  qrCodeUrl.value = await QRCode.toDataURL(payload, {
+    width: 280,
+    margin: 2,
+    color: { dark: '#1a1a2e', light: '#ffffff' },
+  });
+});
 
 function submeter() {
   emit('tentativa-login', usuarioDigitado.value, senhaDigitada.value);
 }
 
 function abrirLinkPremium() {
-  const linkMercadoPago = 'https://mpago.la/2p41j5M';
-  window.open(linkMercadoPago, '_blank');
   instrucaoPremium.value = true;
 }
 
@@ -61,15 +81,21 @@ function voltarParaLogin() {
             <p>Informe suas credenciais de acesso.</p>
           </template>
           <template v-else>
-            <h2>Instruções para Acesso Premium</h2>
-            <p>Após o pagamento, envie o comprovante para receber seu acesso.</p>
+            <h2>Pagamento Premium</h2>
+            <p>Escaneie o QR Code abaixo com o app do seu banco.</p>
           </template>
         </div>
 
         <div v-if="instrucaoPremium" class="instrucao-premium">
-          <p>✅ <strong>Pagamento realizado?</strong></p>
-          <p>Envie o comprovante para o WhatsApp abaixo e em instantes você receberá seu usuário e senha exclusivos.</p>
-          <a href="https://wa.me/5551983098650?text=Ol%C3%A1!%20Realizei%20o%20pagamento%20para%20o%20acesso%20Premium%20e%20gostaria%20de%20receber%20meu%20usu%C3%A1rio." target="_blank" class="btn-whatsapp">
+          <button @click="voltarParaLogin" class="btn-fechar" aria-label="Fechar">✕</button>
+          <div class="pix-qr-wrapper">
+            <div class="pix-value">👑 Premium — R$ 49,90</div>
+            <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code PIX" class="pix-qr" />
+            <div v-else class="pix-loading">Gerando QR Code...</div>
+            <div class="pix-label">Escaneie com o app do seu banco</div>
+          </div>
+          <p class="pix-help">Após o pagamento, envie o comprovante no WhatsApp para receber seu acesso:</p>
+          <a href="https://wa.me/5551983098650?text=Ol%C3%A1!%20Realizei%20o%20pagamento%20Premium%20(PIX)%20e%20gostaria%20de%20receber%20meu%20acesso." target="_blank" class="btn-whatsapp">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
             Enviar Comprovante
           </a>
@@ -134,7 +160,7 @@ function voltarParaLogin() {
             <button @click="abrirLinkPremium" class="login-premium-link">
               👑 Seja Premium — <strong>R$ 49,90</strong>
             </button>
-            <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix ou cartão</span>
+            <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix</span>
           </div>
           <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
         </div>
@@ -145,16 +171,38 @@ function voltarParaLogin() {
 
 <style scoped>
 .instrucao-premium {
-  padding: 16px 0;
+  padding: 16px 0 0;
   text-align: center;
   animation: fadeIn 0.5s ease;
+  position: relative;
 }
 
 .instrucao-premium p {
-  color: var(--texto-sec);
+  color: rgba(255,255,255,0.75);
   font-size: 14px;
   line-height: 1.6;
   margin-bottom: 16px;
+}
+
+.btn-fechar {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.btn-fechar:hover {
+  background: rgba(255,255,255,0.3);
 }
 
 .btn-whatsapp {
@@ -185,14 +233,66 @@ function voltarParaLogin() {
 .btn-voltar {
   background: none;
   border: none;
-  color: var(--texto-sec);
+  color: rgba(255,255,255,0.5);
   font-size: 13px;
   cursor: pointer;
-  margin-top: 20px;
-  padding: 8px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding: 8px 16px;
+  transition: color 0.2s;
+  width: 100%;
 }
 .btn-voltar:hover {
-  color: var(--texto);
+  color: #fff;
+}
+
+.pix-qr-wrapper {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.pix-value {
+  font-size: 20px;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.pix-qr {
+  display: block;
+  margin: 0 auto;
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.pix-loading {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+}
+
+.pix-label {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.pix-help {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 .login-wrapper {
