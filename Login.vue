@@ -15,6 +15,14 @@ const senhaDigitada = ref('');
 const mostrarSenha = ref(false);
 const instrucaoPremium = ref(false);
 const qrCodeUrl = ref('');
+const modoCadastro = ref(false);
+const cadastroUsuario = ref('');
+const cadastroNome = ref('');
+const cadastroSenha = ref('');
+const cadastroConfirmar = ref('');
+const cadastroLoading = ref(false);
+const cadastroErro = ref('');
+const cadastroSucesso = ref('');
 
 const notificacao = ref(null);
 let notifTimer = null;
@@ -111,6 +119,50 @@ function submeter() {
   emit('tentativa-login', usuarioDigitado.value.trim(), senhaDigitada.value.trim());
 }
 
+async function handleRegister() {
+  cadastroErro.value = '';
+  cadastroSucesso.value = '';
+  if (!cadastroUsuario.value.trim() || !cadastroNome.value.trim() || !cadastroSenha.value.trim()) {
+    cadastroErro.value = 'Todos os campos são obrigatórios.';
+    return;
+  }
+  if (cadastroUsuario.value.trim().length < 3) {
+    cadastroErro.value = 'Usuário deve ter no mínimo 3 caracteres.';
+    return;
+  }
+  if (cadastroSenha.value.length < 3) {
+    cadastroErro.value = 'Senha deve ter no mínimo 3 caracteres.';
+    return;
+  }
+  if (cadastroSenha.value !== cadastroConfirmar.value) {
+    cadastroErro.value = 'Senhas não conferem.';
+    return;
+  }
+  cadastroLoading.value = true;
+  try {
+    const r = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        usuario: cadastroUsuario.value.trim(),
+        nome: cadastroNome.value.trim(),
+        senha: cadastroSenha.value,
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      cadastroErro.value = data.erro || 'Erro ao cadastrar.';
+      return;
+    }
+    cadastroSucesso.value = 'Conta criada! Faça login.';
+    setTimeout(() => modoCadastro.value = false, 1500);
+  } catch {
+    cadastroErro.value = 'Erro de conexão com o servidor.';
+  } finally {
+    cadastroLoading.value = false;
+  }
+}
+
 function abrirLinkPremium() {
   instrucaoPremium.value = true;
 }
@@ -173,81 +225,83 @@ function voltarParaLogin() {
       </div>
       <div class="login-right">
         <div class="login-card">
-          <div class="login-card-header">
-            <template v-if="!instrucaoPremium">
-              <h2>Acessar Plataforma</h2>
-              <p>Informe suas credenciais de acesso.</p>
-            </template>
-            <template v-else>
-              <h2>Acessar Plataforma</h2>
-              <p>Informe suas credenciais de acesso.</p>
-            </template>
-          </div>
-
           <PremiumCheckout v-if="instrucaoPremium" :qrCode="qrCodeUrl" :onClose="voltarParaLogin" :onVoltar="voltarParaLogin" />
 
-          <form v-else @submit.prevent="submeter" class="login-form">
-            <div class="input-group">
-              <label for="usuario">Usuário</label>
-              <input
-                id="usuario"
-                v-model="usuarioDigitado"
-                type="text"
-                placeholder="Seu nome de usuário"
-                class="input-field"
-                autofocus
-                autocomplete="username"
-              />
-              <span class="input-icon">👤</span>
+          <template v-else>
+            <div class="login-tabs">
+              <button class="login-tab" :class="{ active: !modoCadastro }" @click="modoCadastro = false">Entrar</button>
+              <button class="login-tab" :class="{ active: modoCadastro }" @click="modoCadastro = true">Criar Conta</button>
             </div>
-            <div class="input-group">
-              <label for="senha">Senha</label>
-              <div class="campo-senha">
-                <input
-                  id="senha"
-                  v-model="senhaDigitada"
-                  :type="mostrarSenha ? 'text' : 'password'"
-                  placeholder="Sua senha"
-                  class="input-field"
-                  autocomplete="current-password"
-                />
-                <button
-                  type="button"
-                  class="olho-senha"
-                  @click="mostrarSenha = !mostrarSenha"
-                  :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'"
-                >
-                  <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <svg class="olho-icon olho-fechado" :class="{ soma: !mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                </button>
+
+            <form v-if="!modoCadastro" @submit.prevent="submeter" class="login-form">
+              <div class="input-group">
+                <label for="usuario">Usuário</label>
+                <input id="usuario" v-model="usuarioDigitado" type="text" placeholder="Seu nome de usuário" class="input-field" autofocus autocomplete="username" />
+                <span class="input-icon">👤</span>
               </div>
-            </div>
-            <button type="submit" class="btn-entrar">
-              <span>Entrar</span>
-              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
-            <p v-if="props.erro" class="msg-erro">
-              ⚠ Usuário ou senha inválidos. Tente novamente.
-            </p>
-          </form>
-          <div class="login-card-footer">
-            <div v-if="!instrucaoPremium" class="login-premium-cta">
-              <button @click="abrirLinkPremium" class="login-premium-link">
-                👑 Seja Premium — <strong>R$ 49,90</strong>
+              <div class="input-group">
+                <label for="senha">Senha</label>
+                <div class="campo-senha">
+                  <input id="senha" v-model="senhaDigitada" :type="mostrarSenha ? 'text' : 'password'" placeholder="Sua senha" class="input-field" autocomplete="current-password" />
+                  <button type="button" class="olho-senha" @click="mostrarSenha = !mostrarSenha" :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+                    <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="olho-icon olho-fechado" :class="{ soma: !mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <button type="submit" class="btn-entrar">
+                <span>Entrar</span>
+                <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
               </button>
-              <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix</span>
+              <p v-if="props.erro" class="msg-erro">⚠ Usuário ou senha inválidos. Tente novamente.</p>
+            </form>
+
+            <form v-else @submit.prevent="handleRegister" class="login-form">
+              <div class="input-group">
+                <label for="cad-usuario">Usuário</label>
+                <input id="cad-usuario" v-model="cadastroUsuario" type="text" placeholder="Escolha um usuário" class="input-field" autocomplete="username" />
+                <span class="input-icon">👤</span>
+              </div>
+              <div class="input-group">
+                <label for="cad-nome">Nome</label>
+                <input id="cad-nome" v-model="cadastroNome" type="text" placeholder="Seu nome completo" class="input-field" autocomplete="name" />
+                <span class="input-icon">📝</span>
+              </div>
+              <div class="input-group">
+                <label for="cad-senha">Senha</label>
+                <div class="campo-senha">
+                  <input id="cad-senha" v-model="cadastroSenha" type="password" placeholder="Mínimo 3 caracteres" class="input-field" autocomplete="new-password" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="cad-confirmar">Confirmar Senha</label>
+                <input id="cad-confirmar" v-model="cadastroConfirmar" type="password" placeholder="Repita a senha" class="input-field" />
+              </div>
+              <button type="submit" class="btn-entrar" :disabled="cadastroLoading">
+                <span>{{ cadastroLoading ? 'Cadastrando...' : 'Criar Conta' }}</span>
+              </button>
+              <p v-if="cadastroErro" class="msg-erro">{{ cadastroErro }}</p>
+              <p v-if="cadastroSucesso" class="msg-sucesso">{{ cadastroSucesso }}</p>
+            </form>
+
+            <div class="login-card-footer">
+              <div class="login-premium-cta">
+                <button @click="abrirLinkPremium" class="login-premium-link">
+                  👑 Seja Premium — <strong>R$ 49,90</strong>
+                </button>
+                <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix</span>
+              </div>
+              <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
             </div>
-            <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
-          </div>
+          </template>
         </div>
 
         <div class="depoimentos-section">
@@ -656,6 +710,47 @@ function voltarParaLogin() {
   background: rgba(239,68,68,0.08);
   border-radius: 8px;
   border: 1px solid rgba(239,68,68,0.15);
+}
+
+.msg-sucesso {
+  color: #10b981;
+  font-size: 13px;
+  text-align: center;
+  padding: 10px 14px;
+  background: rgba(16,185,129,0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(16,185,129,0.15);
+}
+
+.login-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.login-tab.active {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-weight: 600;
+}
+.login-tab:hover {
+  color: #fff;
 }
 
 .login-card-footer {

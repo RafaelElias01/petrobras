@@ -38,6 +38,35 @@ if (!fs.existsSync(frontendDistPath)) {
 app.use(express.json());
 app.use(express.static(frontendDistPath));
 
+const usuariosPath = path.join(__dirname, 'dados', 'usuarios.json');
+
+function lerUsuarios() {
+  try {
+    if (!fs.existsSync(usuariosPath)) return [];
+    return JSON.parse(fs.readFileSync(usuariosPath, 'utf-8'));
+  } catch { return []; }
+}
+
+function salvarUsuarios(data) {
+  try {
+    const dir = path.dirname(usuariosPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(usuariosPath, JSON.stringify(data, null, 2));
+  } catch (e) { console.error('Erro ao salvar usuarios:', e); }
+}
+
+app.post('/api/auth/register', (req, res) => {
+  const { usuario, nome, senha } = req.body;
+  if (!usuario || typeof usuario !== 'string' || usuario.length < 3) return res.status(400).json({ erro: 'Usuário inválido (mín. 3 caracteres)' });
+  if (!nome || typeof nome !== 'string') return res.status(400).json({ erro: 'Nome é obrigatório' });
+  if (!senha || typeof senha !== 'string' || senha.length < 3) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
+  const usuarios = lerUsuarios();
+  if (usuarios.find(u => u.usuario === usuario)) return res.status(409).json({ erro: 'Usuário já existe' });
+  usuarios.push({ usuario, nome, senha, role: 'user', criadoEm: new Date().toISOString() });
+  salvarUsuarios(usuarios);
+  res.json({ ok: true });
+});
+
 const visitasPath = path.join(__dirname, 'dados', 'visitas.json');
 
 function lerVisitas() {
