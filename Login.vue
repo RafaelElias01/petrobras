@@ -13,6 +13,7 @@ const emit = defineEmits(['tentativa-login']);
 const usuarioDigitado = ref('');
 const senhaDigitada = ref('');
 const mostrarSenha = ref(false);
+const mostrarSenhaCadastro = ref(false);
 const instrucaoPremium = ref(false);
 const qrCodeUrl = ref('');
 const modoCadastro = ref(false);
@@ -242,6 +243,7 @@ function voltarParaLogin() {
               <div class="input-group">
                 <label for="senha">Senha</label>
                 <div class="campo-senha">
+                  <span class="input-icon">🔒</span>
                   <input id="senha" v-model="senhaDigitada" :type="mostrarSenha ? 'text' : 'password'" placeholder="Sua senha" class="input-field" autocomplete="current-password" />
                   <button type="button" class="olho-senha" @click="mostrarSenha = !mostrarSenha" :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'">
                     <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenha }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -278,12 +280,26 @@ function voltarParaLogin() {
               <div class="input-group">
                 <label for="cad-senha">Senha</label>
                 <div class="campo-senha">
-                  <input id="cad-senha" v-model="cadastroSenha" type="password" placeholder="Mínimo 3 caracteres" class="input-field" autocomplete="new-password" />
+                  <span class="input-icon">🔒</span>
+                  <input id="cad-senha" v-model="cadastroSenha" :type="mostrarSenhaCadastro ? 'text' : 'password'" placeholder="Mínimo 3 caracteres" class="input-field" autocomplete="new-password" />
+                  <button type="button" class="olho-senha" @click="mostrarSenhaCadastro = !mostrarSenhaCadastro" :aria-label="mostrarSenhaCadastro ? 'Ocultar senha' : 'Mostrar senha'">
+                    <svg class="olho-icon olho-aberto" :class="{ soma: mostrarSenhaCadastro }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="olho-icon olho-fechado" :class="{ soma: !mostrarSenhaCadastro }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
               <div class="input-group">
                 <label for="cad-confirmar">Confirmar Senha</label>
-                <input id="cad-confirmar" v-model="cadastroConfirmar" type="password" placeholder="Repita a senha" class="input-field" />
+                <div class="campo-senha">
+                  <span class="input-icon">🔒</span>
+                  <input id="cad-confirmar" v-model="cadastroConfirmar" type="password" placeholder="Repita a senha" class="input-field" />
+                </div>
               </div>
               <button type="submit" class="btn-entrar" :disabled="cadastroLoading">
                 <span>{{ cadastroLoading ? 'Cadastrando...' : 'Criar Conta' }}</span>
@@ -537,23 +553,6 @@ function voltarParaLogin() {
   padding: 40px 36px;
   animation: slideUp 0.8s ease-out 0.1s both;
   box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-}
-
-.login-card-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-card-header h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 6px;
-}
-
-.login-card-header p {
-  font-size: 14px;
-  color: rgba(255,255,255,0.8);
 }
 
 .login-form {
@@ -930,6 +929,23 @@ function voltarParaLogin() {
   transform: translateX(-50%) translateY(10px);
 }
 
+@media (max-width: 1024px) {
+  .login-container {
+    gap: 40px;
+    padding: 32px;
+  }
+  .brand-title {
+    font-size: 30px;
+  }
+  .login-right {
+    width: 340px;
+  }
+  .login-card {
+    width: 340px;
+    padding: 32px 28px;
+  }
+}
+
 @media (max-width: 768px) {
   .login-container {
     flex-direction: column;
@@ -960,6 +976,18 @@ function voltarParaLogin() {
     padding: 32px 24px;
   }
 
+  .login-tab {
+    padding: 14px 10px;
+  }
+
+  .input-field {
+    font-size: 16px;
+  }
+
+  .login-premium-link {
+    padding: 14px 12px;
+  }
+
   .bg-shape-1 { width: 300px; height: 300px; }
   .bg-shape-2 { width: 200px; height: 200px; }
   .bg-shape-3 { width: 150px; height: 150px; }
@@ -972,9 +1000,6 @@ function voltarParaLogin() {
   }
   .login-card {
     padding: 24px 16px;
-  }
-  .login-card-header h2 {
-    font-size: 18px;
   }
   .brand-title {
     font-size: 22px;
@@ -991,6 +1016,9 @@ function voltarParaLogin() {
     padding: 12px 14px 12px 40px;
     font-size: 16px;
   }
+  .input-icon {
+    bottom: 13px;
+  }
   .olho-senha {
     right: 6px;
     width: 32px;
@@ -1003,6 +1031,9 @@ function voltarParaLogin() {
   .btn-entrar {
     padding: 14px 12px;
     font-size: 16px;
+  }
+  .login-premium-link {
+    padding: 14px 12px;
   }
 }
 
@@ -1031,14 +1062,8 @@ function voltarParaLogin() {
     padding: 15px 10px;
     font-size: 16px;
   }
-  .login-card-header {
-    margin-bottom: 24px;
-  }
-  .login-card-header h2 {
-    font-size: 17px;
-  }
-  .login-card-header p {
-    font-size: 13px;
+  .login-form {
+    gap: 16px;
   }
   .input-field {
     padding: 12px 12px 12px 38px;
@@ -1075,13 +1100,6 @@ function voltarParaLogin() {
   .login-card-footer p {
     font-size: 12px;
   }
-  .pix-qr {
-    width: 160px;
-    height: 160px;
-  }
-  .pix-value {
-    font-size: 17px;
-  }
   .social-notification {
     white-space: normal;
     max-width: calc(100vw - 32px);
@@ -1097,7 +1115,7 @@ function voltarParaLogin() {
     padding: 14px;
   }
   .depoimento-texto {
-    font-size: 12px;
+    font-size: 13px;
   }
   .bg-shape-1 { width: 200px; height: 200px; }
   .bg-shape-2 { width: 140px; height: 140px; }
