@@ -19,14 +19,14 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';");
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';");
+//   res.setHeader('X-Content-Type-Options', 'nosniff');
+//   res.setHeader('X-Frame-Options', 'DENY');
+//   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+//   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+//   next();
+// });
 
 const frontendDistPath = path.join(__dirname, 'dist');
 
@@ -160,9 +160,10 @@ app.get(/^\/api\/plano\/(.+)$/, (req, res) => {
   }
 });
 
-app.get(/^(?!\/api).*/, (req, res) => {
-  res.sendFile(path.join(frontendDistPath, 'index.html'));
-});
+// A rota catch-all deve vir depois de todas as rotas da API
+if (fs.existsSync(frontendDistPath)) {
+  app.get('*', (req, res) => res.sendFile(path.join(frontendDistPath, 'index.html')));
+}
 
 app.use((err, req, res, next) => {
   console.error('Erro no servidor:', err);

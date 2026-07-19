@@ -1,14 +1,19 @@
 <script setup>
 import { onMounted, computed } from 'vue';
 import { useFlashcards } from './useFlashcards.js';
+import { useFlashcardReview } from './useFlashcardReview.js';
 
 const {
   flashcards, editandoFlashcard, flashcardsAgrupados, carregarFlashcards,
   novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard,
-  modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao, cardsParaRevisar,
+  cardsParaRevisar,
+} = useFlashcards();
+
+const {
+  modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao,
   abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao,
   cancelarConfiguracaoRevisao
-} = useFlashcards();
+} = useFlashcardReview(flashcards, cardsParaRevisar);
 
 const totalCards = computed(() => flashcards.value.length);
 
