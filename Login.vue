@@ -172,67 +172,65 @@ function voltarParaLogin() {
           </div>
         </div>
       </div>
-      <div class="login-right">
-        <div class="login-card">
-          <PremiumCheckout v-if="instrucaoPremium" :qrCode="qrCodeUrl" :onClose="voltarParaLogin" :onVoltar="voltarParaLogin" />
+      <div class="login-card">
+        <PremiumCheckout v-if="instrucaoPremium" :qrCode="qrCodeUrl" :onClose="voltarParaLogin" :onVoltar="voltarParaLogin" />
 
-          <template v-else>
-            <form @submit.prevent="submeter" class="login-form">
-              <div class="input-group">
-                <label for="usuario">Usuário</label>
-                <input id="usuario" v-model="usuarioDigitado" type="text" placeholder="Seu nome de usuário" class="input-field" autofocus autocomplete="username" />
-                <span class="input-icon">👤</span>
-              </div>
-              <PasswordInput
-                id="senha"
-                label="Senha"
-                v-model="senhaDigitada"
-                placeholder="Sua senha"
-                autocomplete="current-password"
-              />
-              <button type="submit" class="btn-entrar">
-                <span>Entrar</span>
-                <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </button>
-              <p v-if="props.erro" class="msg-erro">⚠ Usuário ou senha inválidos. Tente novamente.</p>
-            </form>
-
-            <div class="login-card-footer">
-              <div class="login-premium-cta">
-                <button @click="abrirLinkPremium" class="login-premium-link">
-                  👑 Seja Premium — <strong>R$ 49,90</strong>
-                </button>
-                <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix</span>
-              </div>
-              <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
+        <template v-else>
+          <form @submit.prevent="submeter" class="login-form">
+            <div class="input-group">
+              <label for="usuario">Usuário</label>
+              <input id="usuario" v-model="usuarioDigitado" type="text" placeholder="Seu nome de usuário" class="input-field" autofocus autocomplete="username" />
+              <span class="input-icon">👤</span>
             </div>
-          </template>
-        </div>
+            <PasswordInput
+              id="senha"
+              label="Senha"
+              v-model="senhaDigitada"
+              placeholder="Sua senha"
+              autocomplete="current-password"
+            />
+            <button type="submit" class="btn-entrar">
+              <span>Entrar</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+            <p v-if="props.erro" class="msg-erro">⚠ Usuário ou senha inválidos. Tente novamente.</p>
+          </form>
 
-        <HowItWorks />
+          <div class="login-card-footer">
+            <div class="login-premium-cta">
+              <button @click="abrirLinkPremium" class="login-premium-link">
+                👑 Seja Premium — <strong>R$ 49,90</strong>
+              </button>
+              <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix</span>
+            </div>
+            <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
+          </div>
+        </template>
+      </div>
 
-        <div class="depoimentos-section">
-          <div class="depoimentos-grid">
-            <div v-for="(d, i) in depoimentos.slice(0, 4)" :key="i" class="depoimento-card">
-              <div class="depoimento-stars">
-                <svg v-for="s in d.estrelas" :key="s" width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              </div>
-              <p class="depoimento-texto">"{{ d.texto }}"</p>
-              <div class="depoimento-footer">
-                <div class="depoimento-avatar">{{ d.nome.charAt(0) }}</div>
-                <div class="depoimento-info">
-                  <strong>{{ d.nome }}</strong>
-                  <span>{{ d.cidade }}</span>
-                </div>
+      <HowItWorks />
+
+      <div class="depoimentos-section">
+        <div class="depoimentos-grid">
+          <div v-for="(d, i) in depoimentos.slice(0, 4)" :key="i" class="depoimento-card">
+            <div class="depoimento-stars">
+              <svg v-for="s in d.estrelas" :key="s" width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <p class="depoimento-texto">"{{ d.texto }}"</p>
+            <div class="depoimento-footer">
+              <div class="depoimento-avatar">{{ d.nome.charAt(0) }}</div>
+              <div class="depoimento-info">
+                <strong>{{ d.nome }}</strong>
+                <span>{{ d.cidade }}</span>
               </div>
             </div>
           </div>
         </div>
-
-        <FaqSection />
       </div>
+
+      <FaqSection />
     </div>
   </div>
 
@@ -246,13 +244,33 @@ function voltarParaLogin() {
 
 <style scoped>
 .login-wrapper {
+  /* === CSS Custom Properties (Variáveis) === */
+  --c-brand-primary: #6366f1;
+  --c-brand-primary-dark: #4f46e5;
+  --c-brand-secondary: #06b6d4;
+  --c-brand-accent: #f59e0b;
+  --c-brand-accent-dark: #d97706;
+  --c-success: #10b981;
+  --c-error: #f87171;
+  --c-text-light: rgba(255, 255, 255, 0.9);
+  --c-text-medium: rgba(255, 255, 255, 0.75);
+  --c-text-dark: rgba(255, 255, 255, 0.6);
+  --c-bg-main: #0a0c14;
+  --c-bg-card: rgba(255, 255, 255, 0.08);
+  --c-bg-input: rgba(255, 255, 255, 0.07);
+  --c-border: rgba(255, 255, 255, 0.12);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
+}
+.login-wrapper {
   position: relative;
   flex: 1; /* Faz o wrapper preencher o espaço vertical do #app */
   display: flex;
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
-  background: #0a0c14;
+  background: var(--c-bg-main);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -273,7 +291,7 @@ function voltarParaLogin() {
 .bg-shape-1 {
   width: 600px;
   height: 600px;
-  background: #6366f1;
+  background: var(--c-brand-primary);
   top: -200px;
   right: -200px;
   animation: float 8s ease-in-out infinite;
@@ -282,7 +300,7 @@ function voltarParaLogin() {
 .bg-shape-2 {
   width: 400px;
   height: 400px;
-  background: #2563eb;
+  background: var(--c-brand-primary-dark);
   bottom: -100px;
   left: -100px;
   animation: float 6s ease-in-out infinite reverse;
@@ -291,7 +309,7 @@ function voltarParaLogin() {
 .bg-shape-3 {
   width: 300px;
   height: 300px;
-  background: #06b6d4;
+  background: var(--c-brand-secondary);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -306,38 +324,34 @@ function voltarParaLogin() {
 
 .login-container {
   display: flex;
-  align-items: flex-start;
-  gap: 60px;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
   position: relative;
   z-index: 1;
   padding: 40px;
-  max-width: 1050px;
+  max-width: 800px;
   width: 100%;
-}
-
-.login-right {
-  width: 380px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  flex-shrink: 0;
 }
 
 .login-brand {
   flex: 1;
-  color: #fff;
+  color: var(--c-text-light);
   animation: slideUp 0.8s ease-out;
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
 }
 
 .brand-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(245,158,11,0.15);
-  border: 1px solid rgba(245,158,11,0.3);
-  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--c-brand-accent);
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -350,8 +364,7 @@ function voltarParaLogin() {
   font-size: 40px;
   font-weight: 800;
   letter-spacing: -1px;
-  margin-bottom: 6px;
-  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  margin-bottom: 6px;  background: linear-gradient(135deg, var(--c-brand-primary), var(--c-brand-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -360,7 +373,7 @@ function voltarParaLogin() {
 
 .brand-subtitle {
   font-size: 16px;
-  color: rgba(255,255,255,0.65);
+  color: var(--c-text-dark);
   margin-bottom: 24px;
 }
 
@@ -368,11 +381,12 @@ function voltarParaLogin() {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
   padding: 16px 20px;
   margin-bottom: 28px;
+  justify-content: space-around;
   animation: slideUp 0.8s ease-out 0.1s both;
 }
 
@@ -385,14 +399,14 @@ function voltarParaLogin() {
   display: block;
   font-size: 16px;
   font-weight: 700;
-  color: #10b981;
+  color: var(--c-success);
   margin-bottom: 2px;
 }
 
 .highlight-label {
   display: block;
   font-size: 11px;
-  color: rgba(255,255,255,0.75);
+  color: var(--c-text-medium);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -400,7 +414,7 @@ function voltarParaLogin() {
 .highlight-divider {
   width: 1px;
   height: 36px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
@@ -408,6 +422,7 @@ function voltarParaLogin() {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  align-items: center;
 }
 
 .feature-item {
@@ -415,7 +430,7 @@ function voltarParaLogin() {
   align-items: center;
   gap: 12px;
   font-size: 14px;
-  color: rgba(255,255,255,0.8);
+  color: var(--c-text-light);
   animation: slideUp 0.8s ease-out forwards;
   opacity: 0;
 }
@@ -424,7 +439,6 @@ function voltarParaLogin() {
 .feature-item:nth-child(2) { animation-delay: 0.25s; }
 .feature-item:nth-child(3) { animation-delay: 0.35s; }
 .feature-item:nth-child(4) { animation-delay: 0.45s; }
-.feature-item:nth-child(5) { animation-delay: 0.55s; }
 
 .feature-icon {
   font-size: 20px;
@@ -433,18 +447,19 @@ function voltarParaLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.06);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
 .login-card {
-  width: 380px;
-  background: rgba(255,255,255,0.08);
+  width: 100%;
+  max-width: 420px;
+  background: var(--c-bg-card);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 20px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
   padding: 40px 36px;
   animation: slideUp 0.8s ease-out 0.1s both;
   box-shadow: 0 25px 50px rgba(0,0,0,0.3);
@@ -464,17 +479,17 @@ function voltarParaLogin() {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255,255,255,0.8);
+  color: var(--c-text-light);
   margin-bottom: 6px;
 }
 
 .input-field {
   width: 100%;
   padding: 14px 16px 14px 44px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.07);
-  color: #fff;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: var(--c-bg-input);
+  color: var(--c-text-light);
   font-size: 15px;
   font-family: inherit;
   outline: none;
@@ -483,13 +498,13 @@ function voltarParaLogin() {
 }
 
 .input-field::placeholder {
-  color: rgba(255,255,255,0.6);
+  color: var(--c-text-dark);
 }
 
 .input-field:focus {
-  border-color: #6366f1;
-  background: rgba(99,102,241,0.1);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  border-color: var(--c-brand-primary);
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .input-icon {
@@ -518,18 +533,18 @@ function voltarParaLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  color: rgba(255,255,255,0.7);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-medium);
   transition: color 0.2s, background 0.2s;
 }
 
 .olho-senha:hover {
-  color: rgba(255,255,255,0.85);
-  background: rgba(255,255,255,0.1);
+  color: var(--c-text-light);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .olho-senha:active {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .olho-icon {
@@ -563,9 +578,9 @@ function voltarParaLogin() {
   width: 100%;
   padding: 14px;
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: #fff;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--c-brand-primary), var(--c-brand-primary-dark));
+  color: var(--c-text-light);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -579,7 +594,7 @@ function voltarParaLogin() {
 
 .btn-entrar:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(99,102,241,0.35);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
 }
 
 .btn-entrar:active {
@@ -597,30 +612,28 @@ function voltarParaLogin() {
 }
 
 .msg-erro {
-  color: #f87171;
+  color: var(--c-error);
   font-size: 13px;
   text-align: center;
   padding: 10px 14px;
-  background: rgba(239,68,68,0.08);
-  border-radius: 8px;
-  border: 1px solid rgba(239,68,68,0.15);
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 8px;  border: 1px solid rgba(239, 68, 68, 0.15);
 }
 
 .msg-sucesso {
-  color: #10b981;
+  color: var(--c-success);
   font-size: 13px;
   text-align: center;
   padding: 10px 14px;
-  background: rgba(16,185,129,0.08);
-  border-radius: 8px;
-  border: 1px solid rgba(16,185,129,0.15);
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: 8px;  border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
 .login-card-footer {
   margin-top: 24px;
   text-align: center;
   padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .login-premium-cta {
@@ -629,11 +642,11 @@ function voltarParaLogin() {
 
 .login-premium-link {
   width: 100%;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff;
+  background: linear-gradient(135deg, var(--c-brand-accent), var(--c-brand-accent-dark));
+  color: var(--c-text-light);
   border: none;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
@@ -651,16 +664,16 @@ function voltarParaLogin() {
   display: block;
   margin-top: 8px;
   font-size: 11px;
-  color: rgba(255,255,255,0.75);
+  color: var(--c-text-medium);
 }
 
 .login-card-footer p {
   font-size: 12px;
-  color: rgba(255,255,255,0.75);
+  color: var(--c-text-medium);
 }
 
 .login-card-footer strong {
-  color: rgba(255,255,255,0.8);
+  color: var(--c-text-light);
 }
 
 @keyframes slideUp {
@@ -676,6 +689,7 @@ function voltarParaLogin() {
 
 .depoimentos-section {
   width: 100%;
+  max-width: 800px;
 }
 
 .depoimentos-grid {
@@ -685,11 +699,11 @@ function voltarParaLogin() {
 }
 
 .depoimento-card {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
   padding: 18px;
   transition: all 0.3s ease;
   animation: slideUp 0.6s ease-out both;
@@ -701,8 +715,8 @@ function voltarParaLogin() {
 .depoimento-card:nth-child(4) { animation-delay: 0.4s; }
 
 .depoimento-card:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.15);
+  background: var(--c-bg-card);
+  border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }
 
@@ -715,7 +729,7 @@ function voltarParaLogin() {
 .depoimento-texto {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(255,255,255,0.88);
+  color: var(--c-text-light);
   margin-bottom: 14px;
   font-style: italic;
 }
@@ -730,14 +744,14 @@ function voltarParaLogin() {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(99,102,241,0.5), rgba(37,99,235,0.5));
-  border: 1px solid rgba(255,255,255,0.15);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.5), rgba(37, 99, 235, 0.5));
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-light);
   flex-shrink: 0;
 }
 
@@ -749,12 +763,12 @@ function voltarParaLogin() {
 
 .depoimento-info strong {
   font-size: 13px;
-  color: rgba(255,255,255,0.85);
+  color: var(--c-text-light);
 }
 
 .depoimento-info span {
   font-size: 11px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .social-notification {
@@ -765,12 +779,12 @@ function voltarParaLogin() {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(16,185,129,0.95);
+  background: rgba(16, 185, 129, 0.95);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #fff;
+  border: 1px solid var(--c-border);
+  color: var(--c-text-light);
   padding: 12px 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
   z-index: 1000;
@@ -801,13 +815,6 @@ function voltarParaLogin() {
   .brand-title {
     font-size: 30px;
   }
-  .login-right {
-    width: 340px;
-  }
-  .login-card {
-    width: 340px;
-    padding: 32px 28px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -815,24 +822,10 @@ function voltarParaLogin() {
     flex-direction: column;
     gap: 32px;
     padding: 24px;
-    align-items: center;
-  }
-
-  .login-brand {
-    text-align: center;
   }
 
   .brand-title {
     font-size: 28px;
-  }
-
-  .brand-features {
-    display: none;
-  }
-
-  .login-right {
-    width: 100%;
-    max-width: 400px;
   }
 
   .login-card {
@@ -906,12 +899,9 @@ function voltarParaLogin() {
   .login-brand {
     display: none;
   }
-  .login-right {
-    max-width: 100%;
-  }
   .login-card {
     padding: 20px 14px;
-    border-radius: 14px;
+    border-radius: var(--radius-md);
   }
   .login-form {
     gap: 16px;
@@ -984,7 +974,7 @@ function voltarParaLogin() {
   }
   .login-card {
     padding: 16px 10px;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
   }
   .login-form {
     gap: 12px;
