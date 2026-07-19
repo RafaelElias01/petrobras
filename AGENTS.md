@@ -191,3 +191,4 @@ import { ref, ... } from 'vue'
 - **Login footer**: `<button @click>`, nunca `<a href>`
 - **Depoimentos**: glassmorphism, exibir `cidade`
 - **PIX TXID**: `addField('05', txid)` — sem `03` aninhado. Bancos rejeitam payload com `03` extra.
+- **overflow**: nunca usar `overflow: hidden` no container principal (`.login-wrapper`). Usar `overflow-x: hidden` se precisar cortar eixo horizontal. `overflow: hidden` trunca scroll vertical em mobile e conteudo some.
