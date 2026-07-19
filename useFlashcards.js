@@ -25,6 +25,20 @@ export function useFlashcards() {
       : 0
   );
 
+  const cardsParaRevisar = computed(() => {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    return flashcards.value.filter(card => {
+      if (!card.lastReviewed) return true; // Nunca revisado, está pendente.
+      const last = new Date(card.lastReviewed);
+      const intervalo = LEITNER_BOXES[card.box || 1] || 1;
+      const due = new Date(last);
+      due.setDate(due.getDate() + intervalo);
+      return hoje >= due;
+    });
+  });
+
   const flashcardsAgrupados = computed(() => {
     const grupos = {};
     ['Português', 'Matemática', 'Química'].forEach(m => grupos[m] = []);
@@ -174,16 +188,7 @@ export function useFlashcards() {
 
   function iniciarRevisao() {
     configurandoRevisao.value = false;
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    let dueCards = flashcards.value.filter(card => {
-      if (!card.lastReviewed) return true;
-      const last = new Date(card.lastReviewed);
-      const intervalo = LEITNER_BOXES[card.box || 1] || 1;
-      const due = new Date(last);
-      due.setDate(due.getDate() + intervalo);
-      return hoje >= due;
-    });
+    let dueCards = [...cardsParaRevisar.value];
     if (opcoesRevisao.value.materias.length > 0) {
       dueCards = dueCards.filter(c => opcoesRevisao.value.materias.includes(c.materia));
     }
@@ -222,7 +227,7 @@ export function useFlashcards() {
     editarFlashcard: (c) => editandoFlashcard.value = { ...c },
     removerFlashcard, cancelarFlashcard: () => editandoFlashcard.value = null,
     modoRevisao, configurandoRevisao, deckRevisao, cardAtualIndex,
-    cardAtual, progressoRevisao, opcoesRevisao,
+    cardAtual, progressoRevisao, opcoesRevisao, cardsParaRevisar,
     abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao,
     cancelarConfiguracaoRevisao
   };

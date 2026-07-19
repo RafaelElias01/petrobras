@@ -5,22 +5,12 @@ import { useFlashcards } from './useFlashcards.js';
 const {
   flashcards, editandoFlashcard, flashcardsAgrupados, carregarFlashcards,
   novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard,
-  modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao,
+  modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao, cardsParaRevisar,
   abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao,
   cancelarConfiguracaoRevisao
 } = useFlashcards();
 
 const totalCards = computed(() => flashcards.value.length);
-const cardsParaRevisar = computed(() =>
-  flashcards.value.filter(f => {
-    if (!f.lastReviewed) return true;
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const intervalos = {1:1,2:3,3:7,4:14,5:30};
-    const last = new Date(f.lastReviewed);
-    const due = new Date(last); due.setDate(due.getDate() + (intervalos[f.box||1]||1));
-    return hoje >= due;
-  })
-);
 
 onMounted(() => {
   carregarFlashcards();
