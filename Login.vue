@@ -123,11 +123,6 @@ function voltarParaLogin() {
 
 <template>
   <div class="login-wrapper">
-    <div class="login-bg">
-      <div class="bg-shape bg-shape-1"></div>
-      <div class="bg-shape bg-shape-2"></div>
-      <div class="bg-shape bg-shape-3"></div>
-    </div>
     <div class="login-container">
       <div class="login-brand">
         <div class="brand-badge">🔥 Edital 2026</div>
@@ -270,56 +265,22 @@ function voltarParaLogin() {
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
-  background: var(--c-bg-main);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* --- Novo Fundo de Gradiente Animado --- */
+  background: 
+    radial-gradient(circle at 15% 25%, rgba(99, 102, 241, 0.18), transparent 35%),
+    radial-gradient(circle at 85% 35%, rgba(6, 182, 212, 0.15), transparent 40%),
+    radial-gradient(circle at 60% 80%, rgba(79, 70, 229, 0.18), transparent 50%),
+    var(--c-bg-main);
+  background-size: 250% 250%;
+  animation: gradient-flow 25s ease-in-out infinite;
 }
 
-.login-bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none; /* Garante que o fundo não intercepte cliques. */
-}
-
-.bg-shape {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15;
-}
-
-.bg-shape-1 {
-  width: 600px;
-  height: 600px;
-  background: var(--c-brand-primary);
-  top: -200px;
-  right: -200px;
-  animation: float 8s ease-in-out infinite;
-}
-
-.bg-shape-2 {
-  width: 400px;
-  height: 400px;
-  background: var(--c-brand-primary-dark);
-  bottom: -100px;
-  left: -100px;
-  animation: float 6s ease-in-out infinite reverse;
-}
-
-.bg-shape-3 {
-  width: 300px;
-  height: 300px;
-  background: var(--c-brand-secondary);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: float 10s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -30px) scale(1.05); }
-  66% { transform: translate(-20px, 20px) scale(0.95); }
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .login-container {
