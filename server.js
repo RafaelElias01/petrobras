@@ -10,10 +10,11 @@ const app = express();
 const port = 3000;
 
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' data:; img-src 'self' data:; font-src 'self';");
+  res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';");
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   next();
 });
 
@@ -96,9 +97,11 @@ app.get('/api/planos', (req, res) => {
 });
 
 app.get(/^\/api\/plano\/(.+)$/, (req, res) => {
-  const id = req.params[0];
-  const idSanitized = id.replace(/\.\.\//g, '').replace(/\.\.\\/g, '').replace(/\//g, path.sep);
-  const filePath = path.join(__dirname, 'petrobras-quimica-study-plan', `${idSanitized}.md`);
+  const id = req.params[0].replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!id) return res.status(400).send('ID inválido');
+  const basePath = path.resolve(__dirname, 'petrobras-quimica-study-plan');
+  const filePath = path.resolve(basePath, `${id}.md`);
+  if (!filePath.startsWith(basePath)) return res.status(403).send('Acesso negado');
   if (fs.existsSync(filePath)) {
     res.sendFile(filePath);
   } else {

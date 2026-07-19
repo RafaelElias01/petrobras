@@ -81,5 +81,7 @@ export async function autenticar(usuario, senha) {
 }
 
 export function gerarTokenSessao() {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, b => b.toString(36).padStart(2, '0')).join('');
 }

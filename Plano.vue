@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, watch } from 'vue';
 import { usePlano } from './usePlano.js';
+import DOMPurify from 'dompurify';
 
 const {
   planos, planoSelecionado, carregandoPlano,
@@ -8,18 +9,7 @@ const {
 } = usePlano();
 
 function sanitizeHTML(html) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const scripts = doc.querySelectorAll('script, iframe, object, embed, link[rel="import"]');
-  scripts.forEach(el => el.remove());
-  const allElements = doc.querySelectorAll('*');
-  allElements.forEach(el => {
-    Array.from(el.attributes).forEach(attr => {
-      if (attr.name.startsWith('on') || attr.value.startsWith('javascript:')) {
-        el.removeAttribute(attr.name);
-      }
-    });
-  });
-  return doc.body.innerHTML;
+  return DOMPurify.sanitize(html);
 }
 
 const planosGrupos = computed(() => [...new Set(planos.value.map(p => p.grupo))]);

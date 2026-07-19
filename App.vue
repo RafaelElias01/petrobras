@@ -22,7 +22,9 @@ const Admin = defineAsyncComponent(() => import('./Admin.vue'));
 
 const SESSAO_KEY = 'petro_quimica_sessao';
 function gerarToken() {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, b => b.toString(36).padStart(2, '0')).join('');
 }
 
 const usuarioAtual = ref(null);
@@ -121,6 +123,7 @@ function logout() {
 }
 
 function verificarSessao() {
+  const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const local = localStorage.getItem(SESSAO_KEY);
   const session = sessionStorage.getItem(SESSAO_KEY);
   if (!session) {
@@ -128,6 +131,7 @@ function verificarSessao() {
       try {
         const parsed = JSON.parse(local);
         if (!parsed?.user?.usuario) { logout(); return; }
+        if (Date.now() - parsed.timestamp > SESSION_MAX_AGE) { logout(); return; }
         usuarioAtual.value = parsed.user;
         autenticado.value = true;
         sessionStorage.setItem(SESSAO_KEY, local);
@@ -141,6 +145,7 @@ function verificarSessao() {
     const sessionParsed = JSON.parse(session);
     if (!localParsed || !sessionParsed) { logout(); return; }
     if (localParsed.token !== sessionParsed.token) { logout(); return; }
+    if (Date.now() - localParsed.timestamp > SESSION_MAX_AGE) { logout(); return; }
     usuarioAtual.value = localParsed.user;
     autenticado.value = true;
   } catch { logout() }
