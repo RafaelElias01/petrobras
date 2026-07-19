@@ -118,7 +118,7 @@ const {
       <div class="card-titulo">📌 Resumo Detalhado</div>
       <table class="tabela-horas">
         <tbody>
-          <tr><td style="font-weight:600;width:200px;">Total de horas</td><td>{{ resumo.totalHoras }}h</td></tr>
+          <tr><td style="font-weight:600;min-width:100px;">Total de horas</td><td>{{ resumo.totalHoras }}h</td></tr>
           <tr><td style="font-weight:600;">Meta semanal</td><td>{{ resumo.metaSemana }}h/semana</td></tr>
           <tr><td style="font-weight:600;">Meta diária</td><td>{{ META_HORAS_DIA }}h/dia</td></tr>
           <tr><td style="font-weight:600;">Conteúdo concluído</td><td>{{ resumo.conteudoProgresso }}%</td></tr>

@@ -462,9 +462,10 @@ body {
     padding: 6px 8px;
   }
   .tabela-horas td input {
-    width: 45px;
-    padding: 4px 6px;
-    font-size: 12px;
+    width: 44px;
+    min-height: 44px;
+    padding: 4px;
+    font-size: 16px;
   }
   .form-simulado, .form-erro {
     grid-template-columns: 1fr;
@@ -475,8 +476,9 @@ body {
   .form-simulado input, .form-simulado button,
   .form-erro input, .form-erro button,
   .form-erro select, .form-erro textarea {
-    font-size: 14px;
-    padding: 8px;
+    font-size: 16px;
+    padding: 10px 8px;
+    min-height: 44px;
   }
   .grupo-checklist {
     margin-bottom: 14px;
@@ -559,8 +561,9 @@ body {
     margin-bottom: 10px;
   }
   .card select {
-    font-size: 14px;
-    padding: 8px;
+    font-size: 16px;
+    padding: 10px 8px;
+    min-height: 44px;
   }
   .tabela-horas, .tabela-simulados, .tabela-erros {
     font-size: 10px;
@@ -577,9 +580,10 @@ body {
     padding: 5px 6px;
   }
   .tabela-horas td input {
-    width: 40px;
-    padding: 3px 4px;
-    font-size: 11px;
+    width: 44px;
+    min-height: 44px;
+    padding: 4px;
+    font-size: 16px;
   }
   .form-simulado, .form-erro {
     grid-template-columns: 1fr;
@@ -591,8 +595,9 @@ body {
   .form-simulado input, .form-simulado button,
   .form-erro input, .form-erro button,
   .form-erro select, .form-erro textarea {
-    font-size: 13px;
-    padding: 7px 8px;
+    font-size: 16px;
+    padding: 10px 8px;
+    min-height: 44px;
     width: 100%;
   }
   .form-simulado button, .form-erro button {
@@ -619,9 +624,13 @@ body {
     gap: 8px;
   }
   .item-check input[type="checkbox"] {
-    width: 13px;
-    height: 13px;
+    width: 20px;
+    height: 20px;
     margin-top: 1px;
+  }
+  .item-check {
+    padding: 12px 0;
+    gap: 12px;
   }
   .item-check .texto {
     word-break: break-word;
@@ -710,8 +719,9 @@ body {
     margin-bottom: 8px;
   }
   .card select {
-    font-size: 13px;
-    padding: 6px;
+    font-size: 16px;
+    padding: 10px 6px;
+    min-height: 44px;
   }
   .tabela-horas, .tabela-simulados, .tabela-erros {
     font-size: 9px;
@@ -722,19 +732,21 @@ body {
     padding: 4px 4px;
   }
   .tabela-horas td input {
-    width: 32px;
-    padding: 2px 3px;
-    font-size: 10px;
+    width: 44px;
+    min-height: 44px;
+    padding: 4px;
+    font-size: 16px;
   }
   .form-simulado input, .form-simulado button,
   .form-erro input, .form-erro button,
   .form-erro select, .form-erro textarea {
-    font-size: 12px;
-    padding: 6px;
+    font-size: 16px;
+    padding: 10px 8px;
+    min-height: 44px;
   }
   .checklist-tab {
     font-size: 11px;
-    padding: 8px 10px;
+    padding: 12px 10px;
   }
   .grupo-titulo {
     font-size: 11px;
@@ -743,8 +755,9 @@ body {
     font-size: 11px;
   }
   .navegacao-semanas button {
-    font-size: 11px;
-    padding: 5px 8px;
+    font-size: 14px;
+    padding: 10px 12px;
+    min-height: 44px;
   }
   .ciclo-item {
     padding: 8px;
