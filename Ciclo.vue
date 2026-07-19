@@ -54,7 +54,7 @@ const {
         <button @click="avancarCiclo" class="btn-avancar">
           Concluí esta matéria → Avançar
         </button>
-        <button @click="reiniciarCiclo" class="btn-reiniciar">
+        <button @click="confirm('Tem certeza? Isso vai resetar todo o ciclo.') && reiniciarCiclo()" class="btn-reiniciar">
           Reiniciar Ciclo
         </button>
       </div>

@@ -218,7 +218,7 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
     Carregando...
   </div>
   <template v-else>
-    <div class="sidebar-backdrop" :class="{ visivel: menuAberta }" @click="menuAberta = false"></div>
+    <div class="sidebar-backdrop" :class="{ visivel: menuAberta }" @click="menuAberta = false" @keydown.escape="menuAberta = false"></div>
     <aside class="sidebar" :class="{ aberta: menuAberta }">
       <div class="sidebar-logo">
         <h1>Petrobras 2026</h1>
@@ -272,7 +272,7 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
             />
           </transition>
         </ErrorBoundary>
-        <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
+        <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @keydown.escape="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
           <div class="overlay-card" @click.stop>
             <div class="login-card-header">
               <h2>Pagamento Premium</h2>

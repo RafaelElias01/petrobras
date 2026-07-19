@@ -78,6 +78,7 @@ function handleEditar(u) {
 
 function handleRemover(u) {
   if (u.usuario === props.usuarioLogado) return;
+  if (!confirm(`Tem certeza que deseja remover o usuário "${u.usuario}"?`)) return;
   removerUsuario(u.usuario);
 }
 

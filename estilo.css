@@ -796,6 +796,11 @@ button {
   touch-action: manipulation;
 }
 
+:focus-visible {
+  outline: 2px solid var(--primaria);
+  outline-offset: 2px;
+}
+
 [data-tema="dark"] {
   --bg: #0f1117;
   --card: #1a1d29;
