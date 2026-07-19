@@ -358,6 +358,7 @@ function voltarParaLogin() {
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
+  overflow-y: auto; /* Adicionado para permitir rolagem vertical */
   background: #0a0c14;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -1047,15 +1048,18 @@ function voltarParaLogin() {
 @media (max-width: 480px) {
   .login-container {
     padding: 10px;
+    /* Removido min-height para permitir que o conteúdo defina a altura e seja rolado */
+    /* min-height: 100vh; */
     gap: 16px;
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
     justify-content: flex-start;
     padding-top: 20px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
   .login-brand {
     display: none;
+  }
+  .login-wrapper {
+    align-items: flex-start; /* Alinha o conteúdo ao topo em telas pequenas */
   }
   .login-right {
     max-width: 100%;
