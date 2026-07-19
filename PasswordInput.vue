@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import BaseInput from './BaseInput.vue';
 
 const props = defineProps({
   modelValue: {
@@ -35,17 +36,17 @@ const valor = computed({
 </script>
 
 <template>
-  <div class="input-group">
-    <label :for="id">{{ label }}</label>
-    <span class="input-icon">🔒</span>
-    <input
-      :id="id"
-      v-model="valor"
-      :type="mostrarSenha ? 'text' : 'password'"
-      :placeholder="placeholder"
-      class="input-field"
-      :autocomplete="autocomplete"
-    />
+  <BaseInput
+    :id="id"
+    :label="label"
+    v-model="valor"
+    :type="mostrarSenha ? 'text' : 'password'"
+    :placeholder="placeholder"
+    :autocomplete="autocomplete"
+  >
+    <template #icon>
+      <span class="input-icon">🔒</span>
+    </template>
     <button
       type="button"
       class="olho-senha"
@@ -80,13 +81,63 @@ const valor = computed({
         <line x1="1" y1="1" x2="23" y2="23" />
       </svg>
     </button>
-  </div>
+  </BaseInput>
 </template>
 
 <style scoped>
-/* Os estilos relevantes de .input-group, .campo-senha, .olho-senha, etc.
-   do Login.vue devem ser movidos para cá ou, idealmente, para um arquivo CSS global
-   se forem usados em mais lugares. Para este exemplo, assumimos que eles
-   permanecem no Login.vue e são aplicados globalmente ou via 'deep' seletor.
-   Se não, copie os estilos relevantes para cá. */
+/* Estilos que antes estavam no Login.vue agora estão aqui, garantindo o encapsulamento */
+.input-icon {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  font-size: 18px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.olho-senha {
+  position: absolute;
+  right: 10px;
+  top: calc(50% + 10px); /* Ajusta o ponto de partida para o centro do input */
+  transform: translateY(-50%); /* Centraliza o ícone a partir do novo ponto */
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--c-text-medium);
+  transition: color 0.2s, background 0.2s;
+}
+
+.olho-senha:hover {
+  color: var(--c-text-light);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.olho-icon {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.olho-aberto { opacity: 0; transform: scale(0.5) rotate(-60deg); }
+.olho-aberto.soma { opacity: 1; transform: scale(1) rotate(0deg); }
+.olho-fechado { opacity: 0; transform: scale(0.5) rotate(60deg); }
+.olho-fechado.soma { opacity: 1; transform: scale(1) rotate(0deg); }
+
+@media (max-width: 600px) {
+  .input-icon { bottom: 13px; }
+  .olho-senha { right: 6px; width: 32px; height: 32px; }
+  .olho-icon { width: 17px; height: 17px; }
+}
+@media (max-width: 360px) {
+  .input-icon { left: 10px; bottom: 12px; font-size: 16px; }
+  .olho-senha { right: 2px; width: 30px; height: 30px; }
+  .olho-icon { width: 15px; height: 15px; }
+}
 </style>

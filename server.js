@@ -43,8 +43,12 @@ const usuariosPath = path.join(__dirname, 'dados', 'usuarios.json');
 function lerUsuarios() {
   try {
     if (!fs.existsSync(usuariosPath)) return [];
-    return JSON.parse(fs.readFileSync(usuariosPath, 'utf-8'));
-  } catch { return []; }
+    const data = fs.readFileSync(usuariosPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('Erro ao ler usuários:', e);
+    return [];
+  }
 }
 
 function salvarUsuarios(data) {
@@ -52,7 +56,9 @@ function salvarUsuarios(data) {
     const dir = path.dirname(usuariosPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(usuariosPath, JSON.stringify(data, null, 2));
-  } catch (e) { console.error('Erro ao salvar usuarios:', e); }
+  } catch (e) {
+    console.error('Erro ao salvar usuarios:', e);
+  }
 }
 
 app.post('/api/auth/register', (req, res) => {
@@ -72,8 +78,12 @@ const visitasPath = path.join(__dirname, 'dados', 'visitas.json');
 function lerVisitas() {
   try {
     if (!fs.existsSync(visitasPath)) return [];
-    return JSON.parse(fs.readFileSync(visitasPath, 'utf-8'));
-  } catch { return []; }
+    const data = fs.readFileSync(visitasPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('Erro ao ler visitas:', e);
+    return [];
+  }
 }
 
 function salvarVisitas(data) {
@@ -81,7 +91,9 @@ function salvarVisitas(data) {
     const dir = path.dirname(visitasPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(visitasPath, JSON.stringify(data, null, 2));
-  } catch (e) { console.error('Erro ao salvar visitas:', e); }
+  } catch (e) {
+    console.error('Erro ao salvar visitas:', e);
+  }
 }
 
 app.post('/api/visitas', (req, res) => {

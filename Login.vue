@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import QRCode from 'qrcode';
 import { gerarPayloadPix } from './pix.js';
+import BaseInput from './BaseInput.vue';
 import PasswordInput from './PasswordInput.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
 import FaqSection from './FaqSection.vue';
@@ -172,11 +173,18 @@ function voltarParaLogin() {
 
         <template v-else>
           <form @submit.prevent="submeter" class="login-form">
-            <div class="input-group">
-              <label for="usuario">Usuário</label>
-              <input id="usuario" v-model="usuarioDigitado" type="text" placeholder="Seu nome de usuário" class="input-field" autofocus autocomplete="username" />
-              <span class="input-icon">👤</span>
-            </div>
+            <BaseInput
+              id="usuario"
+              label="Usuário"
+              v-model="usuarioDigitado"
+              placeholder="Seu nome de usuário"
+              autocomplete="username"
+              :autofocus="true"
+            >
+              <template #icon>
+                <span class="input-icon">👤</span>
+              </template>
+            </BaseInput>
             <PasswordInput
               id="senha"
               label="Senha"
@@ -444,30 +452,6 @@ function voltarParaLogin() {
   margin-bottom: 6px;
 }
 
-.input-field {
-  width: 100%;
-  padding: 14px 16px 14px 44px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--c-border);
-  background: var(--c-bg-input);
-  color: var(--c-text-light);
-  font-size: 15px;
-  font-family: inherit;
-  outline: none;
-  transition: all 0.25s ease;
-  box-sizing: border-box;
-}
-
-.input-field::placeholder {
-  color: var(--c-text-dark);
-}
-
-.input-field:focus {
-  border-color: var(--c-brand-primary);
-  background: rgba(99, 102, 241, 0.1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-}
-
 .input-icon {
   position: absolute;
   left: 14px;
@@ -475,64 +459,6 @@ function voltarParaLogin() {
   font-size: 18px;
   opacity: 0.6;
   pointer-events: none;
-}
-
-.campo-senha {
-  position: relative;
-}
-
-.olho-senha {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  color: var(--c-text-medium);
-  transition: color 0.2s, background 0.2s;
-}
-
-.olho-senha:hover {
-  color: var(--c-text-light);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.olho-senha:active {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.olho-icon {
-  width: 20px;
-  height: 20px;
-  position: absolute;
-  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.olho-aberto {
-  opacity: 0;
-  transform: scale(0.5) rotate(-60deg);
-}
-
-.olho-aberto.soma {
-  opacity: 1;
-  transform: scale(1) rotate(0deg);
-}
-
-.olho-fechado {
-  opacity: 0;
-  transform: scale(0.5) rotate(60deg);
-}
-
-.olho-fechado.soma {
-  opacity: 1;
-  transform: scale(1) rotate(0deg);
 }
 
 .btn-entrar {
@@ -789,11 +715,6 @@ function voltarParaLogin() {
     font-size: 28px;
   }
 
-  .login-card {
-    width: 100%;
-    padding: 32px 24px;
-  }
-
   .input-field {
     font-size: 16px;
   }
@@ -822,21 +743,8 @@ function voltarParaLogin() {
     font-size: 14px;
     margin-bottom: 24px;
   }
-  .input-field {
-    padding: 12px 14px 12px 40px;
-    font-size: 16px;
-  }
   .input-icon {
     bottom: 13px;
-  }
-  .olho-senha {
-    right: 6px;
-    width: 32px;
-    height: 32px;
-  }
-  .olho-icon {
-    width: 17px;
-    height: 17px;
   }
   .btn-entrar {
     padding: 14px 12px;
@@ -867,24 +775,11 @@ function voltarParaLogin() {
   .login-form {
     gap: 16px;
   }
-  .input-field {
-    padding: 12px 12px 12px 38px;
-    font-size: 16px;
-  }
   .input-icon {
     bottom: 13px;
     left: 12px;
   }
   .olho-senha {
-    right: 4px;
-    width: 32px;
-    height: 32px;
-  }
-  .olho-icon {
-    width: 17px;
-    height: 17px;
-  }
-  .btn-entrar {
     padding: 14px 12px;
     font-size: 16px;
   }
@@ -940,23 +835,10 @@ function voltarParaLogin() {
   .login-form {
     gap: 12px;
   }
-  .input-field {
-    padding: 11px 10px 11px 34px;
-    font-size: 16px;
-  }
   .input-icon {
     left: 10px;
     bottom: 12px;
     font-size: 16px;
-  }
-  .olho-senha {
-    right: 2px;
-    width: 30px;
-    height: 30px;
-  }
-  .olho-icon {
-    width: 15px;
-    height: 15px;
   }
   .btn-entrar {
     padding: 13px 10px;
