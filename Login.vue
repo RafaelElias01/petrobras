@@ -352,21 +352,13 @@ function voltarParaLogin() {
 <style scoped>
 .login-wrapper {
   position: relative;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
+  flex: 1; /* Faz o wrapper preencher o espaço vertical do #app */
   display: flex;
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
-  overflow-y: auto; /* Adicionado para permitir rolagem vertical */
   background: #0a0c14;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-@supports (min-height: 100dvh) {
-  .login-wrapper {
-    min-height: 100dvh;
-  }
 }
 
 .login-bg {

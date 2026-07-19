@@ -161,7 +161,7 @@ body {
 }
 
 .checklist-tab {
-  flex: 0 1 auto; /* Alterado para não forçar o crescimento e permitir quebra de linha correta */
+  flex: 0 0 auto; /* Alterado para não crescer nem encolher, mantendo o tamanho do conteúdo */
   /* min-width: 0; Removido para evitar que o item encolha demais */
   padding: 10px 16px;
   border: none;
@@ -177,7 +177,7 @@ body {
   align-items: center;
   gap: 6px;
   justify-content: center;
-  white-space: nowrap;
+  white-space: normal; /* Permite quebra de linha nos títulos */
 }
 
 .checklist-tab:hover {
