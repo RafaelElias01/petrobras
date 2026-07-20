@@ -105,6 +105,36 @@ describe('POST /api/premium/confirmar', () => {
   });
 });
 
+describe('POST /api/demo/incrementar', () => {
+  it('bloqueia sem token', async () => {
+    const res = await request(app).post('/api/demo/incrementar');
+    expect(res.status).toBe(401);
+  });
+
+  it('bloqueia usuário que não é o demo estudante', async () => {
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
+    const res = await request(app)
+      .post('/api/demo/incrementar')
+      .set('Authorization', `Bearer ${login.body.token}`);
+    expect(res.status).toBe(400);
+  });
+
+  it('incrementa e marca expirado ao atingir o máximo de acessos', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send({ usuario: 'estudante', nome: 'Estudante', email: 'estudante@ex.com', senha: '123456' });
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'estudante', senha: '123456' });
+    const token = login.body.token;
+    let ultimo;
+    for (let i = 0; i < 5; i++) {
+      ultimo = await request(app).post('/api/demo/incrementar').set('Authorization', `Bearer ${token}`);
+    }
+    expect(ultimo.status).toBe(200);
+    expect(ultimo.body.count).toBe(5);
+    expect(ultimo.body.expirado).toBe(true);
+  });
+});
+
 describe('GET /api/materiais/:nome', () => {
   it('bloqueia tentativa de path traversal (nome não bate com a whitelist)', async () => {
     const res = await request(app).get('/api/materiais/%2e%2e%2fserver.js');

@@ -50,23 +50,39 @@ const authLimiter = rateLimit({
 
 // --- Sessões server-side (em memória, TTL 7 dias) ---
 const SESSAO_TTL = 7 * 24 * 60 * 60 * 1000;
-const sessoes = new Map(); // token -> { usuario, exp }
+// Sessão do usuário demo 'estudante' expira bem mais rápido: sem isso, o
+// limite de acessos por sessão vira inútil (bastaria ficar logado 7 dias
+// sem nunca deslogar). 45min limita tempo total de uso mesmo se a pessoa
+// nunca navegar pra uma feature bloqueada.
+const SESSAO_TTL_DEMO = 45 * 60 * 1000;
+const sessoes = new Map(); // token -> { usuario, exp, demoCount? }
 
 function criarSessao(usuario) {
   const token = crypto.randomBytes(32).toString('hex');
-  sessoes.set(token, { usuario, exp: Date.now() + SESSAO_TTL });
+  const ttl = usuario === 'estudante' ? SESSAO_TTL_DEMO : SESSAO_TTL;
+  sessoes.set(token, { usuario, exp: Date.now() + ttl });
   return token;
 }
 
-function usuarioDoToken(req) {
+function sessaoDoToken(req) {
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
   if (!token) return null;
   const s = sessoes.get(token);
   if (!s) return null;
   if (Date.now() > s.exp) { sessoes.delete(token); return null; }
-  return s.usuario;
+  return s;
 }
+
+function usuarioDoToken(req) {
+  return sessaoDoToken(req)?.usuario || null;
+}
+
+// Limite de acesso demo (usuário 'estudante'): contado por sessão de login no
+// servidor, não mais em localStorage (burlável limpando storage/trocando de
+// navegador). Reseta a cada novo login, mas dentro da mesma sessão não tem
+// como escapar client-side.
+const DEMO_MAX_ACESSOS = 5;
 
 // Limpeza periódica de sessões expiradas
 setInterval(() => {
@@ -239,6 +255,16 @@ app.post('/api/premium/confirmar', (req, res) => {
   usuarios[idx].premiumEm = new Date().toISOString();
   salvarUsuarios(usuarios);
   res.json({ ok: true, premium: true });
+});
+
+app.post('/api/demo/incrementar', (req, res) => {
+  const sessao = sessaoDoToken(req);
+  if (!sessao) return res.status(401).json({ erro: 'Não autenticado' });
+  if (sessao.usuario !== 'estudante') {
+    return res.status(400).json({ erro: 'Limite de demo não se aplica a este usuário' });
+  }
+  sessao.demoCount = (sessao.demoCount || 0) + 1;
+  res.json({ count: sessao.demoCount, max: DEMO_MAX_ACESSOS, expirado: sessao.demoCount >= DEMO_MAX_ACESSOS });
 });
 
 app.get('/api/materiais/:nome', (req, res) => {

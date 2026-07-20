@@ -44,28 +44,36 @@ function featureBloqueada(view) {
   return isDemo.value && FEATURES_BLOQUEADAS_DEMO.has(view);
 }
 
-const DEMO_LIMIT_KEY = 'petro_demo_count';
-const DEMO_MAX = 5;
-
-function verificarLimiteDemo() {
-  if (!usuarioAtual.value || usuarioAtual.value.usuario !== 'estudante') return;
-  const count = parseInt(localStorage.getItem(DEMO_LIMIT_KEY) || '0', 10);
-  if (count >= DEMO_MAX) {
-    logout();
-    alert('Seu acesso de demonstração expirou. Crie sua conta ou assine o Premium para continuar.');
-  }
+// Limite de acesso demo: contado no servidor por sessão de login (ver
+// POST /api/demo/incrementar em server.js), não mais em localStorage —
+// evita burlar limpando storage ou trocando de navegador na mesma sessão.
+function tokenSessaoAtual() {
+  const bruto = localStorage.getItem(SESSAO_KEY);
+  if (!bruto) return null;
+  try { return JSON.parse(bruto).serverToken || null; } catch { return null; }
 }
 
-function incrementarDemoCount() {
+async function incrementarDemoCount() {
   if (!usuarioAtual.value || usuarioAtual.value.usuario !== 'estudante') return;
-  const count = parseInt(localStorage.getItem(DEMO_LIMIT_KEY) || '0', 10);
-  localStorage.setItem(DEMO_LIMIT_KEY, count + 1);
+  const token = tokenSessaoAtual();
+  if (!token) return;
+  try {
+    const res = await fetch('/api/demo/incrementar', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.expirado) {
+      logout();
+      alert('Seu acesso de demonstração expirou. Crie sua conta ou assine o Premium para continuar.');
+    }
+  } catch { /* backend offline: nao bloqueia navegacao */ }
 }
 
 function handleDemoNavigation(novaView) {
   if (isDemo.value && FEATURES_BLOQUEADAS_DEMO.has(novaView)) {
     incrementarDemoCount();
-    verificarLimiteDemo();
   }
 }
 
@@ -157,7 +165,6 @@ async function handleLogin(usuario, senha) {
     registrarVisita();
     if (user.usuario === 'estudante') {
       incrementarDemoCount();
-      verificarLimiteDemo();
     }
   } else {
     erroLogin.value = true;
