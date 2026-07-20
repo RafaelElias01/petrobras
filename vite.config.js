@@ -11,7 +11,7 @@ export default defineConfig({
   },
   server: {
     headers: {
-      'Content-Security-Policy': "default-src 'self'; connect-src 'self' ws://localhost:5173; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' ws://localhost:5173 https://www.google-analytics.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://connect.facebook.net https://www.googletagmanager.com; img-src 'self' data: https://www.facebook.com https://www.google-analytics.com;"
     },
     proxy: {
       '/api': {
