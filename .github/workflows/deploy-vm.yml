@@ -43,8 +43,11 @@ jobs:
       - name: Sincronizar server.js
         run: scp -o StrictHostKeyChecking=no server.js ubuntu@163.176.163.213:/opt/petrobras/server.js
 
+      - name: "Sincronizar package.json (deps: bcryptjs, helmet)"
+        run: scp -o StrictHostKeyChecking=no package.json ubuntu@163.176.163.213:/opt/petrobras/package.json
+
       - name: Sincronizar planos/
         run: rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" petrobras-quimica-study-plan/planos/ ubuntu@163.176.163.213:/opt/petrobras/planos/
 
-      - name: Reiniciar servico
-        run: ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 "sudo systemctl restart petrobras.service"
+      - name: Instalar deps na VM e reiniciar servico
+        run: ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 "cd /opt/petrobras && npm install --omit=dev && sudo systemctl restart petrobras.service"
