@@ -438,8 +438,11 @@ app.get('/api/planos', (req, res) => {
 });
 
 app.get(/^\/api\/plano\/(.+)$/, (req, res) => {
-  const id = req.params[0].replace(/[^a-zA-Z0-9_-]/g, '');
-  if (!id) return res.status(400).send('ID inválido');
+  const id = req.params[0];
+  // Permite "/" (IDs vêm de subpastas, ex: "planos/ciclo-estudos"), mas só
+  // caracteres seguros por segmento -- a checagem real de path traversal é o
+  // filePath.startsWith(basePath) logo abaixo (path.resolve já normaliza "..").
+  if (!id || !/^[a-zA-Z0-9_\-/]+$/.test(id)) return res.status(400).send('ID inválido');
   const basePath = path.resolve(__dirname, 'petrobras-quimica-study-plan');
   const filePath = path.resolve(basePath, `${id}.md`);
   if (!filePath.startsWith(basePath)) return res.status(403).send('Acesso negado');

@@ -169,10 +169,35 @@ describe('GET /api/materiais/:nome', () => {
   });
 });
 
-describe('GET /api/plano/:id (path traversal)', () => {
-  it('bloqueia tentativa de escapar do diretório base', async () => {
+describe('GET /api/planos e GET /api/plano/:id', () => {
+  it('lista os planos reais com grupo por subpasta', async () => {
+    const res = await request(app).get('/api/planos');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+    expect(res.body.find(p => p.id === 'planos/ciclo-estudos')).toBeTruthy();
+  });
+
+  it('busca um documento com ID aninhado (contém "/")', async () => {
+    // Regressão: regex de sanitização já removeu "/" do ID, quebrando todo
+    // acesso a documento (todo ID vem de subpasta, ex: "planos/ciclo-estudos").
+    const res = await request(app).get('/api/plano/planos/ciclo-estudos');
+    expect(res.status).toBe(200);
+  });
+
+  it('bloqueia tentativa de escapar do diretório base (path traversal)', async () => {
     const res = await request(app).get('/api/plano/..%2F..%2Fserver.js');
     expect(res.status).not.toBe(200);
+  });
+
+  it('bloqueia "." literal no ID (a regex de validação não permite ponto)', async () => {
+    const res = await request(app).get('/api/plano/planos%2F%2E%2E%2Fserver');
+    expect(res.status).not.toBe(200);
+  });
+
+  it('retorna 404 pra documento inexistente com ID válido', async () => {
+    const res = await request(app).get('/api/plano/planos/nao-existe-de-verdade');
+    expect(res.status).toBe(404);
   });
 });
 
