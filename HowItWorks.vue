@@ -1,19 +1,19 @@
 <script setup>
 const steps = [
   {
-    icon: '📱',
-    title: '1. Pague com Pix',
-    description: 'Escaneie o QR Code e faça o pagamento de R$ 49,90. É rápido, seguro e o acesso é vitalício.'
+    icon: '📝',
+    title: '1. Crie sua Conta',
+    description: 'Cadastre-se gratuitamente com nome, e-mail e senha em menos de um minuto.'
   },
   {
-    icon: '💬',
-    title: '2. Envie o Comprovante',
-    description: 'Clique no botão do WhatsApp que aparecerá e nos envie o comprovante do pagamento.'
+    icon: '💳',
+    title: '2. Pague com Mercado Pago',
+    description: 'Escolha Pix, cartão ou boleto e faça o pagamento de R$ 49,90. É rápido, seguro e o acesso é vitalício.'
   },
   {
     icon: '🚀',
-    title: '3. Receba seu Acesso',
-    description: 'Em poucos minutos, nossa equipe enviará seu nome de usuário e senha para você começar a estudar!'
+    title: '3. Acesso Liberado na Hora',
+    description: 'Assim que o pagamento é aprovado, seu acesso Premium é ativado automaticamente. Sem espera!'
   }
 ];
 </script>

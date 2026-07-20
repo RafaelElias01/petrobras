@@ -1,7 +1,5 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import QRCode from 'qrcode';
-import { gerarPayloadPix } from './pix.js';
 import { hashPassword, carregarUsuarios, salvarUsuarios } from './usuarios.js';
 import BaseInput from './BaseInput.vue';
 import PasswordInput from './PasswordInput.vue';
@@ -34,7 +32,6 @@ const leadMagnetSucesso = ref(false);
 const leadMagnetErro = ref('');
 
 const instrucaoPremium = ref(false);
-const qrCodeUrl = ref('');
 
 const totalVisitas = ref(32);
 let animFrameId = null;
@@ -105,11 +102,6 @@ function iniciarSocialProof() {
   notifInterval = setInterval(mostrarNotificacao, 4000 + Math.random() * 4000);
 }
 
-const PIX_KEY = '+5551983098650';
-const PIX_NOME = 'PETROBRAS ACADEMY';
-const PIX_CIDADE = 'SAO PAULO';
-const PIX_VALOR = 49.90;
-
 function animarContador(novoValor) {
   if (animFrameId) cancelAnimationFrame(animFrameId);
   const inicio = totalVisitas.value;
@@ -131,17 +123,6 @@ onMounted(async () => {
     const data = await r.json();
     animarContador(Math.max(32, data.total));
   } catch {}
-  const payload = gerarPayloadPix({
-    chave: PIX_KEY,
-    nome: PIX_NOME,
-    cidade: PIX_CIDADE,
-    valor: PIX_VALOR,
-  });
-  qrCodeUrl.value = await QRCode.toDataURL(payload, {
-    width: 280,
-    margin: 2,
-    color: { dark: '#1a1a2e', light: '#ffffff' },
-  });
   iniciarSocialProof();
 });
 
@@ -340,7 +321,7 @@ async function handleLeadMagnet() {
         </div>
       </div>
       <div class="login-card">
-        <PremiumCheckout v-if="instrucaoPremium" :qrCode="qrCodeUrl" :onClose="voltarParaLogin" :onVoltar="voltarParaLogin" />
+        <PremiumCheckout v-if="instrucaoPremium" :onClose="voltarParaLogin" :onVoltar="voltarParaLogin" />
 
         <template v-else>
           <div class="login-tabs">

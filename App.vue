@@ -1,7 +1,5 @@
 <script setup>
 import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
-import QRCode from 'qrcode';
-import { gerarPayloadPix } from './pix.js';
 
 import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
@@ -81,7 +79,6 @@ const carregando = ref(true);
 const menuAberta = ref(false);
 const view = ref('dashboard');
 const tema = ref(localStorage.getItem('petro_tema') || 'dark');
-const qrCodePremium = ref('');
 const visitaRegistrada = ref(false);
 
 async function registrarVisita() {
@@ -225,17 +222,6 @@ onMounted(async () => {
   setTimeout(() => {
     carregando.value = false;
   }, 200);
-  const payload = gerarPayloadPix({
-    chave: '+5551983098650',
-    nome: 'PETROBRAS ACADEMY',
-    cidade: 'SAO PAULO',
-    valor: 49.90,
-  });
-  qrCodePremium.value = await QRCode.toDataURL(payload, {
-    width: 280,
-    margin: 2,
-    color: { dark: '#1a1a2e', light: '#ffffff' },
-  });
 });
 
 const views = {
@@ -341,7 +327,7 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
               <h2>Pagamento Premium</h2>
               <p>Escaneie o QR Code abaixo com o app do seu banco.</p>
             </div>
-            <PremiumCheckout :qrCode="qrCodePremium" :token="tokenSessaoAtual()" :onClose="() => irPara('dashboard')" />
+            <PremiumCheckout :token="tokenSessaoAtual()" :onClose="() => irPara('dashboard')" />
           </div>
         </div>
       </div>
