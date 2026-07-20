@@ -127,12 +127,32 @@ function navegarHash() {
 }
 
 async function handleLogin(usuario, senha) {
-  const user = await autenticar(usuario, senha);
+  // 1. Autenticação no servidor (fonte de verdade; senhas em bcrypt).
+  let user = null;
+  let serverToken = null;
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, senha }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      user = data.user;
+      serverToken = data.token || null;
+    }
+  } catch { /* backend offline: cai no fallback local */ }
+
+  // 2. Fallback local (usuários demo admin/estudante e resiliência offline).
+  if (!user) {
+    user = await autenticar(usuario, senha);
+  }
+
   if (user) {
     usuarioAtual.value = user;
     autenticado.value = true;
     erroLogin.value = false;
-    const sessao = { user, token: gerarToken(), timestamp: Date.now() };
+    const sessao = { user, token: gerarToken(), serverToken, timestamp: Date.now() };
     sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
     localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
     registrarVisita();

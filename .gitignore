@@ -12,3 +12,7 @@ test-login.py
 
 /petrobras
 ssh-key-*.key
+
+# Dados de usuarios / PII (senhas plaintext, emails) — NUNCA commitar
+dados/usuarios.json
+dados/newsletter.json

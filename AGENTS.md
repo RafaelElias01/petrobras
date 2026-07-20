@@ -28,7 +28,8 @@ Express server.js (porta 3000) ◄──────────────┘
 → Login.vue (modoCadastro toggle) + server.js (POST /api/auth/register)
 → Validacoes: 3+ chars, senhas conferem, usuario unico
 → **Email obrigatorio** no cadastro (server valida formato + unicidade)
-→ NAO hash senha (MVP texto plano)
+→ **Senha com hash bcrypt no servidor** (`bcryptjs`, cost 10). Migração one-time rehasheia qualquer `senha` plaintext antiga em `senhaHash` no boot.
+→ Login real via `POST /api/auth/login` (retorna `{ token, user }`). App.vue tenta servidor primeiro, com fallback local (`autenticar()`) só p/ demo users admin/estudante.
 → Apos registro, `emit('registro-sucesso')` → App.vue: `handleRegisterSuccess()` faz login automatico
 
 **QUANDO** for "lead magnet", "newsletter", "material gratuito", "guia":
@@ -174,8 +175,11 @@ import { ref, ... } from 'vue'
 **Seguranca server.js**:
 - Todo POST: validar tipo, tamanho, campos obrigatorios
 - Path: `path.resolve` + check `basePath` prefix
-- CSP + HSTS via helmet
+- CSP + HSTS via **helmet** (instalado). CSP espelha GA + FB Pixel + inline; `upgradeInsecureRequests` desligado enquanto VM for HTTP puro (reativar após certbot)
+- Auth: `bcryptjs` p/ senha, sessões server-side em memória (token Bearer, TTL 7d). `/api/premium/confirmar` exige token do próprio usuário
+- `express-rate-limit`: 200/15min global + 20/15min em `/api/auth/*`
 - Nao confiar em nada do client
+- **Deps novas p/ VM**: `npm install bcryptjs helmet` em /opt/petrobras/ no deploy
 
 ## VM (so com permissao explicita)
 
