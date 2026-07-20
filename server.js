@@ -26,9 +26,6 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https://www.facebook.com', 'https://www.google-analytics.com'],
       frameSrc: ["'self'", 'https://www.mercadopago.com.br', 'https://www.mercadopago.com'],
-      // VM serve HTTP puro (sem SSL ainda): não forçar upgrade p/ HTTPS,
-      // senão o navegador tenta buscar assets em https inexistente. Reativar após certbot.
-      upgradeInsecureRequests: null,
     },
   },
   crossOriginEmbedderPolicy: false,
