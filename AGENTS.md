@@ -220,3 +220,5 @@ import { ref, ... } from 'vue'
 **Lead magnet**: `materiais/guia-estudos-gratuito.md` — baixado via GET /api/materiais/guia-estudos-gratuito.md. Login.vue captura nome+email antes de liberar.
 
 **Demo limit**: usuario `estudante` expira apos 5 acessos a features bloqueadas. Contador em localStorage `petro_demo_count`.
+
+**Dev test obrigatorio**: backend (porta 3000) E frontend (Vite porta 5173) DEVEM rodar juntos pra testar qualquer fluxo. `node server.js` em um terminal + `npm run dev` em outro. Testar sem backend da "Erro de conexão" e nao testa nada util. NUNCA testar com backend parado.
