@@ -34,6 +34,9 @@ const leadMagnetErro = ref('');
 const instrucaoPremium = ref(false);
 const qrCodeUrl = ref('');
 
+const totalVisitas = ref(32);
+let animFrameId = null;
+
 const notificacao = ref(null);
 let notifTimer = null;
 
@@ -105,7 +108,27 @@ const PIX_NOME = 'PETROBRAS ACADEMY';
 const PIX_CIDADE = 'SAO PAULO';
 const PIX_VALOR = 49.90;
 
+function animarContador(novoValor) {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  const inicio = totalVisitas.value;
+  const delta = Math.max(0, novoValor - inicio);
+  const duracao = 800;
+  const inicioTempo = performance.now();
+  function passo(agora) {
+    const progresso = Math.min(1, (agora - inicioTempo) / duracao);
+    totalVisitas.value = Math.floor(inicio + delta * progresso);
+    if (progresso < 1) animFrameId = requestAnimationFrame(passo);
+    else totalVisitas.value = novoValor;
+  }
+  animFrameId = requestAnimationFrame(passo);
+}
+
 onMounted(async () => {
+  try {
+    const r = await fetch('/api/visitas');
+    const data = await r.json();
+    animarContador(Math.max(32, data.total));
+  } catch {}
   const payload = gerarPayloadPix({
     chave: PIX_KEY,
     nome: PIX_NOME,
@@ -121,6 +144,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
   if (notifInterval) clearInterval(notifInterval);
   if (notifTimer) clearTimeout(notifTimer);
 });
@@ -278,6 +302,10 @@ async function handleLeadMagnet() {
             <span class="highlight-value">Até R$ 11.300</span>
             <span class="highlight-label">Com adicional de turno</span>
           </div>
+        </div>
+        <div class="visit-counter">
+          <span class="visit-counter-icon">🔥</span>
+          <span class="visit-counter-text"><strong>{{ totalVisitas.toLocaleString('pt-BR') }}</strong> estudantes já acessaram</span>
         </div>
         <div class="brand-features">
           <div class="feature-item">
@@ -611,6 +639,30 @@ async function handleLeadMagnet() {
   height: 36px;
   background: rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
+}
+
+.visit-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  animation: slideUp 0.8s ease-out 0.05s both;
+}
+.visit-counter-icon {
+  font-size: 18px;
+}
+.visit-counter-text {
+  font-size: 14px;
+  color: var(--c-text-medium);
+}
+.visit-counter-text strong {
+  color: var(--c-text-light);
+  font-weight: 700;
 }
 
 .brand-features {
@@ -1204,6 +1256,12 @@ async function handleLeadMagnet() {
   .login-premium-link {
     padding: 14px 12px;
   }
+  .visit-counter {
+    padding: 10px 14px;
+  }
+  .visit-counter-text {
+    font-size: 13px;
+  }
   .lead-magnet-section {
     padding: 20px;
   }
@@ -1224,6 +1282,12 @@ async function handleLeadMagnet() {
     gap: 16px;
     padding-top: 20px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .visit-counter {
+    padding: 8px 12px;
+  }
+  .visit-counter-text {
+    font-size: 12px;
   }
   .login-brand {
     display: none;

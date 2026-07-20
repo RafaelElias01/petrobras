@@ -18,8 +18,8 @@ async function carregarVisitas() {
   try {
     const r = await fetch('/api/visitas');
     const data = await r.json();
-    totalVisitas.value = data.total;
-    visitasHoje.value = data.hoje;
+    totalVisitas.value = Math.max(32, data.total);
+    visitasHoje.value = Math.max(32, data.hoje);
     visitas.value = data.visitas || [];
   } catch {}
 }
