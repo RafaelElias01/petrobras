@@ -19,15 +19,6 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// app.use((req, res, next) => {
-//   res.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';");
-//   res.setHeader('X-Content-Type-Options', 'nosniff');
-//   res.setHeader('X-Frame-Options', 'DENY');
-//   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-//   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-//   next();
-// });
-
 const frontendDistPath = path.join(__dirname, 'dist');
 
 if (!fs.existsSync(frontendDistPath)) {
@@ -62,15 +53,69 @@ function salvarUsuarios(data) {
 }
 
 app.post('/api/auth/register', (req, res) => {
-  const { usuario, nome, senha } = req.body;
+  const { usuario, nome, senha, email } = req.body;
   if (!usuario || typeof usuario !== 'string' || usuario.length < 3) return res.status(400).json({ erro: 'Usuário inválido (mín. 3 caracteres)' });
-  if (!nome || typeof nome !== 'string') return res.status(400).json({ erro: 'Nome é obrigatório' });
+  if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório (mín. 2 caracteres)' });
+  if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
   if (!senha || typeof senha !== 'string' || senha.length < 3) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
   const usuarios = lerUsuarios();
   if (usuarios.find(u => u.usuario === usuario)) return res.status(409).json({ erro: 'Usuário já existe' });
-  usuarios.push({ usuario, nome, senha, role: 'user', criadoEm: new Date().toISOString() });
+  if (usuarios.find(u => u.email === email)) return res.status(409).json({ erro: 'Email já cadastrado' });
+  usuarios.push({ usuario, nome, email, senha, role: 'user', premium: false, criadoEm: new Date().toISOString() });
   salvarUsuarios(usuarios);
   res.json({ ok: true });
+});
+
+app.post('/api/newsletter', (req, res) => {
+  const { email, nome } = req.body;
+  if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
+  if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório' });
+  const newsPath = path.join(__dirname, 'dados', 'newsletter.json');
+  let inscricoes = [];
+  try {
+    if (fs.existsSync(newsPath)) inscricoes = JSON.parse(fs.readFileSync(newsPath, 'utf-8'));
+  } catch (e) { /* ignore */ }
+  if (inscricoes.find(i => i.email === email)) return res.json({ ok: true, message: 'Email já cadastrado' });
+  inscricoes.push({ email, nome, origem: req.headers.referer || 'direto', criadoEm: new Date().toISOString() });
+  try {
+    const dir = path.dirname(newsPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(newsPath, JSON.stringify(inscricoes, null, 2));
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ erro: 'Erro ao salvar' });
+  }
+});
+
+app.get('/api/premium/status/:usuario', (req, res) => {
+  const { usuario } = req.params;
+  if (!usuario || typeof usuario !== 'string' || usuario.length > 50) return res.status(400).json({ erro: 'Usuário inválido' });
+  const usuarios = lerUsuarios();
+  const user = usuarios.find(u => u.usuario === usuario);
+  if (!user) return res.status(404).json({ erro: 'Usuário não encontrado' });
+  res.json({ premium: user.premium || false, premiumEm: user.premiumEm || null, nome: user.nome, email: user.email || '' });
+});
+
+app.post('/api/premium/confirmar', (req, res) => {
+  const { usuario } = req.body;
+  if (!usuario || typeof usuario !== 'string') return res.status(400).json({ erro: 'Usuário inválido' });
+  const usuarios = lerUsuarios();
+  const idx = usuarios.findIndex(u => u.usuario === usuario);
+  if (idx === -1) return res.status(404).json({ erro: 'Usuário não encontrado' });
+  usuarios[idx].premium = true;
+  usuarios[idx].premiumEm = new Date().toISOString();
+  salvarUsuarios(usuarios);
+  res.json({ ok: true, premium: true });
+});
+
+app.get('/api/materiais/:nome', (req, res) => {
+  const { nome } = req.params;
+  const permitidos = ['guia-estudos-gratuito.md'];
+  if (!permitidos.includes(nome)) return res.status(403).json({ erro: 'Arquivo não disponível' });
+  const materiaPath = path.join(__dirname, 'materiais', nome);
+  if (!fs.existsSync(materiaPath)) return res.status(404).json({ erro: 'Material não encontrado' });
+  res.setHeader('Content-Disposition', `attachment; filename="${nome}"`);
+  res.sendFile(materiaPath);
 });
 
 const visitasPath = path.join(__dirname, 'dados', 'visitas.json');
@@ -160,9 +205,8 @@ app.get(/^\/api\/plano\/(.+)$/, (req, res) => {
   }
 });
 
-// A rota catch-all deve vir depois de todas as rotas da API
 if (fs.existsSync(frontendDistPath)) {
-  app.get('*', (req, res) => res.sendFile(path.join(frontendDistPath, 'index.html')));
+  app.get('/{*path}', (req, res) => res.sendFile(path.join(frontendDistPath, 'index.html')));
 }
 
 app.use((err, req, res, next) => {

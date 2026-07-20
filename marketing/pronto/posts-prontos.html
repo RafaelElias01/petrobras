@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petrobras Academy — Post Feed</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px; background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.post { width: 600px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+.post-img { width: 100%; }
+.post-body { padding: 24px; }
+.post-logo { font-size: 12px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.post-title { font-size: 22px; font-weight: 800; line-height: 1.3; margin-bottom: 12px; color: #1a1a2e; }
+.post-text { font-size: 15px; line-height: 1.7; color: #4b5563; margin-bottom: 16px; }
+.post-cta { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border-radius: 10px; font-weight: 700; font-size: 15px; text-decoration: none; }
+.post-footer { padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #9ca3af; }
+/* Cards de depoimento */
+.testimonial { background: linear-gradient(135deg, #0a0c14, #1a1d29); color: #fff; padding: 32px; }
+.testimonial-stars { color: #f59e0b; font-size: 18px; margin-bottom: 12px; }
+.testimonial-text { font-size: 18px; line-height: 1.6; font-style: italic; margin-bottom: 16px; }
+.testimonial-author { font-weight: 700; font-size: 15px; }
+.testimonial-city { font-size: 13px; color: rgba(255,255,255,0.5); }
+/* Banner */
+.banner { background: linear-gradient(135deg, #6366f1, #06b6d4); padding: 40px; text-align: center; color: #fff; }
+.banner-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+.banner-sub { font-size: 16px; opacity: 0.9; margin-bottom: 20px; }
+.banner-price { font-size: 48px; font-weight: 900; margin-bottom: 4px; }
+.banner-price-sub { font-size: 14px; opacity: 0.8; margin-bottom: 20px; }
+.banner-cta { display: inline-block; padding: 14px 40px; background: #fff; color: #6366f1; border-radius: 12px; font-weight: 800; font-size: 16px; text-decoration: none; }
+/* Carrossel slide */
+.carrossel { width: 600px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+.carrossel-slide { padding: 40px; min-height: 400px; display: flex; flex-direction: column; justify-content: center; }
+.carrossel-num { font-size: 13px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+.carrossel-title { font-size: 28px; font-weight: 800; line-height: 1.3; margin-bottom: 16px; }
+.carrossel-text { font-size: 16px; line-height: 1.7; color: #4b5563; }
+.story { width: 360px; height: 640px; border-radius: 24px; overflow: hidden; position: relative; box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+.story-bg { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 32px; }
+.story-dark { background: radial-gradient(circle at 30% 20%, #1a1d29, #0a0c14); }
+.story-gradient { background: linear-gradient(135deg, #6366f1, #06b6d4); }
+.story-gold { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.story-green { background: linear-gradient(135deg, #10b981, #059669); }
+.story-title { color: #fff; font-size: 28px; font-weight: 800; margin-bottom: 12px; line-height: 1.2; }
+.story-text { color: rgba(255,255,255,0.85); font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
+.story-price { color: #fff; font-size: 42px; font-weight: 900; }
+.story-price-sub { color: rgba(255,255,255,0.7); font-size: 13px; }
+.story-footer { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: auto; }
+.section-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h1 style="font-size:28px;color:#1a1a2e;">📸 PETROBRAS ACADEMY — Posts Prontos</h1>
+<p style="color:#6b7280;margin-bottom:20px;">Tire print e publique. Dimensões: 600x? (feed) / 360x640 (stories)</p>
+
+<!-- POST 1: Depoimento -->
+<div class="post">
+  <div class="testimonial" style="min-height:300px;display:flex;flex-direction:column;justify-content:center;">
+    <div class="testimonial-stars">★★★★★</div>
+    <div class="testimonial-text">"Estudava 2h por dia depois do trabalho no turno 12x36. Em 3 meses fui de 38% para 82% nos simulados. Passei em 12º para Técnico Químico de Petróleo."</div>
+    <div class="testimonial-author">Carlos M.</div>
+    <div class="testimonial-city">Macaé, RJ</div>
+  </div>
+  <div class="post-body">
+    <div class="post-logo">🔥 Petrobras Academy</div>
+    <div class="post-text">Histórias como a do Carlos mostram que não é sobre <strong>quanto</strong> tempo você tem — é sobre <strong>como</strong> você usa esse tempo.</div>
+    <div class="post-text">🔥 Edital 2026 • 1.000+ vagas<br>👑 Acesso vitalício por <strong>R$ 49,90</strong></div>
+    <a href="#" class="post-cta">👑 Quero minha vaga</a>
+  </div>
+  <div class="post-footer">
+    <span>📱 Petrobras Academy</span>
+    <span>❤️ 127 • 💬 23</span>
+  </div>
+</div>
+
+<!-- POST 2: Banner Oferta -->
+<div class="post">
+  <div class="banner">
+    <div class="banner-title">🔥 1.000+ VAGAS</div>
+    <div class="banner-sub">Concurso Petrobras 2026 • Técnico em Química</div>
+    <div class="banner-price">R$ 49,90</div>
+    <div class="banner-price-sub">Pagamento único • Acesso vitalício</div>
+    <a href="#" class="banner-cta">👑 QUERO PASSAR</a>
+  </div>
+  <div class="post-body" style="text-align:center;">
+    <div class="post-text">✅ Ciclo Ponderado • ✅ Flashcards • ✅ Métricas<br>✅ Caderno de Erros • ✅ Simulados Cesgranrio</div>
+  </div>
+</div>
+
+<!-- POST 3: Dica -->
+<div class="post">
+  <div class="carrossel-slide" style="background:#fef3c7;">
+    <div class="carrossel-num">📊 Distribuição da Prova</div>
+    <div class="carrossel-title" style="font-size:32px;">60% da prova é QUÍMICA</div>
+    <div class="carrossel-text" style="font-size:18px;">
+      🧪 Química Geral + Orgânica: <strong>60%</strong><br>
+      📐 Matemática: <strong>20%</strong><br>
+      📝 Português: <strong>20%</strong>
+    </div>
+  </div>
+  <div class="post-body">
+    <div class="post-logo">🎯 Ciclo Ponderado</div>
+    <div class="post-text">Se você divide seu estudo igualmente entre as matérias, está <strong>perdendo tempo</strong>. Nosso ciclo aloca mais horas para o que mais cai.</div>
+    <a href="#" class="post-cta">👑 Quero estudar certo</a>
+  </div>
+</div>
+
+<!-- CARROSSEL COMPLETO (5 slides) -->
+<h2 class="section-title">🎠 Carrossel — 3 Erros Que Te Impedem de Passar</h2>
+
+<div class="carrossel">
+  <div class="carrossel-slide" style="background:linear-gradient(135deg,#0a0c14,#1a1d29);color:#fff;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">🚫</div>
+    <div class="carrossel-title" style="color:#fff;font-size:32px;">3 Erros Que Te Impedem<br>de Passar na Petrobras</div>
+    <div class="carrossel-text" style="color:rgba(255,255,255,0.7);font-size:16px;">(e como o método certo resolve) →</div>
+  </div>
+</div>
+
+<div class="carrossel">
+  <div class="carrossel-slide" style="min-height:300px;">
+    <div class="carrossel-num">❌ Erro #1</div>
+    <div class="carrossel-title">Estudar TUDO sem prioridade</div>
+    <div class="carrossel-text">O edital tem 40+ tópicos. Mas 60% da prova é só Química. Estudar Português e Matemática como se tivessem o mesmo peso te faz perder horas preciosas.</div>
+    <div style="margin-top:20px;padding:12px;background:#ecfdf5;border-radius:8px;color:#059669;font-weight:600;">✅ Ciclo Ponderado = mais horas no que MAIS cai</div>
+  </div>
+</div>
+
+<div class="carrossel">
+  <div class="carrossel-slide" style="min-height:300px;">
+    <div class="carrossel-num">❌ Erro #2</div>
+    <div class="carrossel-title">"Vou revisar depois"</div>
+    <div class="carrossel-text">Você estuda, entende, e na semana seguinte já esqueceu. Sem revisão espaçada, seu cérebro apaga o que não é repetido.</div>
+    <div style="margin-top:20px;padding:12px;background:#ecfdf5;border-radius:8px;color:#059669;font-weight:600;">✅ Flashcards com revisão automática</div>
+  </div>
+</div>
+
+<div class="carrossel">
+  <div class="carrossel-slide" style="min-height:300px;">
+    <div class="carrossel-num">❌ Erro #3</div>
+    <div class="carrossel-title">Treinar sem métricas</div>
+    <div class="carrossel-text">Estudou 3h hoje? Foi produtivo ou só virou página? Se você não mede, não gerencia. A maioria descobre que estava perdendo tempo SÓ depois de perder a vaga.</div>
+    <div style="margin-top:20px;padding:12px;background:#ecfdf5;border-radius:8px;color:#059669;font-weight:600;">✅ Relatório em tempo real do seu progresso</div>
+  </div>
+</div>
+
+<div class="carrossel">
+  <div class="carrossel-slide" style="background:linear-gradient(135deg,#0a0c14,#1a1d29);color:#fff;text-align:center;min-height:300px;">
+    <div style="font-size:40px;margin-bottom:12px;">✅</div>
+    <div class="carrossel-title" style="color:#fff;">O Método Que Aprovou<br>Nossos Alunos</div>
+    <div class="carrossel-text" style="color:rgba(255,255,255,0.85);font-size:15px;">
+      🟢 Ciclo Ponderado<br>
+      🟢 Flashcards Inteligentes<br>
+      🟢 Métricas Reais<br>
+      🟢 Caderno de Erros
+    </div>
+    <div style="margin-top:20px;padding:14px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:12px;color:#fff;font-weight:700;font-size:18px;">👑 R$ 49,90 — Acesso Vitalício</div>
+  </div>
+</div>
+
+<!-- STORIES -->
+<h2 class="section-title">📸 Stories (360x640 — formato IG)</h2>
+<div style="display:flex;gap:20px;flex-wrap:wrap;">
+
+<div class="story">
+  <div class="story-bg story-dark">
+    <div style="color:#f59e0b;font-size:20px;margin-bottom:20px;">★★★★★</div>
+    <div class="story-title" style="font-size:22px;">"Passei em 12º lugar!"</div>
+    <div class="story-text">Carlos M. — Macaé/RJ<br>Turno 12x36 • Estudava 2h/dia<br><strong>38% → 82% em 3 meses</strong></div>
+    <div class="story-footer">👆 Arrasta pra cima</div>
+  </div>
+</div>
+
+<div class="story">
+  <div class="story-bg story-gradient">
+    <div style="font-size:48px;margin-bottom:16px;">⚡</div>
+    <div class="story-title">1.000+ VAGAS</div>
+    <div class="story-text" style="font-size:16px;">Edital 2026</div>
+    <div style="color:#fff;font-size:14px;font-weight:600;padding:12px 24px;border:2px solid rgba(255,255,255,0.3);border-radius:12px;margin-bottom:20px;">⏰ Se não começar HOJE...</div>
+    <div class="story-text" style="color:rgba(255,255,255,0.7);">alguém vai passar no seu lugar</div>
+    <div class="story-footer">🔗 Link na bio</div>
+  </div>
+</div>
+
+<div class="story">
+  <div class="story-bg story-gold">
+    <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:12px;">👑 PETROBRAS ACADEMY</div>
+    <div class="story-price">R$ 49,90</div>
+    <div class="story-price-sub" style="margin-bottom:20px;">Pagamento Único • Acesso Vitalício</div>
+    <div style="padding:12px;background:rgba(255,255,255,0.15);border-radius:8px;">
+      <div style="color:#fff;font-size:13px;">✅ Ciclo Ponderado</div>
+      <div style="color:#fff;font-size:13px;">✅ Flashcards</div>
+      <div style="color:#fff;font-size:13px;">✅ Métricas</div>
+    </div>
+    <div class="story-footer">⚠️ Preço promocional</div>
+  </div>
+</div>
+
+<div class="story">
+  <div class="story-bg story-green">
+    <div style="font-size:36px;margin-bottom:12px;">💰</div>
+    <div class="story-title" style="font-size:24px;">R$ 6.638/mês</div>
+    <div class="story-text" style="font-size:13px;">Salário inicial Técnico Químico</div>
+    <div style="color:#fff;font-size:14px;margin:12px 0;">
+      + PLR R$ 52.000/ano<br>
+      + VA + VT + Saúde
+    </div>
+    <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.15);border-radius:8px;">
+      <div style="color:#fff;font-size:14px;font-weight:700;">Total 1º ano: ~R$ 130.000</div>
+    </div>
+    <div class="story-footer">📊 Fonte: edital Petrobras</div>
+  </div>
+</div>
+
+<div class="story">
+  <div class="story-bg story-dark">
+    <div style="font-size:40px;margin-bottom:16px;">❓</div>
+    <div class="story-title" style="font-size:22px;">Precisa pagar<br>todo mês?</div>
+    <div style="color:#f59e0b;font-size:36px;font-weight:900;margin:12px 0;">NÃO!</div>
+    <div class="story-text" style="font-size:14px;">R$ 49,90 é <strong>ÚNICO pagamento</strong><br>Acesso <strong>VITALÍCIO</strong><br>Sem mensalidade</div>
+    <div class="story-footer">🔗 Link na bio</div>
+  </div>
+</div>
+
+<div class="story">
+  <div class="story-bg story-gradient">
+    <div style="font-size:36px;margin-bottom:16px;">🎯</div>
+    <div class="story-title" style="font-size:20px;">Você acertaria essa<br>questão da Cesgranrio?</div>
+    <div class="story-text" style="font-size:14px;">70% dos nossos alunos ERRAM<br>na primeira vez.</div>
+    <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.15);border-radius:8px;">
+      <div style="color:#fff;font-size:13px;">Com o Caderno de Erros + Flashcards,</div>
+      <div style="color:#fff;font-size:13px;font-weight:700;">você NÃO erra duas vezes.</div>
+    </div>
+    <div class="story-footer">👆 Link na bio</div>
+  </div>
+</div>
+
+</div>
+
+<div style="padding:40px 0;text-align:center;color:#6b7280;font-size:14px;">
+  Petrobras Academy — Marketing Kit 2026<br>
+  Tire prints dos posts e stories acima e publique direto no Instagram.
+</div>
+
+</body>
+</html>

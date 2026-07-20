@@ -44,6 +44,31 @@ function featureBloqueada(view) {
   return isDemo.value && FEATURES_BLOQUEADAS_DEMO.has(view);
 }
 
+const DEMO_LIMIT_KEY = 'petro_demo_count';
+const DEMO_MAX = 5;
+
+function verificarLimiteDemo() {
+  if (!usuarioAtual.value || usuarioAtual.value.usuario !== 'estudante') return;
+  const count = parseInt(localStorage.getItem(DEMO_LIMIT_KEY) || '0', 10);
+  if (count >= DEMO_MAX) {
+    logout();
+    alert('Seu acesso de demonstração expirou. Crie sua conta ou assine o Premium para continuar.');
+  }
+}
+
+function incrementarDemoCount() {
+  if (!usuarioAtual.value || usuarioAtual.value.usuario !== 'estudante') return;
+  const count = parseInt(localStorage.getItem(DEMO_LIMIT_KEY) || '0', 10);
+  localStorage.setItem(DEMO_LIMIT_KEY, count + 1);
+}
+
+function handleDemoNavigation(novaView) {
+  if (isDemo.value && FEATURES_BLOQUEADAS_DEMO.has(novaView)) {
+    incrementarDemoCount();
+    verificarLimiteDemo();
+  }
+}
+
 const carregando = ref(true);
 const menuAberta = ref(false);
 const view = ref('dashboard');
@@ -83,6 +108,7 @@ const tituloView = computed(() => titulos[view.value]?.t || 'Dashboard');
 const subtituloView = computed(() => titulos[view.value]?.s || '');
 
 function irPara(novaView) {
+  handleDemoNavigation(novaView);
   view.value = novaView;
   menuAberta.value = false;
   window.scrollTo(0, 0);
@@ -110,9 +136,17 @@ async function handleLogin(usuario, senha) {
     sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
     localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
     registrarVisita();
+    if (user.usuario === 'estudante') {
+      incrementarDemoCount();
+      verificarLimiteDemo();
+    }
   } else {
     erroLogin.value = true;
   }
+}
+
+function handleRegisterSuccess(usuario, senha) {
+  handleLogin(usuario, senha);
 }
 
 function logout() {
@@ -214,6 +248,7 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
     v-if="!autenticado"
     :erro="erroLogin"
     @tentativa-login="handleLogin"
+    @registro-sucesso="handleRegisterSuccess"
   />
 
   <div v-else-if="carregando" class="loading-screen">

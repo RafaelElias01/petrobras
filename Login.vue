@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import QRCode from 'qrcode';
 import { gerarPayloadPix } from './pix.js';
+import { hashPassword, carregarUsuarios, salvarUsuarios } from './usuarios.js';
 import BaseInput from './BaseInput.vue';
 import PasswordInput from './PasswordInput.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
@@ -11,10 +12,25 @@ import HowItWorks from './HowItWorks.vue';
 const props = defineProps({
   erro: Boolean,
 });
-const emit = defineEmits(['tentativa-login']);
+const emit = defineEmits(['tentativa-login', 'registro-sucesso']);
 
 const usuarioDigitado = ref('');
 const senhaDigitada = ref('');
+
+const modoCadastro = ref(false);
+const nomeCadastro = ref('');
+const emailCadastro = ref('');
+const confirmarSenhaCadastro = ref('');
+const aceitaNewsletter = ref(true);
+const cadastroCarregando = ref(false);
+const cadastroErro = ref('');
+
+const leadMagnetEmail = ref('');
+const leadMagnetNome = ref('');
+const leadMagnetCarregando = ref(false);
+const leadMagnetSucesso = ref(false);
+const leadMagnetErro = ref('');
+
 const instrucaoPremium = ref(false);
 const qrCodeUrl = ref('');
 
@@ -120,6 +136,124 @@ function abrirLinkPremium() {
 function voltarParaLogin() {
   instrucaoPremium.value = false;
 }
+
+function alternarModo() {
+  modoCadastro.value = !modoCadastro.value;
+  cadastroErro.value = '';
+  cadastroCarregando.value = false;
+}
+
+async function handleRegister() {
+  cadastroErro.value = '';
+  cadastroCarregando.value = true;
+
+  if (!nomeCadastro.value.trim() || nomeCadastro.value.trim().length < 2) {
+    cadastroErro.value = 'Nome deve ter no mínimo 2 caracteres';
+    cadastroCarregando.value = false;
+    return;
+  }
+  if (!emailCadastro.value.trim() || !emailCadastro.value.includes('@')) {
+    cadastroErro.value = 'Informe um email válido';
+    cadastroCarregando.value = false;
+    return;
+  }
+  if (!usuarioDigitado.value.trim() || usuarioDigitado.value.trim().length < 3) {
+    cadastroErro.value = 'Usuário deve ter no mínimo 3 caracteres';
+    cadastroCarregando.value = false;
+    return;
+  }
+  if (!senhaDigitada.value || senhaDigitada.value.length < 3) {
+    cadastroErro.value = 'Senha deve ter no mínimo 3 caracteres';
+    cadastroCarregando.value = false;
+    return;
+  }
+  if (senhaDigitada.value !== confirmarSenhaCadastro.value) {
+    cadastroErro.value = 'Senhas não conferem';
+    cadastroCarregando.value = false;
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        usuario: usuarioDigitado.value.trim(),
+        nome: nomeCadastro.value.trim(),
+        email: emailCadastro.value.trim(),
+        senha: senhaDigitada.value,
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      cadastroErro.value = data.erro || 'Erro ao cadastrar';
+      cadastroCarregando.value = false;
+      return;
+    }
+
+    if (aceitaNewsletter.value) {
+      try {
+        await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailCadastro.value.trim(),
+            nome: nomeCadastro.value.trim(),
+          })
+        });
+      } catch {}
+    }
+
+    const lista = await carregarUsuarios();
+    const senhaHash = await hashPassword(senhaDigitada.value);
+    lista.push({
+      usuario: usuarioDigitado.value.trim(),
+      nome: nomeCadastro.value.trim(),
+      email: emailCadastro.value.trim(),
+      senhaHash,
+      role: 'user',
+    });
+    await salvarUsuarios(lista);
+
+    cadastroCarregando.value = false;
+    emit('registro-sucesso', usuarioDigitado.value.trim(), senhaDigitada.value);
+  } catch (e) {
+    cadastroErro.value = 'Erro de conexão com o servidor. Tente novamente.';
+    cadastroCarregando.value = false;
+  }
+}
+
+async function handleLeadMagnet() {
+  leadMagnetErro.value = '';
+  leadMagnetCarregando.value = true;
+
+  if (!leadMagnetNome.value.trim() || leadMagnetNome.value.trim().length < 2) {
+    leadMagnetErro.value = 'Informe seu nome';
+    leadMagnetCarregando.value = false;
+    return;
+  }
+  if (!leadMagnetEmail.value.trim() || !leadMagnetEmail.value.includes('@')) {
+    leadMagnetErro.value = 'Informe um email válido';
+    leadMagnetCarregando.value = false;
+    return;
+  }
+
+  try {
+    await fetch('/api/newsletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: leadMagnetEmail.value.trim(),
+        nome: leadMagnetNome.value.trim(),
+      })
+    });
+    leadMagnetSucesso.value = true;
+    leadMagnetCarregando.value = false;
+  } catch {
+    leadMagnetErro.value = 'Erro de conexão';
+    leadMagnetCarregando.value = false;
+  }
+}
 </script>
 
 <template>
@@ -172,7 +306,12 @@ function voltarParaLogin() {
         <PremiumCheckout v-if="instrucaoPremium" :qrCode="qrCodeUrl" :onClose="voltarParaLogin" :onVoltar="voltarParaLogin" />
 
         <template v-else>
-          <form @submit.prevent="submeter" class="login-form">
+          <div class="login-tabs">
+            <button class="tab-btn" :class="{ ativo: !modoCadastro }" @click="modoCadastro = false; cadastroErro = '';">Entrar</button>
+            <button class="tab-btn" :class="{ ativo: modoCadastro }" @click="modoCadastro = true; cadastroErro = '';">Criar Conta</button>
+          </div>
+
+          <form v-if="!modoCadastro" @submit.prevent="submeter" class="login-form">
             <BaseInput
               id="usuario"
               label="Usuário"
@@ -201,6 +340,67 @@ function voltarParaLogin() {
             <p v-if="props.erro" class="msg-erro">⚠ Usuário ou senha inválidos. Tente novamente.</p>
           </form>
 
+          <form v-else @submit.prevent="handleRegister" class="login-form">
+            <BaseInput
+              id="nome-cadastro"
+              label="Nome completo"
+              v-model="nomeCadastro"
+              placeholder="Seu nome completo"
+              autocomplete="name"
+              :autofocus="true"
+            >
+              <template #icon>
+                <span class="input-icon">👤</span>
+              </template>
+            </BaseInput>
+            <BaseInput
+              id="email-cadastro"
+              label="Email"
+              v-model="emailCadastro"
+              placeholder="seu@email.com"
+              autocomplete="email"
+              type="email"
+            >
+              <template #icon>
+                <span class="input-icon">📧</span>
+              </template>
+            </BaseInput>
+            <BaseInput
+              id="usuario-cadastro"
+              label="Usuário"
+              v-model="usuarioDigitado"
+              placeholder="Escolha um nome de usuário"
+              autocomplete="username"
+            >
+              <template #icon>
+                <span class="input-icon">🔑</span>
+              </template>
+            </BaseInput>
+            <PasswordInput
+              id="senha-cadastro"
+              label="Senha"
+              v-model="senhaDigitada"
+              placeholder="Crie uma senha"
+              autocomplete="new-password"
+            />
+            <PasswordInput
+              id="confirmar-senha"
+              label="Confirmar senha"
+              v-model="confirmarSenhaCadastro"
+              placeholder="Repita a senha"
+              autocomplete="new-password"
+            />
+            <label class="newsletter-checkbox">
+              <input type="checkbox" v-model="aceitaNewsletter" />
+              <span>Quero receber dicas de estudo e novidades por email</span>
+            </label>
+            <button type="submit" class="btn-entrar" :disabled="cadastroCarregando">
+              <span>{{ cadastroCarregando ? 'Cadastrando...' : 'Criar Conta' }}</span>
+            </button>
+            <p v-if="cadastroErro" class="msg-erro">⚠ {{ cadastroErro }}</p>
+            <p class="cadastro-login-link">Já tem conta? <button type="button" class="link-btn" @click="alternarModo">Entrar</button></p>
+          </form>
+
           <div class="login-card-footer">
             <div class="login-premium-cta">
               <button @click="abrirLinkPremium" class="login-premium-link">
@@ -209,6 +409,32 @@ function voltarParaLogin() {
               <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix</span>
             </div>
             <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
+          </div>
+        </template>
+      </div>
+
+      <div class="lead-magnet-section" :class="{ sucesso: leadMagnetSucesso }">
+        <template v-if="!leadMagnetSucesso">
+          <div class="lead-magnet-badge">🎁 Grátis</div>
+          <h3 class="lead-magnet-title">Guia Definitivo de Estudos</h3>
+          <p class="lead-magnet-subtitle">Baixe grátis o guia completo com o passo a passo para ser aprovado na Petrobras — cronograma, dicas da Cesgranrio e checklist de estudos.</p>
+          <form @submit.prevent="handleLeadMagnet" class="lead-magnet-form">
+            <label class="lead-magnet-label">Nome</label>
+            <input v-model="leadMagnetNome" type="text" placeholder="Seu nome" class="lead-magnet-input" />
+            <label class="lead-magnet-label">Email</label>
+            <input v-model="leadMagnetEmail" type="email" placeholder="seu@email.com" class="lead-magnet-input" />
+            <button type="submit" class="lead-magnet-btn" :disabled="leadMagnetCarregando">
+              {{ leadMagnetCarregando ? 'Enviando...' : 'Baixar Guia Grátis' }}
+            </button>
+            <p v-if="leadMagnetErro" class="msg-erro">⚠ {{ leadMagnetErro }}</p>
+          </form>
+        </template>
+        <template v-else>
+          <div class="lead-magnet-success">
+            <span class="lead-magnet-success-icon">✅</span>
+            <h3>Guia enviado!</h3>
+            <p>Verifique seu email para baixar o material. Enquanto isso, conheça a plataforma completa.</p>
+            <button @click="abrirLinkPremium" class="login-premium-link">👑 Conhecer o Premium — R$ 49,90</button>
           </div>
         </template>
       </div>
@@ -247,7 +473,6 @@ function voltarParaLogin() {
 
 <style scoped>
 .login-wrapper {
-  /* === CSS Custom Properties (Variáveis) === */
   --c-brand-primary: #6366f1;
   --c-brand-primary-dark: #4f46e5;
   --c-brand-secondary: #06b6d4;
@@ -268,14 +493,13 @@ function voltarParaLogin() {
 }
 .login-wrapper {
   position: relative;
-  flex: 1; /* Faz o wrapper preencher o espaço vertical do #app */
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   
-  /* --- Novo Fundo de Gradiente Animado --- */
   background: 
     radial-gradient(circle at 15% 25%, rgba(99, 102, 241, 0.18), transparent 35%),
     radial-gradient(circle at 85% 35%, rgba(6, 182, 212, 0.15), transparent 40%),
@@ -408,6 +632,7 @@ function voltarParaLogin() {
 .feature-item:nth-child(2) { animation-delay: 0.25s; }
 .feature-item:nth-child(3) { animation-delay: 0.35s; }
 .feature-item:nth-child(4) { animation-delay: 0.45s; }
+.feature-item:nth-child(5) { animation-delay: 0.55s; }
 
 .feature-icon {
   font-size: 20px;
@@ -432,6 +657,38 @@ function voltarParaLogin() {
   padding: 40px 36px;
   animation: slideUp 0.8s ease-out 0.1s both;
   box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+}
+
+.login-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: var(--c-text-medium);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.tab-btn.ativo {
+  background: var(--c-brand-primary);
+  color: #fff;
+}
+
+.tab-btn:hover:not(.ativo) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--c-text-light);
 }
 
 .login-form {
@@ -488,6 +745,12 @@ function voltarParaLogin() {
   transform: translateY(0);
 }
 
+.btn-entrar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn-arrow {
   width: 20px;
   height: 20px;
@@ -516,6 +779,48 @@ function voltarParaLogin() {
   border-radius: 8px;  border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
+.newsletter-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--c-text-medium);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.newsletter-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  accent-color: var(--c-brand-primary);
+  cursor: pointer;
+}
+
+.cadastro-login-link {
+  font-size: 13px;
+  color: var(--c-text-medium);
+  text-align: center;
+  margin-top: 4px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--c-brand-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: underline;
+  font-family: inherit;
+  padding: 0;
+}
+
+.link-btn:hover {
+  color: var(--c-brand-primary);
+}
+
 .login-card-footer {
   margin-top: 24px;
   text-align: center;
@@ -539,7 +844,7 @@ function voltarParaLogin() {
   cursor: pointer;
   transition: all 0.25s ease;
   font-family: inherit;
-  pointer-events: all; /* Garante que este botão seja clicável */
+  pointer-events: all;
 }
 
 .login-premium-link:hover {
@@ -572,6 +877,134 @@ function voltarParaLogin() {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.lead-magnet-section {
+  width: 100%;
+  max-width: 600px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+  animation: slideUp 0.8s ease-out 0.15s both;
+}
+
+.lead-magnet-section.sucesso {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.lead-magnet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--c-success);
+  padding: 4px 12px;
+  border-radius: var(--radius-lg);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.lead-magnet-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--c-text-light);
+  margin-bottom: 8px;
+}
+
+.lead-magnet-subtitle {
+  font-size: 14px;
+  color: var(--c-text-medium);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.lead-magnet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.lead-magnet-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-text-medium);
+  text-align: left;
+}
+
+.lead-magnet-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: var(--c-bg-input);
+  color: var(--c-text-light);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.lead-magnet-input:focus {
+  border-color: var(--c-brand-primary);
+}
+
+.lead-magnet-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--c-brand-accent), var(--c-brand-accent-dark));
+  color: var(--c-text-light);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.lead-magnet-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.lead-magnet-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lead-magnet-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.lead-magnet-success-icon {
+  font-size: 48px;
+}
+
+.lead-magnet-success h3 {
+  font-size: 22px;
+  color: var(--c-text-light);
+}
+
+.lead-magnet-success p {
+  font-size: 14px;
+  color: var(--c-text-medium);
+  line-height: 1.5;
+  max-width: 400px;
 }
 
 .depoimentos-section {
@@ -702,6 +1135,9 @@ function voltarParaLogin() {
   .brand-title {
     font-size: 30px;
   }
+  .lead-magnet-title {
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -726,6 +1162,16 @@ function voltarParaLogin() {
   .bg-shape-1 { width: 300px; height: 300px; }
   .bg-shape-2 { width: 200px; height: 200px; }
   .bg-shape-3 { width: 150px; height: 150px; }
+  
+  .lead-magnet-section {
+    padding: 24px;
+  }
+  .lead-magnet-title {
+    font-size: 18px;
+  }
+  .login-card {
+    padding: 32px 28px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -753,6 +1199,18 @@ function voltarParaLogin() {
   .login-premium-link {
     padding: 14px 12px;
   }
+  .lead-magnet-section {
+    padding: 20px;
+  }
+  .lead-magnet-title {
+    font-size: 17px;
+  }
+  .lead-magnet-subtitle {
+    font-size: 13px;
+  }
+  .lead-magnet-input {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -776,6 +1234,13 @@ function voltarParaLogin() {
   .login-card {
     padding: 20px 14px;
     border-radius: var(--radius-md);
+  }
+  .login-tabs {
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    padding: 10px;
+    font-size: 13px;
   }
   .login-form {
     gap: 16px;
@@ -801,6 +1266,34 @@ function voltarParaLogin() {
   }
   .login-card-footer p {
     font-size: 12px;
+  }
+  .lead-magnet-section {
+    padding: 16px;
+    border-radius: var(--radius-md);
+  }
+  .lead-magnet-badge {
+    font-size: 10px;
+  }
+  .lead-magnet-title {
+    font-size: 16px;
+  }
+  .lead-magnet-subtitle {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  .lead-magnet-input {
+    font-size: 16px;
+    padding: 11px 12px;
+  }
+  .lead-magnet-btn {
+    padding: 14px 12px;
+    font-size: 16px;
+  }
+  .lead-magnet-success h3 {
+    font-size: 18px;
+  }
+  .lead-magnet-success .login-premium-link {
+    font-size: 15px;
   }
   .social-notification {
     white-space: normal;
@@ -837,6 +1330,13 @@ function voltarParaLogin() {
     padding: 16px 10px;
     border-radius: var(--radius-sm);
   }
+  .login-tabs {
+    margin-bottom: 16px;
+  }
+  .tab-btn {
+    padding: 8px;
+    font-size: 12px;
+  }
   .login-form {
     gap: 12px;
   }
@@ -858,6 +1358,20 @@ function voltarParaLogin() {
   }
   .depoimento-texto {
     font-size: 12px;
+  }
+  .lead-magnet-section {
+    padding: 14px;
+  }
+  .lead-magnet-title {
+    font-size: 15px;
+  }
+  .lead-magnet-input {
+    font-size: 16px;
+    padding: 10px;
+  }
+  .lead-magnet-btn {
+    padding: 13px 10px;
+    font-size: 15px;
   }
 }
 </style>
