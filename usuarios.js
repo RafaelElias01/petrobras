@@ -70,18 +70,11 @@ export function getDefaultUsuarios() {
 
 export { hashPassword };
 
-export async function autenticar(usuario, senha) {
-  const lista = await carregarUsuarios();
-  const senhaHash = await hashPassword(senha);
-  const encontrado = lista.find(u => u.usuario.toLowerCase() === usuario.toLowerCase() && u.senhaHash === senhaHash);
-
-  if (!encontrado) return null;
-
-  return { usuario: encontrado.usuario, nome: encontrado.nome, role: encontrado.role };
-}
-
-export function gerarTokenSessao() {
-  const arr = new Uint8Array(32);
-  crypto.getRandomValues(arr);
-  return Array.from(arr, b => b.toString(36).padStart(2, '0')).join('');
-}
+// Nota: `autenticar()` (fallback client-side de login via SHA-256/localStorage)
+// e `gerarTokenSessao()` foram removidos. Eliminação da inconsistência
+// arquitetural de dois sistemas de auth desconexos — login agora depende
+// exclusivamente de POST /api/auth/login em server.js (bcrypt server-side).
+// As funções acima (carregarUsuarios, salvarUsuarios, hashPassword,
+// getDefaultUsuarios) permanecem: ainda usadas pelo painel de administração
+// local (Admin.vue/useAdmin.js) e pelo espelhamento pós-cadastro em Login.vue,
+// que são um recurso separado e não fazem parte do fluxo de login.

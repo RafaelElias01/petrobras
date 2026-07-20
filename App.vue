@@ -7,7 +7,7 @@ import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
 import ErrorBoundary from './ErrorBoundary.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
-import { autenticar, carregarUsuarios, hashPassword, salvarUsuarios } from './usuarios.js';
+import { carregarUsuarios, hashPassword, salvarUsuarios } from './usuarios.js';
 
 const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
 const Horas = defineAsyncComponent(() => import('./Horas.vue'));
@@ -127,7 +127,11 @@ function navegarHash() {
 }
 
 async function handleLogin(usuario, senha) {
-  // 1. Autenticação no servidor (fonte de verdade; senhas em bcrypt).
+  // Autenticação exclusivamente via servidor (fonte de verdade; senhas em bcrypt).
+  // O fallback client-side (autenticar() de usuarios.js) foi removido: dois
+  // sistemas de login desconexos era uma inconsistência arquitetural (Fase 2
+  // do roadmap de segurança). Usuários demo admin/estudante agora precisam
+  // existir em dados/usuarios.json no servidor (ver server.js: seedUsuariosDemo).
   let user = null;
   let serverToken = null;
   try {
@@ -141,12 +145,7 @@ async function handleLogin(usuario, senha) {
       user = data.user;
       serverToken = data.token || null;
     }
-  } catch { /* backend offline: cai no fallback local */ }
-
-  // 2. Fallback local (usuários demo admin/estudante e resiliência offline).
-  if (!user) {
-    user = await autenticar(usuario, senha);
-  }
+  } catch { /* backend offline: login falha (sem fallback local) */ }
 
   if (user) {
     usuarioAtual.value = user;

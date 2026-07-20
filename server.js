@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import bcrypt from 'bcryptjs';
@@ -84,7 +84,18 @@ if (!fs.existsSync(frontendDistPath)) {
 app.use(express.json());
 app.use(express.static(frontendDistPath));
 
-const usuariosPath = path.join(__dirname, 'dados', 'usuarios.json');
+// Escrita atômica: grava em arquivo temporário e usa rename (atômico no POSIX)
+// para evitar JSON truncado se o processo for morto no meio de um write
+// (ex: systemctl restart durante deploy).
+function escreverJsonAtomico(destino, data) {
+  const dir = path.dirname(destino);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const tmp = path.join(dir, `.${path.basename(destino)}.${process.pid}.tmp`);
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+  fs.renameSync(tmp, destino);
+}
+
+const usuariosPath = process.env.USUARIOS_PATH || path.join(__dirname, 'dados', 'usuarios.json');
 
 function lerUsuarios() {
   try {
@@ -99,9 +110,7 @@ function lerUsuarios() {
 
 function salvarUsuarios(data) {
   try {
-    const dir = path.dirname(usuariosPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(usuariosPath, JSON.stringify(data, null, 2));
+    escreverJsonAtomico(usuariosPath, data);
   } catch (e) {
     console.error('Erro ao salvar usuarios:', e);
   }
@@ -125,6 +134,35 @@ function migrarSenhasPlaintext() {
   }
 }
 migrarSenhasPlaintext();
+
+// Seed opcional dos usuários demo (admin/estudante) usados pelo antigo
+// fallback client-side (usuarios.js: autenticar()), agora removido do
+// front-end. Login passou a depender exclusivamente deste servidor, então
+// esses usuários precisam existir aqui para continuar funcionando.
+//
+// A senha nunca fica em texto puro no código-fonte (este repo é público):
+// vem de variável de ambiente, só setada na VM. Sem a env var, o seed
+// simplesmente não roda — a conta precisa ser criada manualmente via
+// POST /api/auth/register (mesma limitação já documentada para o 'admin',
+// cuja senha demo antiga não foi recuperável do histórico).
+function seedUsuariosDemo() {
+  const senhaEstudante = process.env.DEMO_ESTUDANTE_SENHA;
+  if (!senhaEstudante) return;
+  const usuarios = lerUsuarios();
+  if (usuarios.find(u => u.usuario === 'estudante')) return;
+  usuarios.push({
+    usuario: 'estudante',
+    nome: 'Estudante',
+    email: 'estudante-demo@estudo-petrobras.local',
+    senhaHash: bcrypt.hashSync(senhaEstudante, 10),
+    role: 'user',
+    premium: false,
+    criadoEm: new Date().toISOString(),
+  });
+  salvarUsuarios(usuarios);
+  console.log('Seed: usuário demo "estudante" criado em dados/usuarios.json.');
+}
+seedUsuariosDemo();
 
 app.post('/api/auth/register', authLimiter, (req, res) => {
   const { usuario, nome, senha, email } = req.body;
@@ -157,11 +195,12 @@ app.post('/api/auth/login', authLimiter, (req, res) => {
   res.json({ ok: true, token, user: { usuario: user.usuario, nome: user.nome, role: user.role || 'user' } });
 });
 
+const newsPath = process.env.NEWSLETTER_PATH || path.join(__dirname, 'dados', 'newsletter.json');
+
 app.post('/api/newsletter', (req, res) => {
   const { email, nome } = req.body;
   if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
   if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório' });
-  const newsPath = path.join(__dirname, 'dados', 'newsletter.json');
   let inscricoes = [];
   try {
     if (fs.existsSync(newsPath)) inscricoes = JSON.parse(fs.readFileSync(newsPath, 'utf-8'));
@@ -169,9 +208,7 @@ app.post('/api/newsletter', (req, res) => {
   if (inscricoes.find(i => i.email === email)) return res.json({ ok: true, message: 'Email já cadastrado' });
   inscricoes.push({ email, nome, origem: req.headers.referer || 'direto', criadoEm: new Date().toISOString() });
   try {
-    const dir = path.dirname(newsPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(newsPath, JSON.stringify(inscricoes, null, 2));
+    escreverJsonAtomico(newsPath, inscricoes);
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ erro: 'Erro ao salvar' });
@@ -214,7 +251,7 @@ app.get('/api/materiais/:nome', (req, res) => {
   res.sendFile(materiaPath);
 });
 
-const visitasPath = path.join(__dirname, 'dados', 'visitas.json');
+const visitasPath = process.env.VISITAS_PATH || path.join(__dirname, 'dados', 'visitas.json');
 
 function lerVisitas() {
   try {
@@ -229,9 +266,7 @@ function lerVisitas() {
 
 function salvarVisitas(data) {
   try {
-    const dir = path.dirname(visitasPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(visitasPath, JSON.stringify(data, null, 2));
+    escreverJsonAtomico(visitasPath, data);
   } catch (e) {
     console.error('Erro ao salvar visitas:', e);
   }
@@ -310,6 +345,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ erro: 'Erro interno do servidor' });
 });
 
-app.listen(port, () => {
-  console.log(`Servidor backend rodando em http://localhost:${port}`);
-});
+const ehExecucaoDireta = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (ehExecucaoDireta) {
+  app.listen(port, () => {
+    console.log(`Servidor backend rodando em http://localhost:${port}`);
+  });
+}
+
+export default app;
