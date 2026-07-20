@@ -4,13 +4,70 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
-    <meta name="description" content="Plataforma de estudos focada no concurso da Petrobras para o cargo de Técnico em Química." />
+    <meta name="description" content="Plataforma inteligente de estudos focada no concurso da Petrobras para Técnico em Química. Ciclo Ponderado, Flashcards, Simulados Cesgranrio. R$ 49,90." />
+    <meta name="keywords" content="Petrobras, concurso, técnico em química, Cesgranrio, estudo, ciclo ponderado, flashcards" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://petrobrasacademy.com.br" />
+    <meta property="og:title" content="Petrobras Academy - Técnico em Química | Concurso Cesgranrio 2026" />
+    <meta property="og:description" content="Plataforma inteligente de estudos para o concurso da Petrobras. Ciclo Ponderado + Flashcards + Métricas de performance. Apenas R$ 49,90." />
+    <meta property="og:image" content="https://petrobrasacademy.com.br/og-image.jpg" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Petrobras Academy - Técnico em Química" />
+    <meta name="twitter:description" content="Plataforma inteligente de estudos para o concurso da Petrobras. Ciclo Ponderado, Flashcards, Simulados Cesgranrio." />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Petrobras Academy - Técnico em Química",
+      "description": "Plataforma inteligente de estudos focada no concurso da Petrobras. Ciclo Ponderado, Flashcards, Simulados Cesgranrio.",
+      "offers": {
+        "@type": "Offer",
+        "price": "49.90",
+        "priceCurrency": "BRL",
+        "availability": "https://schema.org/InStock"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "6"
+      }
+    }
+    </script>
+
     <link rel="modulepreload" href="/main.js" />
-    <title>Estudo Petrobras - Técnico em Química</title>
+    <title>Petrobras Academy - Técnico em Química | Concurso Cesgranrio 2026</title>
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <!-- Facebook Pixel -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', 'XXXXXXXXXXXXXXX');
+      fbq('track', 'PageView');
+    </script>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/main.js"></script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=XXXXXXXXXXXXXXX&ev=PageView&noscript=1" /></noscript>
   </body>
 </html>
