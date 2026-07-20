@@ -24,6 +24,8 @@ const confirmarSenhaCadastro = ref('');
 const aceitaNewsletter = ref(true);
 const cadastroCarregando = ref(false);
 const cadastroErro = ref('');
+const cadastroSucesso = ref('');
+let cadastroTimeout = null;
 
 const leadMagnetEmail = ref('');
 const leadMagnetNome = ref('');
@@ -162,8 +164,10 @@ function voltarParaLogin() {
 }
 
 function alternarModo() {
+  if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }
   modoCadastro.value = !modoCadastro.value;
   cadastroErro.value = '';
+  cadastroSucesso.value = '';
   cadastroCarregando.value = false;
 }
 
@@ -240,8 +244,13 @@ async function handleRegister() {
     await salvarUsuarios(lista);
 
     cadastroCarregando.value = false;
-    emit('registro-sucesso', usuarioDigitado.value.trim(), senhaDigitada.value);
+    cadastroSucesso.value = `Conta criada com sucesso! Seja bem-vindo, ${nomeCadastro.value.trim()}. Entrando no dashboard...`;
+    cadastroTimeout = setTimeout(() => {
+      cadastroSucesso.value = '';
+      emit('registro-sucesso', usuarioDigitado.value.trim(), senhaDigitada.value);
+    }, 2500);
   } catch (e) {
+    if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }
     cadastroErro.value = 'Erro de conexão com o servidor. Tente novamente.';
     cadastroCarregando.value = false;
   }
@@ -335,8 +344,8 @@ async function handleLeadMagnet() {
 
         <template v-else>
           <div class="login-tabs">
-            <button class="tab-btn" :class="{ ativo: !modoCadastro }" @click="modoCadastro = false; cadastroErro = '';">Entrar</button>
-            <button class="tab-btn" :class="{ ativo: modoCadastro }" @click="modoCadastro = true; cadastroErro = '';">Criar Conta</button>
+            <button class="tab-btn" :class="{ ativo: !modoCadastro }" @click="modoCadastro = false; cadastroErro = ''; cadastroSucesso = ''; if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }">Entrar</button>
+            <button class="tab-btn" :class="{ ativo: modoCadastro }" @click="modoCadastro = true; cadastroErro = ''; cadastroSucesso = ''; if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }">Criar Conta</button>
           </div>
 
           <form v-if="!modoCadastro" @submit.prevent="submeter" class="login-form">
@@ -425,6 +434,7 @@ async function handleLeadMagnet() {
             <button type="submit" class="btn-entrar" :disabled="cadastroCarregando">
               <span>{{ cadastroCarregando ? 'Cadastrando...' : 'Criar Conta' }}</span>
             </button>
+            <p v-if="cadastroSucesso" class="msg-sucesso">✅ {{ cadastroSucesso }}</p>
             <p v-if="cadastroErro" class="msg-erro">⚠ {{ cadastroErro }}</p>
             <p class="cadastro-login-link">Já tem conta? <button type="button" class="link-btn" @click="alternarModo">Entrar</button></p>
           </form>
