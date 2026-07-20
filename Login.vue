@@ -1293,14 +1293,52 @@ async function handleLeadMagnet() {
     padding-top: 20px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
+  .login-brand {
+    margin-bottom: 4px;
+  }
+  .brand-badge {
+    padding: 5px 12px;
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+  .brand-title {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .brand-subtitle {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .brand-highlight {
+    padding: 12px 10px;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .highlight-value {
+    font-size: 13px;
+  }
+  .highlight-label {
+    font-size: 9px;
+  }
   .visit-counter {
     padding: 8px 12px;
+    margin-bottom: 16px;
   }
   .visit-counter-text {
     font-size: 12px;
   }
-  .login-brand {
-    display: none;
+  .brand-features {
+    gap: 10px;
+  }
+  .feature-item {
+    font-size: 12px;
+    gap: 8px;
+    text-align: left;
+  }
+  .feature-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
   }
   .login-card {
     padding: 20px 14px;
@@ -1396,6 +1434,25 @@ async function handleLeadMagnet() {
     padding: 6px;
     gap: 12px;
     padding-top: 12px;
+  }
+  .brand-title {
+    font-size: 20px;
+  }
+  .brand-subtitle {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .brand-highlight {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+  .highlight-divider {
+    width: 60%;
+    height: 1px;
+  }
+  .feature-item {
+    font-size: 11px;
   }
   .login-card {
     padding: 16px 10px;
