@@ -341,7 +341,7 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
               <h2>Pagamento Premium</h2>
               <p>Escaneie o QR Code abaixo com o app do seu banco.</p>
             </div>
-            <PremiumCheckout :qrCode="qrCodePremium" :onClose="() => irPara('dashboard')" />
+            <PremiumCheckout :qrCode="qrCodePremium" :token="tokenSessaoAtual()" :onClose="() => irPara('dashboard')" />
           </div>
         </div>
       </div>

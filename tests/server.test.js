@@ -135,6 +135,28 @@ describe('POST /api/demo/incrementar', () => {
   });
 });
 
+describe('POST /api/premium/criar-preferencia', () => {
+  it('bloqueia sem autenticacao', async () => {
+    const res = await request(app).post('/api/premium/criar-preferencia');
+    expect(res.status).toBe(401);
+  });
+
+  it('retorna 503 quando Mercado Pago nao esta configurado (sem MP_ACCESS_TOKEN)', async () => {
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
+    const res = await request(app)
+      .post('/api/premium/criar-preferencia')
+      .set('Authorization', `Bearer ${login.body.token}`);
+    expect(res.status).toBe(503);
+  });
+});
+
+describe('POST /api/premium/webhook', () => {
+  it('retorna 503 quando Mercado Pago nao esta configurado (sem MP_ACCESS_TOKEN)', async () => {
+    const res = await request(app).post('/api/premium/webhook');
+    expect(res.status).toBe(503);
+  });
+});
+
 describe('GET /api/materiais/:nome', () => {
   it('bloqueia tentativa de path traversal (nome não bate com a whitelist)', async () => {
     const res = await request(app).get('/api/materiais/%2e%2e%2fserver.js');

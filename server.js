@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import bcrypt from 'bcryptjs';
+import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +15,16 @@ const app = express();
 const port = 3000;
 
 app.set('trust proxy', 1);
+
+// Mercado Pago (Checkout Pro): so fica ativo se as credenciais estiverem
+// configuradas via env var (nunca em texto puro no codigo -- repo publico).
+const PREMIUM_PRECO = 49.90;
+const mpClient = process.env.MP_ACCESS_TOKEN
+  ? new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN })
+  : null;
+if (!mpClient) {
+  console.warn('MP_ACCESS_TOKEN nao configurado: checkout Mercado Pago desativado.');
+}
 
 // Segurança de cabeçalhos. CSP espelha as fontes já usadas no index.html
 // (Google Analytics + Facebook Pixel + inline). Não apertar sem testar produção.
@@ -237,6 +248,16 @@ app.get('/api/premium/status/:usuario', (req, res) => {
   res.json({ premium: user.premium || false, premiumEm: user.premiumEm || null, nome: user.nome, email: user.email || '' });
 });
 
+function ativarPremium(usuario) {
+  const usuarios = lerUsuarios();
+  const idx = usuarios.findIndex(u => u.usuario === usuario);
+  if (idx === -1) return false;
+  usuarios[idx].premium = true;
+  usuarios[idx].premiumEm = new Date().toISOString();
+  salvarUsuarios(usuarios);
+  return true;
+}
+
 app.post('/api/premium/confirmar', (req, res) => {
   const { usuario } = req.body;
   if (!usuario || typeof usuario !== 'string') return res.status(400).json({ erro: 'Usuário inválido' });
@@ -245,13 +266,83 @@ app.post('/api/premium/confirmar', (req, res) => {
   if (!autenticado || autenticado.toLowerCase() !== usuario.toLowerCase()) {
     return res.status(401).json({ erro: 'Não autorizado' });
   }
-  const usuarios = lerUsuarios();
-  const idx = usuarios.findIndex(u => u.usuario === usuario);
-  if (idx === -1) return res.status(404).json({ erro: 'Usuário não encontrado' });
-  usuarios[idx].premium = true;
-  usuarios[idx].premiumEm = new Date().toISOString();
-  salvarUsuarios(usuarios);
+  if (!ativarPremium(usuario)) return res.status(404).json({ erro: 'Usuário não encontrado' });
   res.json({ ok: true, premium: true });
+});
+
+app.post('/api/premium/criar-preferencia', async (req, res) => {
+  const usuario = usuarioDoToken(req);
+  if (!usuario) return res.status(401).json({ erro: 'Não autenticado' });
+  if (!mpClient) return res.status(503).json({ erro: 'Checkout Mercado Pago não configurado' });
+  try {
+    const preference = new Preference(mpClient);
+    const resultado = await preference.create({
+      body: {
+        items: [{
+          id: 'premium-acesso',
+          title: 'Acesso Premium — Estudo Petrobras',
+          quantity: 1,
+          unit_price: PREMIUM_PRECO,
+          currency_id: 'BRL',
+        }],
+        external_reference: usuario,
+        notification_url: 'https://petrobrasacademy.com.br/api/premium/webhook',
+        back_urls: {
+          success: 'https://petrobrasacademy.com.br/#dashboard',
+          failure: 'https://petrobrasacademy.com.br/#dashboard',
+          pending: 'https://petrobrasacademy.com.br/#dashboard',
+        },
+        auto_return: 'approved',
+      },
+    });
+    res.json({ ok: true, init_point: resultado.init_point });
+  } catch (e) {
+    console.error('Erro ao criar preferência Mercado Pago:', e);
+    res.status(500).json({ erro: 'Erro ao criar preferência de pagamento' });
+  }
+});
+
+// Verifica a assinatura do webhook do Mercado Pago (x-signature/x-request-id)
+// conforme o manifesto documentado por eles: "id:{data.id};request-id:{req-id};ts:{ts};"
+// hash HMAC-SHA256 com o secret do webhook, comparado ao v1 recebido.
+function assinaturaWebhookValida(req) {
+  const secret = process.env.MP_WEBHOOK_SECRET;
+  if (!secret) return false;
+  const assinatura = req.headers['x-signature'];
+  const requestId = req.headers['x-request-id'];
+  const dataId = req.query['data.id'];
+  if (!assinatura || !requestId || !dataId) return false;
+  const partes = Object.fromEntries(
+    assinatura.split(',').map(p => p.trim().split('=').map(s => s.trim()))
+  );
+  const { ts, v1 } = partes;
+  if (!ts || !v1) return false;
+  const manifest = `id:${String(dataId).toLowerCase()};request-id:${requestId};ts:${ts};`;
+  const hashEsperado = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(hashEsperado), Buffer.from(v1));
+}
+
+app.post('/api/premium/webhook', express.json(), async (req, res) => {
+  if (!mpClient) return res.status(503).end();
+  // Responde 200 rápido em qualquer caso para o Mercado Pago não re-tentar
+  // indefinidamente, mas só processa se a assinatura bater.
+  if (!assinaturaWebhookValida(req)) {
+    console.warn('Webhook Mercado Pago: assinatura inválida ou ausente, ignorado.');
+    return res.status(200).end();
+  }
+  const paymentId = req.query['data.id'] || req.body?.data?.id;
+  if (!paymentId) return res.status(200).end();
+  try {
+    const payment = new Payment(mpClient);
+    const info = await payment.get({ id: paymentId });
+    if (info.status === 'approved' && info.external_reference) {
+      const ativou = ativarPremium(info.external_reference);
+      console.log(`Webhook Mercado Pago: pagamento ${paymentId} aprovado, premium ${ativou ? 'ativado' : 'usuario nao encontrado'} p/ ${info.external_reference}.`);
+    }
+  } catch (e) {
+    console.error('Erro ao processar webhook Mercado Pago:', e);
+  }
+  res.status(200).end();
 });
 
 app.post('/api/demo/incrementar', (req, res) => {
