@@ -33,7 +33,7 @@ const leadMagnetErro = ref('');
 
 const instrucaoPremium = ref(false);
 
-const totalVisitas = ref(32);
+const estudantesOnline = ref(32);
 let animFrameId = null;
 
 const notificacao = ref(null);
@@ -104,30 +104,38 @@ function iniciarSocialProof() {
 
 function animarContador(novoValor) {
   if (animFrameId) cancelAnimationFrame(animFrameId);
-  const inicio = totalVisitas.value;
-  const delta = Math.max(0, novoValor - inicio);
+  const inicio = estudantesOnline.value;
+  const delta = novoValor - inicio;
   const duracao = 800;
   const inicioTempo = performance.now();
   function passo(agora) {
     const progresso = Math.min(1, (agora - inicioTempo) / duracao);
-    totalVisitas.value = Math.floor(inicio + delta * progresso);
+    estudantesOnline.value = Math.floor(inicio + delta * progresso);
     if (progresso < 1) animFrameId = requestAnimationFrame(passo);
-    else totalVisitas.value = novoValor;
+    else estudantesOnline.value = novoValor;
   }
   animFrameId = requestAnimationFrame(passo);
 }
 
-onMounted(async () => {
-  try {
-    const r = await fetch('/api/visitas');
-    const data = await r.json();
-    animarContador(Math.max(32, data.total));
-  } catch {}
+const ONLINE_MIN = 28;
+const ONLINE_MAX = 47;
+let onlineInterval = null;
+
+function proximoOnlineAleatorio() {
+  return ONLINE_MIN + Math.floor(Math.random() * (ONLINE_MAX - ONLINE_MIN + 1));
+}
+
+onMounted(() => {
+  animarContador(proximoOnlineAleatorio());
+  onlineInterval = setInterval(() => {
+    animarContador(proximoOnlineAleatorio());
+  }, 5 * 60 * 1000);
   iniciarSocialProof();
 });
 
 onUnmounted(() => {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  if (onlineInterval) clearInterval(onlineInterval);
   if (notifInterval) clearInterval(notifInterval);
   if (notifTimer) clearTimeout(notifTimer);
 });
@@ -295,7 +303,7 @@ async function handleLeadMagnet() {
         </div>
         <div class="visit-counter">
           <span class="visit-counter-icon">🔥</span>
-          <span class="visit-counter-text"><strong>{{ totalVisitas.toLocaleString('pt-BR') }}</strong> estudantes já acessaram</span>
+          <span class="visit-counter-text"><strong>{{ estudantesOnline.toLocaleString('pt-BR') }}</strong> estudantes online agora</span>
         </div>
         <div class="brand-features">
           <div class="feature-item">
