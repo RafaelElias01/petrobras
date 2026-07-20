@@ -755,13 +755,18 @@ function voltarParaLogin() {
   }
 }
 
+@media (max-width: 768px) {
+  .login-wrapper {
+    align-items: flex-start;
+    overflow-y: auto;
+    min-height: 0;
+  }
+}
+
 @media (max-width: 480px) {
   .login-container {
     padding: 10px;
-    /* Removido min-height para permitir que o conteúdo defina a altura e seja rolado */
-    /* min-height: 100vh; */
     gap: 16px;
-    justify-content: flex-start;
     padding-top: 20px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
