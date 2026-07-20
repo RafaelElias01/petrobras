@@ -148,6 +148,17 @@ describe('POST /api/premium/criar-preferencia', () => {
       .set('Authorization', `Bearer ${login.body.token}`);
     expect(res.status).toBe(503);
   });
+
+  it('bloqueia a conta demo "estudante" de assinar premium (conta compartilhada)', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send({ usuario: 'estudante', nome: 'Estudante', email: 'estudante-teste@ex.com', senha: '123456' });
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'estudante', senha: '123456' });
+    const res = await request(app)
+      .post('/api/premium/criar-preferencia')
+      .set('Authorization', `Bearer ${login.body.token}`);
+    expect(res.status).toBe(403);
+  });
 });
 
 describe('POST /api/premium/webhook', () => {

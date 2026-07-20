@@ -273,6 +273,12 @@ app.post('/api/premium/confirmar', (req, res) => {
 app.post('/api/premium/criar-preferencia', async (req, res) => {
   const usuario = usuarioDoToken(req);
   if (!usuario) return res.status(401).json({ erro: 'Não autenticado' });
+  // 'estudante' é a conta demo compartilhada publicamente (ver Login.vue).
+  // Premium nela ativaria pra QUALQUER visitante que logar com essa conta --
+  // precisa de uma conta própria pra ter um external_reference que faça sentido.
+  if (usuario === 'estudante') {
+    return res.status(403).json({ erro: 'A conta demo não pode assinar o Premium. Crie sua própria conta primeiro.' });
+  }
   if (!mpClient) return res.status(503).json({ erro: 'Checkout Mercado Pago não configurado' });
   try {
     const preference = new Preference(mpClient);
