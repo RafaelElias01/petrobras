@@ -118,6 +118,41 @@ const faqs = [
   font-weight: 600;
 }
 
+@media (max-width: 768px) {
+  .faq-title {
+    font-size: 18px;
+    margin-bottom: 18px;
+  }
+  .faq-question {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+  .faq-answer {
+    padding: 0 16px 16px;
+    font-size: 13px;
+  }
+}
+@media (max-width: 600px) {
+  .faq-title {
+    font-size: 16px;
+  }
+  .faq-question {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .faq-question {
+    padding: 12px 12px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+  .faq-answer {
+    padding: 0 12px 12px;
+    font-size: 12px;
+  }
+}
+
 @keyframes fadeInDown {
   from {
     opacity: 0;

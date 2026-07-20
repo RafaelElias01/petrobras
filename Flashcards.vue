@@ -701,6 +701,14 @@ onMounted(() => {
   transform: translateY(-10px);
 }
 
+@media (max-width: 1024px) {
+  .flashcard-card {
+    max-width: 480px;
+  }
+  .flashcard-front, .flashcard-back {
+    padding: 32px 28px;
+  }
+}
 @media (max-width: 768px) {
   .flashcard-front,
   .flashcard-back {
@@ -717,6 +725,29 @@ onMounted(() => {
 
   .form-actions .btn-primary, .form-actions .btn-secondary {
     width: 100%;
+  }
+
+  .config-input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px;
+  }
+  .btn-primary, .btn-secondary, .btn-revisar {
+    padding: 12px 24px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-icon-only {
+    width: 44px;
+    height: 44px;
+  }
+  .btn-encerrar {
+    padding: 12px 24px;
+    min-height: 44px;
+    font-size: 16px;
   }
 }
 
@@ -737,6 +768,10 @@ onMounted(() => {
   .btn-acertou, .btn-errei {
     width: 100%;
     justify-content: center;
+  }
+  .btn-acertou, .btn-errei {
+    padding: 14px 24px;
+    min-height: 44px;
   }
 
   .flashcard-ask {

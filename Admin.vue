@@ -391,6 +391,39 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
   margin-bottom: 12px;
 }
 
+@media (max-width: 1024px) {
+  .admin-table {
+    font-size: 13px;
+  }
+  .admin-table th, .admin-table td {
+    padding: 8px 10px;
+  }
+}
+@media (max-width: 768px) {
+  .btn-novo-usuario {
+    padding: 10px 14px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-salvar, .btn-cancelar {
+    padding: 12px 20px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .admin-input {
+    font-size: 16px;
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+  .admin-select {
+    font-size: 16px;
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+  .grade-cartoes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 @media (max-width: 600px) {
   .btn-novo-usuario {
     font-size: 12px;
@@ -401,6 +434,17 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
   }
   .form-actions button {
     width: 100%;
+  }
+  .grade-cartoes {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .admin-table {
+    font-size: 12px;
+  }
+  .admin-table th, .admin-table td {
+    padding: 6px 6px;
   }
 }
 </style>

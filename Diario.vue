@@ -479,9 +479,26 @@ function formatarHoras(h) {
   font-size: 14px;
 }
 
+@media (max-width: 1024px) {
+  .grade-materias {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
 @media (max-width: 768px) {
   .grade-materias {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .btn-ajuste {
+    width: 44px;
+    height: 44px;
+  }
+  .secao-acao, .secao-acao-secundaria {
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+  .btn-preset, .btn-add-confirmar {
+    min-height: 44px;
+    font-size: 16px;
   }
   .item-revisao {
     flex-direction: column;

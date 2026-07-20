@@ -89,6 +89,14 @@ const steps = [
   color: rgba(255, 255, 255, 0.75);
 }
 
+@media (max-width: 1024px) {
+  .steps-container {
+    gap: 16px;
+  }
+  .step-card {
+    padding: 20px;
+  }
+}
 @media (max-width: 768px) {
   .steps-container {
     flex-direction: column;
@@ -98,6 +106,33 @@ const steps = [
   .step-card {
     max-width: 100%;
     width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .how-it-works-title {
+    font-size: 18px;
+    margin-bottom: 18px;
+  }
+  .step-card {
+    padding: 16px;
+  }
+  .step-icon {
+    font-size: 28px;
+  }
+  .step-title {
+    font-size: 15px;
+  }
+  .step-description {
+    font-size: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .how-it-works-title {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+  .step-card {
+    padding: 14px;
   }
 }
 

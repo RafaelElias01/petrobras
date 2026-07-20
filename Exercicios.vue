@@ -550,6 +550,68 @@ function badgeStyle(dificuldade) {
   cursor: not-allowed;
 }
 
+@media (max-width: 1024px) {
+  .quiz-enunciado {
+    font-size: 14px;
+  }
+  .filtros-grid {
+    flex-direction: column;
+  }
+  .filtro-group {
+    min-width: 100%;
+  }
+}
+@media (max-width: 768px) {
+  .alternativa {
+    padding: 12px 14px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-explicacao {
+    padding: 12px 16px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-nav {
+    padding: 12px 16px;
+    min-height: 44px;
+    font-size: 16px;
+    flex: 1;
+  }
+  .btn-finalizar {
+    padding: 12px 20px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-iniciar-quiz {
+    padding: 12px 24px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-voltar-exercicios {
+    padding: 12px 24px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .filtro-select {
+    font-size: 16px;
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+  .btn-dificuldade {
+    padding: 10px 14px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-favoritos-toolbar {
+    padding: 10px 14px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .quiz-nav {
+    width: 100%;
+  }
+}
 @media (max-width: 600px) {
   .alternativa {
     padding: 10px 12px;

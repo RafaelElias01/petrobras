@@ -379,6 +379,31 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
   color: var(--texto-sec);
 }
 
+@media (max-width: 1024px) {
+  .overlay-card {
+    padding: 32px 24px;
+  }
+  .login-card-header h2 {
+    font-size: 20px;
+  }
+}
+@media (max-width: 768px) {
+  .overlay-card {
+    padding: 28px 20px 24px;
+  }
+  .login-card-header h2 {
+    font-size: 18px;
+  }
+  .login-card-header p {
+    font-size: 13px;
+  }
+}
+@media (max-width: 600px) {
+  .overlay-card {
+    padding: 24px 16px 20px;
+    max-width: 95%;
+  }
+}
 @media (max-width: 480px) {
   .overlay-card {
     padding: 32px 20px 28px;

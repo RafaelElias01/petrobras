@@ -143,6 +143,53 @@ defineProps({
   color: #fff;
 }
 
+@media (max-width: 768px) {
+  .btn-fechar {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+  .pix-qr, .pix-loading {
+    width: 160px;
+    height: 160px;
+  }
+  .pix-value {
+    font-size: 18px;
+  }
+}
+@media (max-width: 600px) {
+  .premium-checkout {
+    padding: 12px 0 0;
+  }
+  .pix-qr, .pix-loading {
+    width: 140px;
+    height: 140px;
+  }
+  .pix-value {
+    font-size: 16px;
+  }
+  .btn-whatsapp {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .pix-qr, .pix-loading {
+    width: 120px;
+    height: 120px;
+  }
+  .btn-whatsapp {
+    font-size: 13px;
+    padding: 10px;
+    min-height: 44px;
+  }
+  .btn-voltar {
+    font-size: 14px;
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

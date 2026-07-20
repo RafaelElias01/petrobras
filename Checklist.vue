@@ -41,11 +41,10 @@ function toggleAba(id) {
         </span>
       </div>
 
-      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <input v-model="filtro" type="text" placeholder="🔍 Buscar tópico..."
-          style="flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--borda);border-radius:4px;background:var(--fundo-sec);color:var(--texto);font-size:13px;">
-        <button @click="expandirTudo" style="padding:8px 12px;background:var(--primaria);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;">📂 Expandir Tudo</button>
-        <button @click="colapsarTudo" style="padding:8px 12px;background:var(--texto-sec);color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;">📁 Colapsar Tudo</button>
+      <div class="checklist-toolbar">
+        <input v-model="filtro" type="text" placeholder="🔍 Buscar tópico..." class="filtro-input">
+        <button @click="expandirTudo" class="btn-expandir">📂 Expandir Tudo</button>
+        <button @click="colapsarTudo" class="btn-colapsar">📁 Colapsar Tudo</button>
       </div>
 
       <div v-for="m in (filtro ? conteudosFiltrados : conteudos).filter(c => !abaAtiva || c.id === abaAtiva)" :key="m.id" style="margin-bottom:24px;">
@@ -70,3 +69,82 @@ function toggleAba(id) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.checklist-toolbar {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filtro-input {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 4px;
+  background: var(--fundo-sec);
+  color: var(--texto);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+.btn-expandir {
+  padding: 8px 12px;
+  background: var(--primaria);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btn-colapsar {
+  padding: 8px 12px;
+  background: var(--texto-sec);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .checklist-toolbar {
+    flex-direction: column;
+  }
+  .checklist-toolbar .filtro-input {
+    width: 100%;
+  }
+  .btn-expandir, .btn-colapsar {
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 16px;
+    flex: 1;
+  }
+  .filtro-input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+@media (max-width: 600px) {
+  .btn-expandir, .btn-colapsar {
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+  .filtro-input {
+    font-size: 16px;
+  }
+}
+@media (max-width: 480px) {
+  .btn-expandir, .btn-colapsar {
+    font-size: 12px;
+    padding: 10px 6px;
+  }
+}
+</style>

@@ -31,7 +31,7 @@ onMounted(async () => {
   <div>
     <div class="card" style="margin-bottom:16px;">
       <div class="card-titulo" style="margin-bottom:0;">
-        <select v-model="planoSelecionado" style="flex:1;padding:10px 14px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--texto);outline:none;cursor:pointer;">
+        <select v-model="planoSelecionado" class="plano-select">
           <option value="" disabled>Selecione um documento...</option>
           <optgroup v-for="g in planosGrupos" :key="g" :label="g">
             <option v-for="p in planosFiltrados(g)" :key="p.id" :value="p.id">{{ p.nome }}</option>
@@ -44,3 +44,26 @@ onMounted(async () => {
     <div class="card" v-if="!carregandoPlano && !planoHtml" style="text-align:center;padding:40px;color:var(--texto-sec);">Selecione um documento acima para visualizar.</div>
   </div>
 </template>
+
+<style scoped>
+.plano-select {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--texto);
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .plano-select {
+    font-size: 16px;
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+}
+</style>

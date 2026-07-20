@@ -269,6 +269,14 @@ const {
 .rec-icon { font-size: 18px; flex-shrink: 0; }
 .rec-texto { flex: 1; color: var(--texto); }
 
+@media (max-width: 1024px) {
+  .dias-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .ciclo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
 @media (max-width: 768px) {
   .dias-grid {
     grid-template-columns: repeat(4, 1fr);

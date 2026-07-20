@@ -214,9 +214,39 @@ const {
   color: #92400e;
 }
 
+@media (max-width: 1024px) {
+  .metodologia-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+}
+@media (max-width: 768px) {
+  .btn-toggle {
+    padding: 10px 14px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .btn-avancar, .btn-reiniciar {
+    padding: 12px 24px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .ciclo-actions {
+    flex-direction: column;
+  }
+  .ciclo-actions button {
+    width: 100%;
+  }
+  .metodologia-grid {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 600px) {
   .cartao-stat .valor {
     font-size: 18px;
+  }
+  .btn-toggle, .btn-avancar, .btn-reiniciar {
+    min-height: 44px;
+    font-size: 16px;
   }
 }
 

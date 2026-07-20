@@ -43,4 +43,20 @@ onErrorCaptured((err, instance, info) => {
   margin: 0 auto;
   color: var(--texto-sec);
 }
+@media (max-width: 768px) {
+  .error-boundary-fallback {
+    padding: 24px 16px;
+  }
+  .error-boundary-fallback h3 {
+    font-size: 16px;
+  }
+  .error-boundary-fallback p {
+    font-size: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .error-boundary-fallback {
+    padding: 20px 12px;
+  }
+}
 </style>

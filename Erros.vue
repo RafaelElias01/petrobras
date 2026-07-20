@@ -624,12 +624,55 @@ function tipoLabel(t) {
   opacity: 0.5;
 }
 
+@media (max-width: 1024px) {
+  .caderno-tabela {
+    min-width: 800px;
+    font-size: 12px;
+  }
+  .caderno-titulo {
+    font-size: 20px;
+  }
+}
 @media (max-width: 768px) {
   .caderno-tabela { min-width: 700px; font-size: 12px; }
   .caderno-tabela th,
   .caderno-tabela td { padding: 8px 6px; }
   .form-grid { grid-template-columns: 1fr; }
   .caderno-titulo { font-size: 18px; }
+  .btn-add {
+    padding: 10px 16px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-acao {
+    padding: 8px 12px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .btn-salvar, .btn-cancelar {
+    padding: 12px 28px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .btn-revisar {
+    padding: 8px 12px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .btn-sim {
+    padding: 8px 12px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .form-grupo input,
+  .form-grupo select,
+  .form-grupo textarea {
+    font-size: 16px;
+  }
+  .regra-input {
+    font-size: 16px;
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 600px) {
