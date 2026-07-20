@@ -5,7 +5,8 @@
 ```
 Vue 3 + Vite (SPA hash routing) ──build──► dist/
   │                                          │
-  ├── Login.vue ─── POST /api/auth/* ────────┤
+  ├── Login.vue ─── POST /api/auth/* ────────┤  ← email obrigatorio no cadastro
+  ├── Login.vue ─── POST /api/newsletter ────┤  ← lead magnet + newsletter
   ├── App.vue ───── GET /api/premium/status ─┤
   ├── *.vue ─────── POST /api/visitas ───────┤
   └── dados.js ──── (local state, no server) ┘
@@ -13,24 +14,28 @@ Vue 3 + Vite (SPA hash routing) ──build──► dist/
 Express server.js (porta 3000) ◄──────────────┘
   ├── serve dist/ (static)
   ├── GET /api/planos/*
-  ├── POST /api/auth/register (dados/usuarios.json)
-  ├── POST /api/mercadopago/preference
-  ├── GET /api/premium/status/:usuario
-  └── POST/GET /api/visitas (dados/visitas.json)
+  ├── POST /api/auth/register → dados/usuarios.json (email obrigatorio)
+  ├── POST /api/newsletter → dados/newsletter.json
+  ├── GET /api/premium/status/:usuario (retorna premium + email)
+  ├── POST /api/premium/confirmar (ativa premium do usuario)
+  ├── GET /api/materiais/:nome (download, whitelist: guia-estudos-gratuito.md)
+  └── POST/GET /api/visitas → dados/visitas.json
 ```
-
-**Regra de ouro**: Toda feature que persiste dados precisa de 3 camadas:
-1. Estado reativo (cache)
-2. `localStorage` (`_salvarLocal()`)
-3. Servidor (`_putToServer()` com debounce 1s)
-Se pular uma delas, provavelmente é bug.
 
 ## Orquestracao: Quando tomar cada acao
 
 **QUANDO** o usuario pedir algo sobre "conta", "cadastro", "login":
 → Login.vue (modoCadastro toggle) + server.js (POST /api/auth/register)
 → Validacoes: 3+ chars, senhas conferem, usuario unico
+→ **Email obrigatorio** no cadastro (server valida formato + unicidade)
 → NAO hash senha (MVP texto plano)
+→ Apos registro, `emit('registro-sucesso')` → App.vue: `handleRegisterSuccess()` faz login automatico
+
+**QUANDO** for "lead magnet", "newsletter", "material gratuito", "guia":
+→ `materiais/guia-estudos-gratuito.md` (lead magnet)
+→ Login.vue: secao `.lead-magnet-section` com nome + email
+→ POST /api/newsletter salva em dados/newsletter.json
+→ GET /api/materiais/guia-estudos-gratuito.md faz download (whitelist restrita)
 
 **QUADNO** pedir "premium", "pagar", "comprar":
 → PremiumCheckout.vue (componente unificado)
@@ -108,6 +113,19 @@ Se pular uma delas, provavelmente é bug.
 **"Express na VM crashou"**
 → `ERR_MODULE_NOT_FOUND`: npm install faltando
 → `npm install <pacote>` em /opt/petrobras/
+
+**"Express crashou - Missing parameter name at index 1: *"**
+→ path-to-regexp v8 nao aceita `*` solto em `app.get('*', handler)`
+→ Trocar para `app.get('/{*path}', handler)`
+
+**"Vite proxy error: /api/* ECONNREFUSED"**
+→ Backend (porta 3000) nao esta rodando no terminal local
+→ Rodar `node server.js` em outro terminal, ou nao se preocupar (erro silenciado no try/catch)
+
+**"rsync --delete apagou dados da VM"**
+→ NUNCA usar `--delete` com fontes parciais (ex: `rsync dist/ server.js` + `--delete`)
+→ `--delete` remove TUDO no destino que nao esta na origem, incluindo node_modules, dados/, package.json
+→ Usar `--delete` APENAS com `dist/` individualmente, ou sincronizar projeto completo com `--exclude=node_modules`
 
 **"Ciclo nao expande 24 slots"**
 → `CICLO_PONDERADO` expande por `peso`. `posicao` indexa com wrap. `concluido` usa `item-{idx}`
@@ -192,3 +210,13 @@ import { ref, ... } from 'vue'
 - **Depoimentos**: glassmorphism, exibir `cidade`
 - **PIX TXID**: `addField('05', txid)` — sem `03` aninhado. Bancos rejeitam payload com `03` extra.
 - **overflow**: nunca usar `overflow: hidden` no container principal (`.login-wrapper`). Usar `overflow-x: hidden` se precisar cortar eixo horizontal. `overflow: hidden` trunca scroll vertical em mobile e conteudo some.
+
+**Login mobile scroll**: sempre manter `overflow-y: auto; min-height: 0; align-items: flex-start` no `.login-wrapper` no breakpoint 768px. `align-items: center` empurra conteudo pra fora da tela em mobile.
+
+**rsync seguro na VM**: sincronizar `dist/` separado com `--delete` (so dist), e scp server.js/materiais/package.json separadamente SEM `--delete`.
+
+**Cadastro requer email**: server.js valida email obrigatorio no POST /api/auth/register. Login.vue tem formulario com nome, email, usuario, senha, confirmar senha.
+
+**Lead magnet**: `materiais/guia-estudos-gratuito.md` — baixado via GET /api/materiais/guia-estudos-gratuito.md. Login.vue captura nome+email antes de liberar.
+
+**Demo limit**: usuario `estudante` expira apos 5 acessos a features bloqueadas. Contador em localStorage `petro_demo_count`.

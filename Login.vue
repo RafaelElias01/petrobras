@@ -498,6 +498,8 @@ async function handleLeadMagnet() {
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   
   background: 
@@ -1141,6 +1143,9 @@ async function handleLeadMagnet() {
 }
 
 @media (max-width: 768px) {
+  .login-wrapper {
+    align-items: flex-start;
+  }
   .login-container {
     flex-direction: column;
     gap: 32px;
@@ -1210,14 +1215,6 @@ async function handleLeadMagnet() {
   }
   .lead-magnet-input {
     font-size: 16px;
-  }
-}
-
-@media (max-width: 768px) {
-  .login-wrapper {
-    align-items: flex-start;
-    overflow-y: auto;
-    min-height: 0;
   }
 }
 
