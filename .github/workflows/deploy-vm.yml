@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,6 +21,9 @@ jobs:
 
       - name: Instalar dependências
         run: npm ci
+
+      - name: Rodar testes
+        run: npm test
 
       - name: Buildar Vite
         run: npm run build
@@ -51,3 +57,18 @@ jobs:
 
       - name: Instalar deps na VM e reiniciar servico
         run: ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 "cd /opt/petrobras && npm install --omit=dev && sudo systemctl restart petrobras.service"
+
+      - name: Verificar saude do servico pos-deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 '
+            for i in $(seq 1 10); do
+              sleep 2
+              if systemctl is-active --quiet petrobras.service && curl -sf http://localhost:3000/ -o /dev/null; then
+                echo "Servico ativo e respondendo."
+                exit 0
+              fi
+            done
+            echo "Servico nao respondeu apos o restart. Logs recentes:"
+            sudo journalctl -u petrobras.service -n 40 --no-pager
+            exit 1
+          '

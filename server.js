@@ -242,6 +242,12 @@ app.post('/api/newsletter', (req, res) => {
 app.get('/api/premium/status/:usuario', (req, res) => {
   const { usuario } = req.params;
   if (!usuario || typeof usuario !== 'string' || usuario.length > 50) return res.status(400).json({ erro: 'Usuário inválido' });
+  // Só o próprio usuário autenticado pode consultar seu status (evita vazar
+  // nome/email de terceiros via enumeração de usuário na URL).
+  const autenticado = usuarioDoToken(req);
+  if (!autenticado || autenticado.toLowerCase() !== usuario.toLowerCase()) {
+    return res.status(401).json({ erro: 'Não autorizado' });
+  }
   const usuarios = lerUsuarios();
   const user = usuarios.find(u => u.usuario === usuario);
   if (!user) return res.status(404).json({ erro: 'Usuário não encontrado' });

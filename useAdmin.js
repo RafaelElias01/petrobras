@@ -35,7 +35,7 @@ export function useAdmin() {
         usuarios.value = data;
       }
     } else {
-      usuarios.value = getDefaultUsuarios();
+      usuarios.value = await getDefaultUsuarios();
     }
     carregado.value = true;
   }

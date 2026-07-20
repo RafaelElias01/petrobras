@@ -9,6 +9,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# rsync nao vem nativo no Windows: precisa de WSL, Git Bash com rsync (ex: via
+# pacman/MSYS2) ou cwRsync/Cygwin no PATH. scp (usado abaixo) ja vem com o
+# OpenSSH Client do Windows/Git for Windows.
+if (-not (Get-Command rsync -ErrorAction SilentlyContinue)) {
+  throw "rsync nao encontrado no PATH. Instale via WSL, Git Bash (pacman -S rsync) ou cwRsync antes de rodar este script."
+}
+
 if ($Build) {
   Write-Host "npm run build..." -ForegroundColor Cyan
   Push-Location $PSScriptRoot
@@ -27,16 +34,28 @@ if ($LASTEXITCODE -ne 0) { throw "rsync dist/ falhou" }
 & scp -i "$Key" -q "$PSScriptRoot/server.js" "${User}@${Hostname}:${RemotePath}/server.js"
 if ($LASTEXITCODE -ne 0) { throw "scp server.js falhou" }
 
-# Sincroniza planos/
-& rsync -avz --delete -e "ssh -i $Key" "$PSScriptRoot/petrobras-quimica-study-plan/planos/" "${User}@${Hostname}:${RemotePath}/planos/"
+# Sincroniza planos/ (mesmo caminho remoto usado pelo workflow deploy-vm.yml,
+# para nao divergir do build servido pelo server.js)
+& rsync -avz --delete -e "ssh -i $Key" "$PSScriptRoot/petrobras-quimica-study-plan/planos/" "${User}@${Hostname}:${RemotePath}/petrobras-quimica-study-plan/planos/"
 if ($LASTEXITCODE -ne 0) { throw "rsync planos/ falhou" }
 
 if (-not $SkipRestart) {
   Write-Host "Reiniciando servico..." -ForegroundColor Cyan
   ssh -i "$Key" "${User}@${Hostname}" "sudo systemctl restart petrobras.service"
   if ($LASTEXITCODE -ne 0) { throw "restart falhou" }
-  Start-Sleep 2
-  Write-Host "Deploy concluido!" -ForegroundColor Green
+
+  Write-Host "Verificando saude do servico..." -ForegroundColor Cyan
+  $ok = $false
+  for ($i = 0; $i -lt 10; $i++) {
+    Start-Sleep 2
+    ssh -i "$Key" "${User}@${Hostname}" "systemctl is-active --quiet petrobras.service && curl -sf http://localhost:3000/ -o /dev/null"
+    if ($LASTEXITCODE -eq 0) { $ok = $true; break }
+  }
+  if (-not $ok) {
+    ssh -i "$Key" "${User}@${Hostname}" "sudo journalctl -u petrobras.service -n 40 --no-pager"
+    throw "Servico nao respondeu apos o restart (logs acima)"
+  }
+  Write-Host "Deploy concluido! Servico ativo e respondendo." -ForegroundColor Green
 } else {
   Write-Host "Arquivos sincronizados (servico nao reiniciado)" -ForegroundColor Yellow
 }

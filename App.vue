@@ -5,7 +5,6 @@ import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
 import ErrorBoundary from './ErrorBoundary.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
-import { carregarUsuarios, hashPassword, salvarUsuarios } from './usuarios.js';
 
 const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
 const Horas = defineAsyncComponent(() => import('./Horas.vue'));
@@ -60,6 +59,7 @@ async function incrementarDemoCount() {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (res.status === 401 || res.status === 403) { sessaoExpiradaNoServidor(); return; }
     if (!res.ok) return;
     const data = await res.json();
     if (data.expirado) {
@@ -178,6 +178,14 @@ function logout() {
   sessionStorage.removeItem(SESSAO_KEY);
   localStorage.removeItem(SESSAO_KEY);
   view.value = 'dashboard';
+}
+
+// Sessão local ainda parece válida, mas o servidor já não reconhece o token
+// (expirou, ou o processo reiniciou e perdeu as sessões em memória). Sem
+// isso, ações como pagamento falham com erro genérico e sem explicação.
+function sessaoExpiradaNoServidor() {
+  logout();
+  alert('Sua sessão expirou. Faça login novamente.');
 }
 
 function verificarSessao() {
@@ -327,7 +335,7 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
               <h2>Pagamento Premium</h2>
               <p>Escaneie o QR Code abaixo com o app do seu banco.</p>
             </div>
-            <PremiumCheckout :token="tokenSessaoAtual()" :onClose="() => irPara('dashboard')" />
+            <PremiumCheckout :token="tokenSessaoAtual()" :onClose="() => irPara('dashboard')" :onSessaoExpirada="sessaoExpiradaNoServidor" />
           </div>
         </div>
       </div>

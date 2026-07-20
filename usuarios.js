@@ -8,10 +8,21 @@ async function hashPassword(password) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-const USUARIOS_PADRAO_HASHED = [
-  { usuario: 'admin', senhaHash: 'a6035b25e8694b3ccef86d66b713e003340782642f8876a1a9fc738724eaa8e6', nome: 'Administrador', role: 'admin' },
-  { usuario: 'estudante', senhaHash: '1cf9665547766da64f3e5d8e57222fc171028125298ad015ce194b2e5e3a024e', nome: 'Estudante', role: 'user' },
-];
+// Hashes gerados sob demanda a partir de uma senha placeholder (não é a senha real em uso).
+// Este arquivo é versionado no repositório: nunca commitar hash de senha real aqui.
+// Usuário deve trocar a senha desses usuários seed no primeiro acesso ao painel Admin.
+const SENHA_PLACEHOLDER = 'trocar-no-primeiro-acesso';
+let usuariosPadraoPromise = null;
+
+function usuariosPadraoHashed() {
+  if (!usuariosPadraoPromise) {
+    usuariosPadraoPromise = Promise.all([
+      hashPassword(SENHA_PLACEHOLDER).then(senhaHash => ({ usuario: 'admin', senhaHash, nome: 'Administrador', role: 'admin' })),
+      hashPassword(SENHA_PLACEHOLDER).then(senhaHash => ({ usuario: 'estudante', senhaHash, nome: 'Estudante', role: 'user' })),
+    ]);
+  }
+  return usuariosPadraoPromise;
+}
 
 async function hashLista(lista) {
   return Promise.all(lista.map(async u => ({
@@ -25,14 +36,16 @@ export async function carregarUsuarios() {
   try {
     const dados = localStorage.getItem(PREFIXO + 'admin_usuarios');
     if (!dados) {
-      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
-      return USUARIOS_PADRAO_HASHED;
+      const padrao = await usuariosPadraoHashed();
+      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(padrao));
+      return padrao;
     }
 
     const parsed = JSON.parse(dados);
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
-      return USUARIOS_PADRAO_HASHED;
+      const padrao = await usuariosPadraoHashed();
+      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(padrao));
+      return padrao;
     }
 
     if (parsed[0].senha && !parsed[0].senhaHash) {
@@ -41,22 +54,12 @@ export async function carregarUsuarios() {
       return migrados;
     }
 
-    const adminLocal = parsed.find(u => u.usuario === 'admin');
-    const adminDefault = USUARIOS_PADRAO_HASHED.find(u => u.usuario === 'admin');
-    if (adminLocal && adminDefault && adminLocal.senhaHash !== adminDefault.senhaHash) {
-      const atualizados = parsed.map(u => {
-        const def = USUARIOS_PADRAO_HASHED.find(d => d.usuario === u.usuario);
-        return def && def.role === 'admin' ? { ...u, senhaHash: def.senhaHash } : u;
-      });
-      localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(atualizados));
-      return atualizados;
-    }
-
     return parsed;
   } catch (e) {
     console.error("Erro ao carregar ou migrar usuários. Resetando para o padrão.", e);
-    localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(USUARIOS_PADRAO_HASHED));
-    return USUARIOS_PADRAO_HASHED;
+    const padrao = await usuariosPadraoHashed();
+    localStorage.setItem(PREFIXO + 'admin_usuarios', JSON.stringify(padrao));
+    return padrao;
   }
 }
 
@@ -64,8 +67,9 @@ export async function salvarUsuarios(usuarios) {
   Armazenamento.salvar('admin_usuarios', usuarios, 0);
 }
 
-export function getDefaultUsuarios() {
-  return USUARIOS_PADRAO_HASHED.map(u => ({ ...u }));
+export async function getDefaultUsuarios() {
+  const padrao = await usuariosPadraoHashed();
+  return padrao.map(u => ({ ...u }));
 }
 
 export { hashPassword };

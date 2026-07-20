@@ -5,12 +5,14 @@ const props = defineProps({
   token: { type: String, default: '' },
   onClose: { type: Function, required: true },
   onVoltar: { type: Function, default: null },
+  onSessaoExpirada: { type: Function, default: null },
 });
 
 const carregandoMp = ref(false);
 const erroMp = ref('');
 
 async function pagarComMercadoPago() {
+  if (carregandoMp.value) return;
   erroMp.value = '';
   carregandoMp.value = true;
   try {
@@ -18,6 +20,11 @@ async function pagarComMercadoPago() {
       method: 'POST',
       headers: { Authorization: `Bearer ${props.token}` },
     });
+    if (res.status === 401 || res.status === 403) {
+      if (props.onSessaoExpirada) { props.onSessaoExpirada(); return; }
+      erroMp.value = 'Sua sessão expirou. Faça login novamente.';
+      return;
+    }
     const data = await res.json();
     if (res.ok && data.init_point) {
       window.location.href = data.init_point;
