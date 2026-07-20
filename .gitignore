@@ -5,9 +5,10 @@ dist
 .env
 
 # Sensitive files
-Domínios - Painel Registrobr.csv
+Domï¿½nios - Painel Registrobr.csv
 configurar-dns.py
 test-login.py
 
 
 /petrobras
+ssh-key-*.key
