@@ -520,7 +520,7 @@ E) 7h
 
 ## GABARITO
 
-| Q | R | Q | R | Q | R | Q | R |
+| Questão | Resposta | Questão | Resposta | Questão | Resposta | Questão | Resposta |
 |---|----|---|----|---|----|---|----|
 | 1 | C | 16 | C | 31 | B | 46 | C |
 | 2 | B | 17 | C | 32 | D | 47 | B |

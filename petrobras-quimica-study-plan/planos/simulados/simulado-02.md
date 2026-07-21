@@ -522,7 +522,7 @@ E) 13
 
 ## GABARITO
 
-| Q | R | Q | R | Q | R | Q | R |
+| Questão | Resposta | Questão | Resposta | Questão | Resposta | Questão | Resposta |
 |---|----|---|----|---|----|---|----|
 | 1 | C | 16 | C | 31 | B | 46 | C |
 | 2 | C | 17 | D | 32 | E | 47 | B |

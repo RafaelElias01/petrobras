@@ -69,7 +69,7 @@ function tipoLabel(t) {
               </td>
               <td class="col-acoes">
                 <button class="btn-acao" @click="editarErro(e)" title="Editar">✏️</button>
-                <button class="btn-acao" @click="confirm('Remover este erro?') && removerErro(e.id)" title="Remover">🗑️</button>
+                <button class="btn-acao" @click="window.confirm('Remover este erro?') && removerErro(e.id)" title="Remover">🗑️</button>
               </td>
             </tr>
             <tr v-if="erros.length === 0">

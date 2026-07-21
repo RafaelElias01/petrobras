@@ -170,7 +170,7 @@ onMounted(() => {
             </div>
             <div class="flashcard-item-actions">
               <button class="btn-icon-only" @click="editarFlashcard(card)" title="Editar">✏️</button>
-              <button class="btn-icon-only btn-danger" @click="confirm('Remover este flashcard?') && removerFlashcard(card.id)" title="Remover">✕</button>
+              <button class="btn-icon-only btn-danger" @click="window.confirm('Remover este flashcard?') && removerFlashcard(card.id)" title="Remover">✕</button>
             </div>
           </div>
         </div>

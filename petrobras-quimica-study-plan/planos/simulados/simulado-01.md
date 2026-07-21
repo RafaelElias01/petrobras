@@ -522,7 +522,7 @@ E) Depende
 
 ## GABARITO
 
-| Q | R | Q | R | Q | R | Q | R |
+| Questão | Resposta | Questão | Resposta | Questão | Resposta | Questão | Resposta |
 |---|----|---|----|---|----|---|----|
 | 1 | D | 16 | B | 31 | C | 46 | C |
 | 2 | B | 17 | C | 32 | C | 47 | A |
