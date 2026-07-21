@@ -7,6 +7,15 @@ on:
 permissions:
   contents: read
 
+# Serializa deploys: dois pushes seguidos em main disparariam dois jobs em
+# paralelo, cada um rodando rsync --delete + systemctl restart na mesma VM
+# ao mesmo tempo -- risco de corrupção de deploy/race condition no restart.
+# cancel-in-progress:false pra deixar o deploy já em andamento terminar
+# (não queremos matar um restart de serviço no meio), só enfileira o próximo.
+concurrency:
+  group: deploy-vm
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -43,6 +52,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 163.176.163.213 >> ~/.ssh/known_hosts
 
+      - name: Backup da versao atual (pra rollback se o healthcheck falhar)
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 '
+            rm -rf /opt/petrobras/.bak && mkdir -p /opt/petrobras/.bak
+            cp -a /opt/petrobras/dist /opt/petrobras/.bak/dist 2>/dev/null || true
+            cp -a /opt/petrobras/server.js /opt/petrobras/.bak/server.js 2>/dev/null || true
+            cp -a /opt/petrobras/dataLocal.js /opt/petrobras/.bak/dataLocal.js 2>/dev/null || true
+            cp -a /opt/petrobras/package.json /opt/petrobras/.bak/package.json 2>/dev/null || true
+          '
+
       - name: Sincronizar dist/
         run: rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/ ubuntu@163.176.163.213:/opt/petrobras/dist/
 
@@ -58,7 +77,7 @@ jobs:
       - name: Instalar deps na VM e reiniciar servico
         run: ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 "cd /opt/petrobras && npm install --omit=dev && sudo systemctl restart petrobras.service"
 
-      - name: Verificar saude do servico pos-deploy
+      - name: Verificar saude do servico pos-deploy (com rollback automatico)
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 '
             for i in $(seq 1 10); do
@@ -70,5 +89,24 @@ jobs:
             done
             echo "Servico nao respondeu apos o restart. Logs recentes:"
             sudo journalctl -u petrobras.service -n 40 --no-pager
+
+            if [ ! -d /opt/petrobras/.bak/dist ]; then
+              echo "Sem backup disponivel (provavelmente primeiro deploy) -- nao ha para onde reverter."
+              exit 1
+            fi
+
+            echo "Restaurando versao anterior a partir do backup..."
+            rm -rf /opt/petrobras/dist
+            cp -a /opt/petrobras/.bak/dist /opt/petrobras/dist
+            cp -a /opt/petrobras/.bak/server.js /opt/petrobras/server.js
+            cp -a /opt/petrobras/.bak/dataLocal.js /opt/petrobras/dataLocal.js
+            cp -a /opt/petrobras/.bak/package.json /opt/petrobras/package.json
+            cd /opt/petrobras && npm install --omit=dev && sudo systemctl restart petrobras.service
+            sleep 3
+            if systemctl is-active --quiet petrobras.service && curl -sf http://localhost:3000/ -o /dev/null; then
+              echo "Rollback concluido: versao anterior restaurada e respondendo."
+            else
+              echo "Rollback tambem falhou -- intervencao manual necessaria."
+            fi
             exit 1
           '

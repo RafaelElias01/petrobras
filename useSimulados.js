@@ -1,7 +1,18 @@
 import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
+import { CONTEUDOS } from './dados.js';
 
 let instance;
+
+// Total de questões do simulado = soma das questões de Português + Matemática
+// + Química no conteúdo real (dados.js). Antes era um "/60" fixo no código;
+// o conteúdo tem hoje 10+10+38 = 58 questões nessas 3 matérias, então usar um
+// divisor hardcoded ficava dessincronizado sempre que o conteúdo mudasse.
+function questoesDaMateria(id) {
+  return CONTEUDOS.find(m => m.id === id)?.questoes || 0;
+}
+export const SIMULADO_TOTAL_QUESTOES =
+  questoesDaMateria('portugues') + questoesDaMateria('matematica') + questoesDaMateria('quimica');
 
 export function useSimulados() {
   if (instance) {
@@ -24,7 +35,7 @@ export function useSimulados() {
       .map(s => ({
         ...s,
         total: (s.portugues || 0) + (s.matematica || 0) + (s.quimica || 0),
-        porcentagem: Math.round(((s.portugues || 0) + (s.matematica || 0) + (s.quimica || 0)) / 60 * 100)
+        porcentagem: Math.round(((s.portugues || 0) + (s.matematica || 0) + (s.quimica || 0)) / SIMULADO_TOTAL_QUESTOES * 100)
       }))
       .sort((a, b) => a.semana - b.semana);
   });

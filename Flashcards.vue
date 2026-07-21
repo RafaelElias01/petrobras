@@ -96,19 +96,19 @@ onMounted(() => {
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label>Matéria</label>
-            <select v-model="editandoFlashcard.materia">
+            <label for="flashcard-materia">Matéria</label>
+            <select id="flashcard-materia" v-model="editandoFlashcard.materia">
               <option value="">Selecione...</option>
               <option v-for="m in MATERIAS" :key="m">{{ m }}</option>
             </select>
           </div>
           <div class="form-group full-width">
-            <label>Frente (pergunta)</label>
-            <textarea v-model="editandoFlashcard.frente" placeholder="Ex: O que é pH?" rows="3"></textarea>
+            <label for="flashcard-frente">Frente (pergunta)</label>
+            <textarea id="flashcard-frente" v-model="editandoFlashcard.frente" placeholder="Ex: O que é pH?" rows="3"></textarea>
           </div>
           <div class="form-group full-width">
-            <label>Verso (resposta)</label>
-            <textarea v-model="editandoFlashcard.verso" placeholder="Ex: Potencial hidrogeniônico..." rows="3"></textarea>
+            <label for="flashcard-verso">Verso (resposta)</label>
+            <textarea id="flashcard-verso" v-model="editandoFlashcard.verso" placeholder="Ex: Potencial hidrogeniônico..." rows="3"></textarea>
           </div>
           <div class="form-actions">
             <button class="btn-primary" @click="salvarFlashcard">💾 Salvar</button>
@@ -141,8 +141,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="config-row">
-            <label>Número de cards</label>
-            <input type="number" v-model.number="opcoesRevisao.numCards" min="1" max="100" class="config-input">
+            <label for="flashcard-num-cards">Número de cards</label>
+            <input id="flashcard-num-cards" type="number" v-model.number="opcoesRevisao.numCards" min="1" max="100" class="config-input">
           </div>
           <div class="config-row">
             <label class="config-check">

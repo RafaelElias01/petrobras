@@ -56,7 +56,7 @@ function handleToggleItem(materia, topico, materiaId, grupoNome, idx) {
       </div>
 
       <div class="checklist-toolbar">
-        <input v-model="filtro" type="text" placeholder="🔍 Buscar tópico..." class="filtro-input">
+        <input v-model="filtro" type="text" placeholder="🔍 Buscar tópico..." aria-label="Buscar tópico no checklist" class="filtro-input">
         <button @click="expandirTudo" class="btn-expandir">📂 Expandir Tudo</button>
         <button @click="colapsarTudo" class="btn-colapsar">📁 Colapsar Tudo</button>
       </div>

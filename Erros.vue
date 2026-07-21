@@ -94,39 +94,39 @@ function tipoLabel(t) {
       <div class="form-erro">
         <div class="form-grid">
           <div class="form-grupo">
-            <label>Matéria</label>
-            <select v-model="editandoErro.materia">
+            <label for="erro-materia">Matéria</label>
+            <select id="erro-materia" v-model="editandoErro.materia">
               <option value="">Selecione...</option>
               <option v-for="m in materiasDisponiveis" :key="m">{{ m }}</option>
             </select>
           </div>
           <div class="form-grupo">
-            <label>Data</label>
-            <input type="date" v-model="editandoErro.data">
+            <label for="erro-data">Data</label>
+            <input id="erro-data" type="date" v-model="editandoErro.data">
           </div>
           <div class="form-grupo">
-            <label>Tópico</label>
-            <input v-model="editandoErro.topico" placeholder="Ex: pH, Estequiometria">
+            <label for="erro-topico">Tópico</label>
+            <input id="erro-topico" v-model="editandoErro.topico" placeholder="Ex: pH, Estequiometria">
           </div>
           <div class="form-grupo">
-            <label>Questão (número ou enunciado curto)</label>
-            <input v-model="editandoErro.questao" placeholder="Ex: Q42 do simulado 3">
+            <label for="erro-questao">Questão (número ou enunciado curto)</label>
+            <input id="erro-questao" v-model="editandoErro.questao" placeholder="Ex: Q42 do simulado 3">
           </div>
           <div class="form-grupo full-width">
-            <label>O que pensei</label>
-            <textarea v-model="editandoErro.pensamento" placeholder="Seu raciocínio na hora do erro" rows="2"></textarea>
+            <label for="erro-pensamento">O que pensei</label>
+            <textarea id="erro-pensamento" v-model="editandoErro.pensamento" placeholder="Seu raciocínio na hora do erro" rows="2"></textarea>
           </div>
           <div class="form-grupo full-width">
-            <label>Resposta correta</label>
-            <textarea v-model="editandoErro.respostaCorreta" placeholder="O que deveria ser" rows="2"></textarea>
+            <label for="erro-resposta-correta">Resposta correta</label>
+            <textarea id="erro-resposta-correta" v-model="editandoErro.respostaCorreta" placeholder="O que deveria ser" rows="2"></textarea>
           </div>
           <div class="form-grupo full-width">
-            <label>Lacuna identificada</label>
-            <textarea v-model="editandoErro.lacuna" placeholder="O que faltou saber/estudar" rows="2"></textarea>
+            <label for="erro-lacuna">Lacuna identificada</label>
+            <textarea id="erro-lacuna" v-model="editandoErro.lacuna" placeholder="O que faltou saber/estudar" rows="2"></textarea>
           </div>
           <div class="form-grupo">
-            <label>Classificação do erro</label>
-            <select v-model="editandoErro.classificacao">
+            <label for="erro-classificacao">Classificação do erro</label>
+            <select id="erro-classificacao" v-model="editandoErro.classificacao">
               <option value="A">A – Desconhecimento</option>
               <option value="B">B – Confusão</option>
               <option value="C">C – Atenção</option>
@@ -134,8 +134,8 @@ function tipoLabel(t) {
           </div>
           <div class="form-grupo">
             <label>Revisado?</label>
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="editandoErro.revisado">
+            <label class="checkbox-label" for="erro-revisado">
+              <input id="erro-revisado" type="checkbox" v-model="editandoErro.revisado">
               <span>Sim, já revisei este erro</span>
             </label>
           </div>
