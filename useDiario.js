@@ -10,9 +10,14 @@ export function useDiario() {
   }
 
   const diario = ref(Armazenamento.carregar('diario', {}));
-  const hoje = new Date();
-  hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
-  const diarioData = ref(hoje.toISOString().slice(0, 10));
+
+  function hojeLocalISO() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+  }
+
+  const diarioData = ref(hojeLocalISO());
 
   watch(diario, (novoValor) => {
     Armazenamento.salvar('diario', novoValor);
@@ -49,13 +54,30 @@ export function useDiario() {
   }
 
   const revisoesPendentes = computed(() => revisoes.value.filter(r => !r.concluida && new Date(r.data) <= new Date(diarioData.value)));
-  const revisoesHoje = computed(() => revisoes.value.filter(r => !r.concluida && r.data === new Date().toISOString().slice(0, 10)));
+  const revisoesHoje = computed(() => revisoes.value.filter(r => !r.concluida && r.data === hojeLocalISO()));
 
   function concluirRevisao(id) {
     const rev = revisoes.value.find(r => r.id === id);
     if (rev) rev.concluida = true;
   }
 
-  instance = { diarioData, diarioHoje, alternarDiario, revisoes, agendarRevisao, revisoesPendentes, revisoesHoje, concluirRevisao, removerRevisao: (id) => revisoes.value = revisoes.value.filter(r => r.id !== id) };
+  // Dias consecutivos com pelo menos um item do diário concluído, olhando
+  // pra trás a partir de hoje até encontrar o primeiro dia sem registro.
+  const diasEstudoConsecutivos = computed(() => {
+    let streak = 0;
+    const cursor = new Date();
+    cursor.setMinutes(cursor.getMinutes() - cursor.getTimezoneOffset());
+    for (let i = 0; i < 365; i++) {
+      const chave = cursor.toISOString().slice(0, 10);
+      const dia = diario.value[chave];
+      const estudou = dia && Object.values(dia).some(Boolean);
+      if (!estudou) break;
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  });
+
+  instance = { diarioData, diarioHoje, alternarDiario, revisoes, agendarRevisao, revisoesPendentes, revisoesHoje, concluirRevisao, diasEstudoConsecutivos, removerRevisao: (id) => revisoes.value = revisoes.value.filter(r => r.id !== id) };
   return instance;
 }

@@ -5,23 +5,24 @@
 }
 
 :root {
-  --sidebar: #1a1f2e;
-  --sidebar-hover: #252b3d;
-  --sidebar-ativa: #2d3348;
-  --bg: #f0f2f5;
+  --sidebar: #211a12;
+  --sidebar-hover: #2d2416;
+  --sidebar-ativa: rgba(181,86,31,0.32);
+  --bg: #f7f3ee;
   --card: #ffffff;
-  --texto: #1a1a2e;
-  --texto-sec: #4b5563;
-  --borda: #d1d5db;
-  --fundo-sec: #f3f4f6;
-  --primaria: #2563eb;
-  --primaria-hover: #1d4ed8;
-  --sucesso: #10b981;
-  --aviso: #f59e0b;
-  --erro: #ef4444;
-  --sombra: 0 1px 3px rgba(0,0,0,0.1);
+  --texto: #241d15;
+  --texto-sec: #5b5346;
+  --borda: #e2d8c8;
+  --fundo-sec: #efe8df;
+  --primaria: #b5561f;
+  --primaria-hover: #9a481a;
+  --sucesso: #2f8f4e;
+  --aviso: #c98a1f;
+  --erro: #b8412f;
+  --sombra: 0 1px 3px rgba(36,29,21,0.08);
   --raio: 10px;
   --transicao: 0.2s ease;
+  --fonte-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
 }
 
 body {
@@ -106,7 +107,7 @@ body {
 
 .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
 .nav-item.ativa { background: var(--sidebar-ativa); color: #fff; border-right: 3px solid var(--primaria); }
-.nav-item .icone { font-size: 18px; width: 24px; text-align: center; }
+.nav-item .icone { width: 24px; display: inline-flex; align-items: center; justify-content: center; }
 
 .conteudo {
   flex: 1;
@@ -122,7 +123,7 @@ body {
   margin-bottom: 28px;
 }
 
-.topo h2 { font-size: 24px; font-weight: 700; }
+.topo h2 { font-family: var(--fonte-display); font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
 .topo .sub { color: var(--texto-sec); font-size: 14px; }
 
 .card {
@@ -200,24 +201,30 @@ body {
 
 .cartao-stat {
   background: var(--card);
+  border: 1px solid var(--borda);
   border-radius: var(--raio);
   box-shadow: var(--sombra);
   padding: 24px;
   text-align: center;
-  border-top: 4px solid var(--primaria);
+  border-top: 3px solid var(--primaria);
 }
 
-.cartao-stat .valor { font-size: 36px; font-weight: 700; color: var(--primaria); }
+.cartao-stat .valor { font-family: var(--fonte-display); font-size: 36px; font-weight: 700; color: var(--primaria); font-variant-numeric: tabular-nums; }
 .cartao-stat .rotulo { font-size: 13px; color: var(--texto-sec); margin-top: 4px; }
+.cartao-stat .tendencia { font-size: 12px; color: var(--sucesso); font-weight: 600; margin-top: 6px; }
 
-.cartao-stat.azul { border-top-color: #6366f1; }
-.cartao-stat.azul .valor { color: #6366f1; }
+.cartao-stat.azul { border-top-color: #6d5fc4; }
+.cartao-stat.azul .valor { color: #6d5fc4; }
 .cartao-stat.verde { border-top-color: var(--sucesso); }
 .cartao-stat.verde .valor { color: var(--sucesso); }
 .cartao-stat.laranja { border-top-color: var(--aviso); }
 .cartao-stat.laranja .valor { color: var(--aviso); }
 .cartao-stat.vermelho { border-top-color: var(--erro); }
 .cartao-stat.vermelho .valor { color: var(--erro); }
+.cartao-stat.roxo { border-top-color: #6d5fc4; }
+.cartao-stat.roxo .valor { color: #6d5fc4; }
+
+.cartao-stat.compacto .valor { font-size: 20px; }
 
 .barra-progresso {
   height: 8px;
@@ -814,19 +821,25 @@ button {
 }
 
 [data-tema="dark"] {
-  --bg: #0f1117;
-  --card: #1a1d29;
-  --texto: #e5e7eb;
-  --texto-sec: #9ca3af;
-  --borda: #2d3348;
+  --bg: #17130e;
+  --card: #211a12;
+  --texto: #f1e9dc;
+  --texto-sec: #b8ab97;
+  --borda: #392e21;
+  --fundo-sec: #2a2115;
+  --primaria: #e08a4c;
+  --primaria-hover: #ec9c62;
+  --sucesso: #5cb875;
+  --aviso: #e0ac4c;
+  --erro: #e0765f;
   --sombra: 0 1px 3px rgba(0,0,0,0.3);
+  --sidebar: #100d09;
+  --sidebar-hover: #1c160e;
+  --sidebar-ativa: rgba(224,138,76,0.32);
 }
 
-[data-tema="dark"] .tabela-horas .total-coluna { background: #1f2335; }
-[data-tema="dark"] .tabela-horas td input { background: #0f1117; border-color: #2d3348; color: #e5e7eb; }
-[data-tema="dark"] .sidebar { background: #0a0c14; }
-[data-tema="dark"] .sidebar-hover { background: #1a1d29; }
-[data-tema="dark"] .sidebar-ativa { background: #1f2335; }
+[data-tema="dark"] .tabela-horas .total-coluna { background: #2a2115; }
+[data-tema="dark"] .tabela-horas td input { background: #17130e; border-color: #392e21; color: #f1e9dc; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

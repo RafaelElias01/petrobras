@@ -43,24 +43,28 @@ const depoimentos = [
   {
     nome: 'Carlos M.',
     cidade: 'Macaé, RJ',
+    resultado: { valor: '38% → 82%', rotulo: 'acerto em 3 meses' },
     texto: 'Estudava 2h por dia depois do trabalho no turno 12x36. Minha maior dificuldade era o Bloco I — orgânica e eletromagnetismo. O ciclo ponderado organizou os estudos por peso de matéria. Em 3 meses fui de 38% para 82% nos simulados. Passei em 12º para Técnico Químico de Petróleo. Hoje tiro R$ 14 mil líquido por mês.',
     estrelas: 5,
   },
   {
     nome: 'Ana J.',
     cidade: 'Salvador, BA',
+    resultado: { valor: '6º lugar', rotulo: 'PLR de R$ 52 mil no 1º ano' },
     texto: 'Reações orgânicas era meu pesadelo. Com 40 questões de específicas e 60% do peso na prova, não dava pra errar. Os flashcards com revisão espaçada foram meu divisor de águas — repetia as reações todo dia no ônibus. Na prova, caiu exatamente o que mais revisei. Aprovada em 6º lugar. PLR de R$ 52 mil no primeiro ano.',
     estrelas: 5,
   },
   {
     nome: 'Rafael S.',
     cidade: 'Belo Horizonte, MG',
+    resultado: { valor: 'R$ 10 mil+', rotulo: 'com benefícios' },
     texto: 'O relatório de horas mostrou: eu estudava 3h por dia mas só 45min era produtivo. Ajustei minha rotina com base nos dados da plataforma. Português e Matemática são 40% da prova — gabaritei as duas. Isso fez toda diferença na classificação. Passei pra Química de Petróleo. Salário base R$ 6.636, com benefícios passa de R$ 10 mil.',
     estrelas: 5,
   },
   {
     nome: 'Mariana C.',
     cidade: 'Duque de Caxias, RJ',
+    resultado: { valor: 'Aprovada', rotulo: 'Técnica de Operação' },
     texto: 'Sou mãe e trabalho o dia todo. Só tinha a noite para estudar. Os flashcards foram perfeitos para revisar no pouco tempo livre. O ciclo de estudos me mostrou onde focar minha energia. Passei para Técnica de Operação. Meu filho agora diz que quer trabalhar na Petrobras também. Isso não tem preço.',
     estrelas: 5,
   },
@@ -283,8 +287,8 @@ async function handleLeadMagnet() {
     <div class="login-container">
       <div class="login-brand">
         <div class="brand-badge">🔥 Edital 2026</div>
-        <h1 class="brand-title">Petrobras<br>Técnico em Química</h1>
-        <p class="brand-subtitle">Cesgranrio • 1.000+ vagas previstas</p>
+        <h1 class="brand-title">De 38% a 82% de acerto<br>em 3 meses de ciclo certo</h1>
+        <p class="brand-subtitle">Técnico em Química Petrobras • Cesgranrio • 1.000+ vagas previstas</p>
         <div class="brand-highlight">
           <div class="highlight-item">
             <span class="highlight-value">R$ 6.638</span>
@@ -474,6 +478,10 @@ async function handleLeadMagnet() {
             <div class="depoimento-stars">
               <svg v-for="s in d.estrelas" :key="s" width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
             </div>
+            <div v-if="d.resultado" class="depoimento-resultado">
+              <span class="resultado-valor">{{ d.resultado.valor }}</span>
+              <span class="resultado-rotulo">{{ d.resultado.rotulo }}</span>
+            </div>
             <p class="depoimento-texto">"{{ d.texto }}"</p>
             <div class="depoimento-footer">
               <div class="depoimento-avatar">{{ d.nome.charAt(0) }}</div>
@@ -500,17 +508,17 @@ async function handleLeadMagnet() {
 
 <style scoped>
 .login-wrapper {
-  --c-brand-primary: #6366f1;
-  --c-brand-primary-dark: #4f46e5;
-  --c-brand-secondary: #06b6d4;
-  --c-brand-accent: #f59e0b;
-  --c-brand-accent-dark: #d97706;
-  --c-success: #10b981;
-  --c-error: #f87171;
+  --c-brand-primary: #d9743a;
+  --c-brand-primary-dark: #b5561f;
+  --c-brand-secondary: #4fa5a5;
+  --c-brand-accent: #e0ac4c;
+  --c-brand-accent-dark: #c98a1f;
+  --c-success: #5cb875;
+  --c-error: #e0765f;
   --c-text-light: rgba(255, 255, 255, 0.9);
   --c-text-medium: rgba(255, 255, 255, 0.75);
   --c-text-dark: rgba(255, 255, 255, 0.6);
-  --c-bg-main: #0a0c14;
+  --c-bg-main: #100d09;
   --c-bg-card: rgba(255, 255, 255, 0.08);
   --c-bg-input: rgba(255, 255, 255, 0.07);
   --c-border: rgba(255, 255, 255, 0.12);
@@ -1097,6 +1105,28 @@ async function handleLeadMagnet() {
   display: flex;
   gap: 2px;
   margin-bottom: 10px;
+}
+
+.depoimento-resultado {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.resultado-valor {
+  font-family: Georgia, 'Iowan Old Style', serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--c-brand-accent);
+}
+
+.resultado-rotulo {
+  font-size: 11px;
+  color: var(--c-text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .depoimento-texto {

@@ -11,7 +11,7 @@ const { progressoGeral, progressoMateria, itensConcluidos, totalItens, totalExer
 const { horasSemanaAtual, metaSemanaCss } = useHoras();
 const { simuladoStatus } = useSimulados();
 const { totalErros } = useErros();
-const { revisoesHoje } = useDiario();
+const { revisoesHoje, diasEstudoConsecutivos } = useDiario();
 const { cicloCompleto } = useCiclo();
 
 const conteudos = CONTEUDOS;
@@ -20,6 +20,14 @@ const metaHoras = META_HORAS_SEMANA;
 
 <template>
   <div>
+    <div v-if="diasEstudoConsecutivos > 0" class="streak-card">
+      <span class="streak-icone">🔥</span>
+      <div>
+        <div class="streak-numero">{{ diasEstudoConsecutivos }} {{ diasEstudoConsecutivos === 1 ? 'dia' : 'dias' }}</div>
+        <div class="streak-rotulo">de estudo consecutivo</div>
+      </div>
+    </div>
+
     <div class="grade-cartoes">
       <div class="cartao-stat verde">
         <div class="valor">{{ progressoGeral }}%</div>
@@ -40,20 +48,20 @@ const metaHoras = META_HORAS_SEMANA;
     </div>
 
     <div class="grade-cartoes">
-      <div class="cartao-stat" style="border-top-color:#8b5cf6;">
-        <div class="valor" style="font-size:20px;color:#8b5cf6;">{{ totalErros }}</div>
+      <div class="cartao-stat roxo compacto">
+        <div class="valor">{{ totalErros }}</div>
         <div class="rotulo">Erros no caderno</div>
       </div>
-      <div class="cartao-stat" style="border-top-color:#8b5cf6;">
-        <div class="valor" style="font-size:20px;color:#8b5cf6;">{{ cicloCompleto }}%</div>
+      <div class="cartao-stat roxo compacto">
+        <div class="valor">{{ cicloCompleto }}%</div>
         <div class="rotulo">Ciclo concluído</div>
       </div>
-      <div class="cartao-stat" style="border-top-color:#f59e0b;">
-        <div class="valor" style="font-size:20px;color:#f59e0b;">{{ totalExerciciosSugeridos }}</div>
+      <div class="cartao-stat laranja compacto">
+        <div class="valor">{{ totalExerciciosSugeridos }}</div>
         <div class="rotulo">Exercícios sugeridos</div>
       </div>
-      <div class="cartao-stat" :class="revisoesHoje.length > 0 ? 'vermelho' : 'verde'">
-        <div class="valor" style="font-size:20px;">{{ revisoesHoje.length }}</div>
+      <div class="cartao-stat compacto" :class="revisoesHoje.length > 0 ? 'vermelho' : 'verde'">
+        <div class="valor">{{ revisoesHoje.length }}</div>
         <div class="rotulo">Revisões hoje</div>
       </div>
     </div>
@@ -73,12 +81,42 @@ const metaHoras = META_HORAS_SEMANA;
 
     <div class="card">
       <div class="card-titulo">Resumo do Plano</div>
-      <div style="font-size:14px;line-height:1.8;color:var(--texto-sec);">
-        <strong style="color:var(--texto)">12 semanas</strong> de estudo ·
-        <strong style="color:var(--texto)">{{ metaHoras }}h/semana</strong> ·
-        <strong style="color:var(--texto)">60 questões</strong> (20 básicas eliminatórias + 40 específicas classificatórias)<br>
+      <p class="resumo-plano">
+        <strong>12 semanas</strong> de estudo ·
+        <strong>{{ metaHoras }}h/semana</strong> ·
+        <strong>60 questões</strong> (20 básicas eliminatórias + 40 específicas classificatórias)<br>
         Banca: <strong>Cesgranrio</strong> · Última prova referência: 2018
-      </div>
+      </p>
     </div>
   </div>
 </template>
+
+<style scoped>
+.streak-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.streak-icone { font-size: 30px; line-height: 1; }
+.streak-numero { font-family: var(--fonte-display); font-size: 24px; font-weight: 700; color: var(--primaria); }
+.streak-rotulo { font-size: 13px; color: var(--texto-sec); }
+
+.resumo-plano {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--texto-sec);
+}
+.resumo-plano strong { color: var(--texto); }
+
+@media (max-width: 480px) {
+  .streak-card { padding: 12px 16px; gap: 10px; }
+  .streak-icone { font-size: 24px; }
+  .streak-numero { font-size: 20px; }
+}
+</style>

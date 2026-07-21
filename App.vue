@@ -5,6 +5,7 @@ import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
 import ErrorBoundary from './ErrorBoundary.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
+import IconeNav from './IconeNav.vue';
 
 const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
 const Horas = defineAsyncComponent(() => import('./Horas.vue'));
@@ -248,19 +249,19 @@ const views = {
 };
 
 const navLinks = [
-  { view: 'dashboard', icon: '📊', text: 'Dashboard' },
-  { view: 'checklist', icon: '✅', text: 'Conteúdos' },
-  { view: 'ciclo', icon: '🔄', text: 'Ciclo' },
-  { view: 'horas', icon: '⏱', text: 'Horas' },
-  { view: 'simulados', icon: '📋', text: 'Simulados' },
-  { view: 'erros', icon: '📕', text: 'Erros' },
-  { view: 'flashcards', icon: '🃏', text: 'Flashcards' },
-  { view: 'diario', icon: '📌', text: 'Diário' },
-  { view: 'relatorio', icon: '📊', text: 'Relatório' },
-  { view: 'exercicios', icon: '📝', text: 'Questões' },
+  { view: 'dashboard', icon: 'dashboard', text: 'Dashboard' },
+  { view: 'checklist', icon: 'checklist', text: 'Conteúdos' },
+  { view: 'ciclo', icon: 'ciclo', text: 'Ciclo' },
+  { view: 'horas', icon: 'horas', text: 'Horas' },
+  { view: 'simulados', icon: 'simulados', text: 'Simulados' },
+  { view: 'erros', icon: 'erros', text: 'Erros' },
+  { view: 'flashcards', icon: 'flashcards', text: 'Flashcards' },
+  { view: 'diario', icon: 'diario', text: 'Diário' },
+  { view: 'relatorio', icon: 'relatorio', text: 'Relatório' },
+  { view: 'exercicios', icon: 'exercicios', text: 'Questões' },
 ];
 
-const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
+const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
 </script>
 
 <template>
@@ -283,29 +284,29 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
       </div>
       <nav class="sidebar-nav">
         <a v-for="link in navLinks" :key="link.view" :href="`#${link.view}`" class="nav-item" :class="{ ativa: view === link.view }" @click.prevent="irPara(link.view)">
-          <span class="icone">{{ link.icon }}</span> {{ link.text }}
-          <span v-if="featureBloqueada(link.view)" class="icone-lock">🔒</span>
+          <span class="icone"><IconeNav :nome="link.icon" /></span> {{ link.text }}
+          <span v-if="featureBloqueada(link.view)" class="icone-lock"><IconeNav nome="cadeado" /></span>
         </a>
-        <a v-if="usuarioAtual?.role === 'admin'" href="#admin" class="nav-item" :class="{ ativa: view === 'admin' }" @click.prevent="irPara('admin')" style="border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;padding-top:12px;">
-          <span class="icone">⚙️</span> Admin
-          <span v-if="featureBloqueada('admin')" class="icone-lock">🔒</span>
+        <a v-if="usuarioAtual?.role === 'admin'" href="#admin" class="nav-item nav-item-admin" :class="{ ativa: view === 'admin' }" @click.prevent="irPara('admin')">
+          <span class="icone"><IconeNav nome="admin" /></span> Admin
+          <span v-if="featureBloqueada('admin')" class="icone-lock"><IconeNav nome="cadeado" /></span>
         </a>
-        <div style="border-top:1px solid rgba(255,255,255,0.08);margin:8px 16px;"></div>
+        <div class="nav-divisor"></div>
         <a :href="`#${planoLink.view}`" class="nav-item" :class="{ ativa: view === planoLink.view }" @click.prevent="irPara(planoLink.view)">
-          <span class="icone">{{ planoLink.icon }}</span> {{ planoLink.text }}
+          <span class="icone"><IconeNav :nome="planoLink.icon" /></span> {{ planoLink.text }}
         </a>
       </nav>
-      <div style="padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.08);">
-        <div style="font-size:12px;color:var(--texto-sec);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-          <span style="opacity:0.7;">👤</span> {{ usuarioAtual?.nome || 'Usuário' }}
-          <span v-if="usuarioAtual?.role === 'admin'" style="font-size:10px;background:#f59e0b;color:#000;padding:1px 6px;border-radius:3px;font-weight:600;">ADM</span>
+      <div class="sidebar-rodape">
+        <div class="sidebar-usuario">
+          {{ usuarioAtual?.nome || 'Usuário' }}
+          <span v-if="usuarioAtual?.role === 'admin'" class="badge-adm">ADM</span>
         </div>
-        <button class="nav-item" @click="alternarTema" style="font-size:13px;">
-          <span class="icone">{{ tema === 'dark' ? '☀️' : '🌙' }}</span>
+        <button class="nav-item" @click="alternarTema">
+          <span class="icone"><IconeNav :nome="tema === 'dark' ? 'sol' : 'lua'" /></span>
           {{ tema === 'dark' ? 'Tema Claro' : 'Tema Escuro' }}
         </button>
-        <button class="nav-item" @click="logout" style="font-size:13px;margin-top:4px;color:var(--erro);">
-          <span class="icone">🚪</span> Sair
+        <button class="nav-item nav-item-sair" @click="logout">
+          <span class="icone"><IconeNav nome="sair" /></span> Sair
         </button>
       </div>
     </aside>
@@ -415,8 +416,48 @@ const planoLink = { view: 'plano', icon: '📖', text: 'Plano de Estudos' };
 
 .icone-lock {
   margin-left: auto;
-  font-size: 12px;
   opacity: 0.5;
+  width: 14px;
+  height: 14px;
+}
+
+.nav-item-admin {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.nav-divisor {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin: 8px 16px;
+}
+
+.sidebar-rodape {
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-usuario {
+  font-size: 12px;
+  color: var(--texto-sec);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-adm {
+  font-size: 10px;
+  background: var(--aviso);
+  color: #1a1305;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.nav-item-sair {
+  margin-top: 4px;
+  color: var(--erro);
 }
 
 .login-card-header {
