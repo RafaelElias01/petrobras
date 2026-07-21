@@ -46,8 +46,8 @@ jobs:
       - name: Sincronizar dist/
         run: rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/ ubuntu@163.176.163.213:/opt/petrobras/dist/
 
-      - name: Sincronizar server.js
-        run: scp -o StrictHostKeyChecking=no server.js ubuntu@163.176.163.213:/opt/petrobras/server.js
+      - name: Sincronizar server.js e módulos backend
+        run: scp -o StrictHostKeyChecking=no server.js dataLocal.js ubuntu@163.176.163.213:/opt/petrobras/
 
       - name: "Sincronizar package.json (deps: bcryptjs, helmet)"
         run: scp -o StrictHostKeyChecking=no package.json ubuntu@163.176.163.213:/opt/petrobras/package.json

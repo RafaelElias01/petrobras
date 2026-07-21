@@ -30,9 +30,11 @@ $SrcDist = Join-Path $PSScriptRoot "dist"
 & rsync -avz --delete -e "ssh -i $Key" "$SrcDist/" "${User}@${Hostname}:${RemotePath}/dist/"
 if ($LASTEXITCODE -ne 0) { throw "rsync dist/ falhou" }
 
-# Sincroniza server.js
-& scp -i "$Key" -q "$PSScriptRoot/server.js" "${User}@${Hostname}:${RemotePath}/server.js"
-if ($LASTEXITCODE -ne 0) { throw "scp server.js falhou" }
+# Sincroniza server.js e módulos backend importados por ele (ex: dataLocal.js).
+# Se um novo módulo .js for adicionado na raiz e importado por server.js,
+# precisa ser listado aqui também -- scp não segue imports automaticamente.
+& scp -i "$Key" -q "$PSScriptRoot/server.js" "$PSScriptRoot/dataLocal.js" "${User}@${Hostname}:${RemotePath}/"
+if ($LASTEXITCODE -ne 0) { throw "scp server.js/dataLocal.js falhou" }
 
 # Sincroniza planos/ (mesmo caminho remoto usado pelo workflow deploy-vm.yml,
 # para nao divergir do build servido pelo server.js)
