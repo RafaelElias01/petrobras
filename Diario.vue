@@ -221,7 +221,7 @@ function formatarHoras(h) {
   transition: background var(--transicao);
 }
 .item-log:hover {
-  background: #e8ecf1;
+  background: var(--fundo-sec);
 }
 .log-icone { display: inline-flex; width: 17px; height: 17px; flex-shrink: 0; }
 .log-nome { flex: 1; font-size: 14px; font-weight: 500; }
@@ -368,6 +368,10 @@ function formatarHoras(h) {
   background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
   border: 1px solid #e0e7ff;
   border-radius: 10px;
+}
+[data-tema="dark"] .ciclo-sugestao {
+  background: linear-gradient(135deg, #241f38 0%, #2b2138 100%);
+  border-color: #3a3350;
 }
 .ciclo-sugestao-icone { font-size: 24px; }
 .ciclo-sugestao-info {

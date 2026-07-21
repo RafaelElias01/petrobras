@@ -598,10 +598,10 @@ onMounted(() => {
 .box-indicator.box-4 { background: #ede9fe; color: #5b21b6; }
 .box-indicator.box-5 { background: #10b981; color: #fff; }
 
-[data-tema="dark"] .box-indicator.box-1 { background: rgba(251,191,36,0.15); }
-[data-tema="dark"] .box-indicator.box-2 { background: rgba(59,130,246,0.15); }
-[data-tema="dark"] .box-indicator.box-3 { background: rgba(99,102,241,0.15); }
-[data-tema="dark"] .box-indicator.box-4 { background: rgba(139,92,246,0.15); }
+[data-tema="dark"] .box-indicator.box-1 { background: rgba(251,191,36,0.15); color: #fbbf24; }
+[data-tema="dark"] .box-indicator.box-2 { background: rgba(59,130,246,0.15); color: #60a5fa; }
+[data-tema="dark"] .box-indicator.box-3 { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+[data-tema="dark"] .box-indicator.box-4 { background: rgba(139,92,246,0.15); color: #c4b5fd; }
 
 .review-info {
   font-size: 12px;

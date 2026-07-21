@@ -221,6 +221,10 @@ const {
   font-size: 13px;
   color: #92400e;
 }
+[data-tema="dark"] .tactic-box {
+  background: rgba(224,172,76,0.12);
+  color: var(--texto);
+}
 
 @media (max-width: 1024px) {
   .metodologia-grid {
