@@ -2,11 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useAdmin } from './useAdmin.js';
 
-<<<<<<< HEAD
-const props = defineProps({ usuarioLogado: String, token: String });
-=======
 const props = defineProps({ usuarioLogado: String, token: { type: String, default: '' } });
->>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
 
 const {
   usuarios, editandoUsuario, carregando, erro, totalUsuarios, admins, usuariosComuns,

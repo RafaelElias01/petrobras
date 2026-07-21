@@ -224,24 +224,6 @@ async function handleRegister() {
       } catch {}
     }
 
-<<<<<<< HEAD
-    try {
-      const lista = await carregarUsuarios();
-      const senhaHash = await hashPassword(senhaDigitada.value);
-      lista.push({
-        usuario: usuarioDigitado.value.trim(),
-        nome: nomeCadastro.value.trim(),
-        email: emailCadastro.value.trim(),
-        senhaHash,
-        role: 'user',
-      });
-      await salvarUsuarios(lista);
-    } catch (e) {
-      console.error("Falha ao espelhar usuário localmente", e);
-    }
-
-=======
->>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
     cadastroCarregando.value = false;
     cadastroSucesso.value = `Conta criada com sucesso! Seja bem-vindo, ${nomeCadastro.value.trim()}. Entrando no dashboard...`;
     cadastroTimeout = setTimeout(() => {

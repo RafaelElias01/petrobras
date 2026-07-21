@@ -79,7 +79,6 @@ describe('POST /api/auth/login', () => {
   });
 });
 
-<<<<<<< HEAD
 describe('POST /api/premium/confirmar (removido)', () => {
   it('rota não existe mais -- ativar premium sem passar pelo Mercado Pago era um bypass de pagamento', async () => {
     // Endpoint antigo do fluxo de PIX manual: ativava premium só com o
@@ -89,7 +88,13 @@ describe('POST /api/premium/confirmar (removido)', () => {
     // continuou exposto e funcional -- qualquer usuário logado podia
     // ativar premium de graça chamando a rota direto. Removido.
     await request(app)
-=======
+      .post('/api/auth/register')
+      .send({ usuario: 'outrouser', nome: 'Outro', email: 'outro@ex.com', senha: '123456' });
+    const res = await request(app).post('/api/premium/confirmar').send({ usuario: 'fulano' });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('/api/admin/usuarios', () => {
   let tokenComum, tokenAdmin;
 
@@ -190,27 +195,6 @@ describe('/api/admin/usuarios', () => {
       const salvo = JSON.parse(fs.readFileSync(process.env.USUARIOS_PATH, 'utf-8'));
       expect(salvo.find(u => u.usuario === 'criadopelopainel')).toBeUndefined();
     });
-  });
-});
-
-describe('POST /api/premium/confirmar', () => {
-  it('bloqueia sem token', async () => {
-    const res = await request(app).post('/api/premium/confirmar').send({ usuario: 'fulano' });
-    expect(res.status).toBe(401);
-  });
-
-  it('bloqueia token de um usuário tentando confirmar premium de outro', async () => {
-    const outro = await request(app)
->>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
-      .post('/api/auth/register')
-      .send({ usuario: 'outrouser', nome: 'Outro', email: 'outro@ex.com', senha: '123456' });
-    const res = await request(app).post('/api/premium/confirmar').send({ usuario: 'fulano' });
-    expect(res.status).toBe(404);
-  });
-
-  it('login passa a refletir premium:true depois da ativação', async () => {
-    const login = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
-    expect(login.body.user).toMatchObject({ usuario: 'fulano', premium: true });
   });
 });
 

@@ -5,10 +5,7 @@ import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
 import ErrorBoundary from './ErrorBoundary.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
-<<<<<<< HEAD
 import IconeNav from './IconeNav.vue';
-=======
->>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
 
 const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
 const Horas = defineAsyncComponent(() => import('./Horas.vue'));

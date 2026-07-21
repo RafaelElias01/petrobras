@@ -41,17 +41,12 @@ export function useAdmin() {
         erro.value = data.erro || 'Erro ao carregar usuários';
         return;
       }
-<<<<<<< HEAD
-    } else {
-      usuarios.value = await getDefaultUsuarios();
-=======
       usuarios.value = data;
       carregado.value = true;
     } catch (e) {
       erro.value = 'Erro de conexão com o servidor';
     } finally {
       carregando.value = false;
->>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
     }
   }
 
