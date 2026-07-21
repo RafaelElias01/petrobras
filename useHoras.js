@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
 import { DIAS_SEMANA, SEMANAS_PLANO, META_HORAS_SEMANA, META_HORAS_DIA, CONTEUDOS } from './dados.js';
+import { hojeLocalISO } from './dataLocal.js';
 
 let instance;
 
@@ -75,15 +76,13 @@ export function useHoras() {
 
   const totalMeta = computed(() => SEMANAS_PLANO * META_HORAS_SEMANA);
 
-  const hoje = new Date().toISOString().slice(0, 10);
-
   const totalHoje = computed(() => {
-    const registros = horas.value[hoje] || {};
+    const registros = horas.value[hojeLocalISO()] || {};
     return Object.values(registros).reduce((acc, v) => acc + v, 0);
   });
 
   const registrosHoje = computed(() => {
-    const registros = horas.value[hoje] || {};
+    const registros = horas.value[hojeLocalISO()] || {};
     return Object.keys(registros)
       .filter(id => registros[id] > 0)
       .map(id => {

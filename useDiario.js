@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
 import { REVISAO_INTERVALOS } from './dados.js';
+import { hojeLocalISO } from './dataLocal.js';
 
 let instance;
 
@@ -10,12 +11,6 @@ export function useDiario() {
   }
 
   const diario = ref(Armazenamento.carregar('diario', {}));
-
-  function hojeLocalISO() {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 10);
-  }
 
   const diarioData = ref(hojeLocalISO());
 

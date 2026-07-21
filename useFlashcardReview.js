@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue';
+import { hojeLocalISO } from './dataLocal.js';
 
 export function useFlashcardReview(flashcards, cardsParaRevisar) {
   const modoRevisao = ref(false);
@@ -57,7 +58,7 @@ export function useFlashcardReview(flashcards, cardsParaRevisar) {
 
     if (acertou) card.box = Math.min((card.box || 1) + 1, 5);
     else card.box = 1;
-    card.lastReviewed = new Date().toISOString().slice(0, 10);
+    card.lastReviewed = hojeLocalISO();
 
     const original = flashcards.value.find(f => f.id === card.id);
     if (original) Object.assign(original, { box: card.box, lastReviewed: card.lastReviewed });

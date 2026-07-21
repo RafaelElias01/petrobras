@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
 import { CONTEUDOS } from './dados.js';
+import { hojeLocalISO } from './dataLocal.js';
 
 let instance;
 
@@ -59,7 +60,7 @@ export function useErros() {
   });
 
   function novoErro() {
-    editandoErro.value = { id: Date.now(), data: new Date().toISOString().slice(0, 10), materia: '', topico: '', questao: '', pensamento: '', respostaCorreta: '', lacuna: '', classificacao: 'A', revisado: false, revisaoD7: null, revisaoD30: null };
+    editandoErro.value = { id: Date.now(), data: hojeLocalISO(), materia: '', topico: '', questao: '', pensamento: '', respostaCorreta: '', lacuna: '', classificacao: 'A', revisado: false, revisaoD7: null, revisaoD30: null };
   }
 
   function salvarErro() {
@@ -82,8 +83,8 @@ export function useErros() {
   function registrarRevisao(id, prazo) {
     const e = erros.value.find(e => e.id === id);
     if (!e) return;
-    if (prazo === 7) e.revisaoD7 = { data: new Date().toISOString().slice(0, 10), acertou: false };
-    if (prazo === 30) e.revisaoD30 = { data: new Date().toISOString().slice(0, 10), acertou: false };
+    if (prazo === 7) e.revisaoD7 = { data: hojeLocalISO(), acertou: false };
+    if (prazo === 30) e.revisaoD30 = { data: hojeLocalISO(), acertou: false };
   }
 
   function marcarRevisaoAcertou(id, prazo) {

@@ -10,6 +10,7 @@ import {
   META_HORAS_SEMANA, META_HORAS_DIA,
   mapCicloParaMateriaId
 } from './dados.js';
+import { dataLocalISO } from './dataLocal.js';
 
 export function useRelatorio() {
   const checklist = useChecklist();
@@ -73,7 +74,7 @@ export function useRelatorio() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date(hoje);
       d.setDate(d.getDate() - i);
-      const dataStr = d.toISOString().slice(0, 10);
+      const dataStr = dataLocalISO(d);
       const registros = horas.horas.value[dataStr] || {};
       const total = Object.values(registros).reduce((acc, v) => acc + v, 0);
       const nomes = Object.keys(registros)

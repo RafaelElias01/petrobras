@@ -3,6 +3,7 @@ import { useDiario } from './useDiario.js';
 import { useCiclo } from './useCiclo.js';
 import { useHoras } from './useHoras.js';
 import { CONTEUDOS, CICLO_MAP, mapCicloParaMateriaId } from './dados.js';
+import { hojeLocalISO } from './dataLocal.js';
 import { ref } from 'vue';
 import IconeNav from './IconeNav.vue';
 
@@ -17,7 +18,7 @@ const {
   adicionarHoras, removerMateria, META_HORAS_DIA
 } = useHoras();
 
-const hoje = new Date().toISOString().slice(0, 10);
+const hoje = hojeLocalISO();
 
 function navegarPara(view) {
   window.dispatchEvent(new CustomEvent('navegar', { detail: view }));
