@@ -460,6 +460,11 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
 }
 
 .overlay-card {
+  /* PremiumCheckout.vue tem texto claro fixo (herdado do fundo sempre-escuro
+     de Login.vue) -- aqui o fundo é var(--card), que muda com o tema, então
+     sobrescreve o texto do checkout pras cores reais do tema atual. */
+  --premium-texto: var(--texto);
+  --premium-texto-sec: var(--texto-sec);
   background: color-mix(in srgb, var(--card) 85%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

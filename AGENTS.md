@@ -1,5 +1,7 @@
 # Memorias do Projeto - Estudo Petrobras
 
+> **LEITURA OBRIGATORIA ANTES DE QUALQUER TRABALHO**: [`LIVRO_DE_ERROS.md`](./LIVRO_DE_ERROS.md) — registro numerado de todo erro real ja encontrado neste projeto (causa raiz + regra pra nunca repetir). Ler antes de mexer em qualquer area do codigo.
+
 ## Arquitetura (para tomada de decisao)
 
 ```

@@ -77,7 +77,7 @@ async function pagarComMercadoPago() {
   border-radius: 50%;
   border: none;
   background: rgba(255,255,255,0.15);
-  color: #fff;
+  color: var(--premium-texto, #fff);
   font-size: 16px;
   cursor: pointer;
   display: flex;
@@ -92,19 +92,19 @@ async function pagarComMercadoPago() {
 .premium-valor {
   font-size: 22px;
   font-weight: 700;
-  color: #fff;
+  color: var(--premium-texto, #fff);
   margin-bottom: 6px;
 }
 
 .premium-sub {
   font-size: 13px;
-  color: rgba(255,255,255,0.7);
+  color: var(--premium-texto-sec, rgba(255,255,255,0.7));
   margin-bottom: 20px;
 }
 
 .pix-help {
   font-size: 13px;
-  color: rgba(255,255,255,0.8);
+  color: var(--premium-texto-sec, rgba(255,255,255,0.8));
   margin-bottom: 12px;
   line-height: 1.5;
 }
@@ -151,7 +151,7 @@ async function pagarComMercadoPago() {
 .btn-voltar {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.75);
+  color: var(--premium-texto-sec, rgba(255,255,255,0.75));
   font-size: 13px;
   cursor: pointer;
   margin-top: 16px;
@@ -162,7 +162,7 @@ async function pagarComMercadoPago() {
   font-family: inherit;
 }
 .btn-voltar:hover {
-  color: #fff;
+  color: var(--premium-texto, #fff);
 }
 
 @media (max-width: 768px) {
