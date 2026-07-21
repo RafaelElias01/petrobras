@@ -348,7 +348,13 @@ function assinaturaWebhookValida(req) {
   if (!ts || !v1) return false;
   const manifest = `id:${String(dataId).toLowerCase()};request-id:${requestId};ts:${ts};`;
   const hashEsperado = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(hashEsperado), Buffer.from(v1));
+  // timingSafeEqual exige buffers do mesmo tamanho -- uma assinatura forjada
+  // com tamanho diferente do hash real lançaria RangeError aqui, derrubando
+  // o endpoint com 500 em vez de simplesmente rejeitar como assinatura inválida.
+  const bufEsperado = Buffer.from(hashEsperado);
+  const bufRecebido = Buffer.from(v1);
+  if (bufEsperado.length !== bufRecebido.length) return false;
+  return crypto.timingSafeEqual(bufEsperado, bufRecebido);
 }
 
 app.post('/api/premium/webhook', express.json(), async (req, res) => {
