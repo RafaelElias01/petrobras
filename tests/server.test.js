@@ -195,6 +195,32 @@ describe('/api/admin/usuarios', () => {
       const salvo = JSON.parse(fs.readFileSync(process.env.USUARIOS_PATH, 'utf-8'));
       expect(salvo.find(u => u.usuario === 'criadopelopainel')).toBeUndefined();
     });
+
+    it('bloqueia rebaixar o último admin restante', async () => {
+      // Neste ponto 'chefe' é o único admin.
+      await request(app)
+        .post('/api/auth/register')
+        .send({ usuario: 'outroadmin', nome: 'Outro Admin', email: 'outroadmin@ex.com', senha: '123456' });
+      const promove = await request(app)
+        .put('/api/admin/usuarios/outroadmin')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ role: 'admin' });
+      expect(promove.status).toBe(200);
+
+      // Agora existem 2 admins ('chefe' e 'outroadmin') -- rebaixar um é permitido.
+      const rebaixaOk = await request(app)
+        .put('/api/admin/usuarios/outroadmin')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ role: 'user' });
+      expect(rebaixaOk.status).toBe(200);
+
+      // 'chefe' voltou a ser o único admin -- rebaixar ou remover agora é bloqueado.
+      const rebaixaBloqueada = await request(app)
+        .put('/api/admin/usuarios/chefe')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ role: 'user' });
+      expect(rebaixaBloqueada.status).toBe(400);
+    });
   });
 });
 

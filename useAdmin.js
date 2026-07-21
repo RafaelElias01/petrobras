@@ -62,7 +62,7 @@ export function useAdmin() {
     const u = { ...(dados || editandoUsuario.value) };
     if (!u.usuario || !u.nome) return;
     erro.value = '';
-    const existente = usuarios.value.find(ex => ex.usuario === u.usuario);
+    const existente = usuarios.value.find(ex => ex.usuario.toLowerCase() === u.usuario.toLowerCase());
     try {
       let res, data;
       if (existente) {

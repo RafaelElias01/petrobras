@@ -297,11 +297,12 @@ app.post('/api/admin/usuarios', (req, res) => {
   if (!usuario || typeof usuario !== 'string' || usuario.length < 3) return res.status(400).json({ erro: 'Usuário inválido (mín. 3 caracteres)' });
   if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório (mín. 2 caracteres)' });
   if (!senha || typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
+  const usuarioNormalizado = usuario.toLowerCase();
   const roleFinal = role === 'admin' ? 'admin' : 'user';
   const usuarios = lerUsuarios();
-  if (usuarios.find(u => u.usuario === usuario)) return res.status(409).json({ erro: 'Usuário já existe' });
+  if (usuarios.find(u => u.usuario.toLowerCase() === usuarioNormalizado)) return res.status(409).json({ erro: 'Usuário já existe' });
   const senhaHash = bcrypt.hashSync(senha, 10);
-  const novo = { usuario, nome, email: '', senhaHash, role: roleFinal, premium: false, criadoEm: new Date().toISOString() };
+  const novo = { usuario: usuarioNormalizado, nome, email: '', senhaHash, role: roleFinal, premium: false, criadoEm: new Date().toISOString() };
   usuarios.push(novo);
   salvarUsuarios(usuarios);
   res.json(semSenhaHash(novo));
@@ -319,7 +320,14 @@ app.put('/api/admin/usuarios/:usuario', (req, res) => {
     usuarios[idx].nome = nome;
   }
   if (role !== undefined) {
-    usuarios[idx].role = role === 'admin' ? 'admin' : 'user';
+    const roleFinal = role === 'admin' ? 'admin' : 'user';
+    // Impede deixar o sistema sem nenhum admin (ex: rebaixar por engano o
+    // único admin restante, sem forma de reverter pela própria interface).
+    if (usuarios[idx].role === 'admin' && roleFinal !== 'admin') {
+      const totalAdmins = usuarios.filter(u => u.role === 'admin').length;
+      if (totalAdmins <= 1) return res.status(400).json({ erro: 'Não é possível remover o último administrador' });
+    }
+    usuarios[idx].role = roleFinal;
   }
   if (senha) {
     if (typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
@@ -335,8 +343,11 @@ app.delete('/api/admin/usuarios/:usuario', (req, res) => {
   const { usuario } = req.params;
   if (usuario === admin.usuario) return res.status(400).json({ erro: 'Não é possível remover o próprio usuário' });
   const usuarios = lerUsuarios();
-  const existe = usuarios.some(u => u.usuario === usuario);
-  if (!existe) return res.status(404).json({ erro: 'Usuário não encontrado' });
+  const alvo = usuarios.find(u => u.usuario === usuario);
+  if (!alvo) return res.status(404).json({ erro: 'Usuário não encontrado' });
+  if (alvo.role === 'admin' && usuarios.filter(u => u.role === 'admin').length <= 1) {
+    return res.status(400).json({ erro: 'Não é possível remover o último administrador' });
+  }
   salvarUsuarios(usuarios.filter(u => u.usuario !== usuario));
   res.json({ ok: true });
 });
@@ -470,9 +481,11 @@ app.post('/api/premium/webhook', express.json(), async (req, res) => {
   try {
     const payment = new Payment(mpClient);
     const info = await payment.get({ id: paymentId });
-    if (info.status === 'approved' && info.external_reference) {
+    if (info.status === 'approved' && info.external_reference && info.transaction_amount >= PREMIUM_PRECO) {
       const ativou = ativarPremium(info.external_reference);
       console.log(`Webhook Mercado Pago: pagamento ${paymentId} aprovado, premium ${ativou ? 'ativado' : 'usuario nao encontrado'} p/ ${info.external_reference}.`);
+    } else if (info.status === 'approved' && info.transaction_amount < PREMIUM_PRECO) {
+      console.warn(`Webhook Mercado Pago: pagamento ${paymentId} aprovado mas com valor abaixo do esperado (${info.transaction_amount} < ${PREMIUM_PRECO}), premium NAO ativado.`);
     }
   } catch (e) {
     console.error('Erro ao processar webhook Mercado Pago:', e);

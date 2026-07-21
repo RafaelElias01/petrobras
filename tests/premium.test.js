@@ -26,10 +26,14 @@ vi.mock('mercadopago', () => {
       // Pagamento "aprovado" para qualquer id que comece com "aprovado-",
       // simulando o retorno real da API do Mercado Pago para um pagamento
       // Premium concluído com sucesso.
-      if (String(id).startsWith('aprovado-')) {
-        return { id, status: 'approved', external_reference: global.__mp_test_usuario };
+      if (String(id).startsWith('aprovado-barato-')) {
+        // Simula um pagamento aprovado, mas com valor abaixo do preço do Premium.
+        return { id, status: 'approved', transaction_amount: 1.00, external_reference: global.__mp_test_usuario };
       }
-      return { id, status: 'pending', external_reference: global.__mp_test_usuario };
+      if (String(id).startsWith('aprovado-')) {
+        return { id, status: 'approved', transaction_amount: 49.90, external_reference: global.__mp_test_usuario };
+      }
+      return { id, status: 'pending', transaction_amount: 49.90, external_reference: global.__mp_test_usuario };
     }
   }
   return { MercadoPagoConfig, Preference, Payment };
@@ -122,6 +126,28 @@ describe('Fluxo real de assinatura Premium (com Mercado Pago mockado)', () => {
       .get('/api/premium/status/premiumuser')
       .set('Authorization', `Bearer ${login.body.token}`);
     expect(status.body.premium).toBe(true);
+  });
+
+  it('pagamento aprovado com valor abaixo do preço do Premium NÃO ativa o premium', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ usuario: 'baratouser', nome: 'Barato User', email: 'barato@ex.com', senha: '123456' });
+    global.__mp_test_usuario = 'baratouser';
+
+    const dataId = 'aprovado-barato-1';
+    const { header, requestId } = assinarWebhook(dataId);
+    const res = await request(app)
+      .post(`/api/premium/webhook?data.id=${dataId}`)
+      .set('x-signature', header)
+      .set('x-request-id', requestId)
+      .send({});
+    expect(res.status).toBe(200);
+
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'baratouser', senha: '123456' });
+    const status = await request(app)
+      .get('/api/premium/status/baratouser')
+      .set('Authorization', `Bearer ${login.body.token}`);
+    expect(status.body.premium).toBe(false);
   });
 
   it('pagamento pendente (não aprovado) NÃO ativa o premium', async () => {
