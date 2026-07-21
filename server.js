@@ -26,16 +26,17 @@ if (!mpClient) {
   console.warn('MP_ACCESS_TOKEN nao configurado: checkout Mercado Pago desativado.');
 }
 
-// Segurança de cabeçalhos. CSP espelha as fontes já usadas no index.html
-// (Google Analytics + Facebook Pixel + inline). Não apertar sem testar produção.
+// Segurança de cabeçalhos. GA4/Facebook Pixel removidos do index.html (IDs
+// placeholder) — CSP não referencia mais esses domínios. Reativar aqui
+// junto com o index.html quando houver IDs reais.
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", 'https://www.google-analytics.com', 'https://www.googletagmanager.com', 'https://connect.facebook.net'],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com', 'https://connect.facebook.net'],
+      connectSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https://www.facebook.com', 'https://www.google-analytics.com'],
+      imgSrc: ["'self'", 'data:'],
       frameSrc: ["'self'", 'https://www.mercadopago.com.br', 'https://www.mercadopago.com'],
     },
   },
