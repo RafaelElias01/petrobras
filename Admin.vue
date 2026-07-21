@@ -13,6 +13,13 @@ const {
 const visitas = ref([]);
 const totalVisitas = ref(0);
 const visitasHoje = ref(0);
+const visitantesUnicos = ref(0);
+const visitasPorDia = ref([]);
+const visitasPorPagina = ref([]);
+
+const filtroData = ref('');
+const filtroUsuario = ref('');
+const filtroIp = ref('');
 
 async function carregarVisitas() {
   try {
@@ -21,8 +28,11 @@ async function carregarVisitas() {
     });
     if (!r.ok) return;
     const data = await r.json();
-    totalVisitas.value = Math.max(32, data.total);
-    visitasHoje.value = Math.max(32, data.hoje);
+    totalVisitas.value = data.total;
+    visitasHoje.value = data.hoje;
+    visitantesUnicos.value = data.unicos || 0;
+    visitasPorDia.value = data.porDia || [];
+    visitasPorPagina.value = data.porPagina || [];
     visitas.value = data.visitas || [];
   } catch {}
 }
@@ -30,6 +40,27 @@ async function carregarVisitas() {
 onMounted(() => {
   carregarVisitas();
 });
+
+const visitasFiltradas = computed(() => {
+  return visitas.value.filter(v => {
+    if (filtroData.value && v.data !== filtroData.value) return false;
+    if (filtroUsuario.value && !v.usuario.toLowerCase().includes(filtroUsuario.value.toLowerCase())) return false;
+    if (filtroIp.value && !String(v.ip || '').includes(filtroIp.value)) return false;
+    return true;
+  });
+});
+
+const maxVisitasDia = computed(() => Math.max(1, ...visitasPorDia.value.map(d => d.total)));
+
+const NOMES_PAGINA = {
+  dashboard: 'Dashboard', checklist: 'Conteúdos', ciclo: 'Ciclo de Estudos',
+  horas: 'Quadro de Horas', simulados: 'Simulados', erros: 'Caderno de Erros',
+  flashcards: 'Flashcards', diario: 'Diário', relatorio: 'Relatório',
+  exercicios: 'Exercícios', plano: 'Plano', admin: 'Admin'
+};
+function nomePagina(p) {
+  return NOMES_PAGINA[p] || p;
+}
 
 const formUsuario = ref('');
 const formNome = ref('');
@@ -127,29 +158,71 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
         <div class="valor">{{ visitasHoje }}</div>
         <div class="rotulo">Visitas hoje</div>
       </div>
+      <div class="cartao-stat roxo">
+        <div class="valor">{{ visitantesUnicos }}</div>
+        <div class="rotulo">Visitantes únicos</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-titulo">📈 Visitas por dia (últimos 30 dias)</div>
+      <div class="grafico-visitas" v-if="visitasPorDia.length">
+        <div class="grafico-barra-wrap" v-for="d in visitasPorDia" :key="d.data" :title="`${d.data}: ${d.total} visita(s)`">
+          <div class="grafico-barra" :style="{ height: (d.total / maxVisitasDia * 100) + '%' }"></div>
+          <span class="grafico-label">{{ d.data.slice(5) }}</span>
+        </div>
+      </div>
+      <p v-else class="empty-cell">Sem dados suficientes ainda.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-titulo">📄 Visitas por página</div>
+      <div class="tabela-wrapper">
+        <table class="admin-table admin-table-sm">
+          <thead>
+            <tr><th>Página</th><th>Visitas</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in visitasPorPagina" :key="p.pagina">
+              <td>{{ nomePagina(p.pagina) }}</td>
+              <td>{{ p.total }}</td>
+            </tr>
+            <tr v-if="visitasPorPagina.length === 0">
+              <td colspan="2" class="empty-cell">Nenhuma visita registrada ainda.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card">
       <div class="card-titulo">📊 Últimas Visitas</div>
+      <div class="filtros-visitas">
+        <input type="date" v-model="filtroData" class="admin-input" placeholder="Data">
+        <input type="text" v-model="filtroUsuario" class="admin-input" placeholder="Filtrar por usuário">
+        <input type="text" v-model="filtroIp" class="admin-input" placeholder="Filtrar por IP">
+      </div>
       <div class="tabela-wrapper">
         <table class="admin-table admin-table-sm">
           <thead>
             <tr>
               <th>Usuário</th>
+              <th>Página</th>
               <th>IP</th>
               <th>Data</th>
               <th>Hora</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="v in visitas" :key="v.timestamp">
+            <tr v-for="v in visitasFiltradas" :key="v.timestamp">
               <td>{{ v.usuario }}</td>
+              <td>{{ nomePagina(v.pagina) }}</td>
               <td class="cell-ip">{{ v.ip || '-' }}</td>
               <td>{{ v.data }}</td>
               <td>{{ v.hora }}</td>
             </tr>
-            <tr v-if="visitas.length === 0">
-              <td colspan="4" class="empty-cell">Nenhuma visita registrada ainda.</td>
+            <tr v-if="visitasFiltradas.length === 0">
+              <td colspan="5" class="empty-cell">Nenhuma visita encontrada.</td>
             </tr>
           </tbody>
         </table>
@@ -267,6 +340,54 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
   padding: 20px;
   text-align: center;
   color: var(--texto-sec);
+}
+
+.grafico-visitas {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 140px;
+  padding: 8px 4px 0;
+  overflow-x: auto;
+}
+.grafico-barra-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 18px;
+  flex: 1;
+  height: 100%;
+  cursor: default;
+}
+.grafico-barra {
+  width: 100%;
+  min-height: 2px;
+  background: var(--primaria);
+  border-radius: 3px 3px 0 0;
+  transition: background 0.15s;
+}
+.grafico-barra-wrap:hover .grafico-barra {
+  background: var(--primaria-hover);
+}
+.grafico-label {
+  font-size: 10px;
+  color: var(--texto-sec);
+  margin-top: 6px;
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+}
+
+.filtros-visitas {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.filtros-visitas .admin-input {
+  width: auto;
+  min-width: 160px;
+  flex: 1;
 }
 
 .role-badge {

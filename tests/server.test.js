@@ -261,4 +261,20 @@ describe('POST /api/visitas', () => {
     expect(get.body.visitas.find(v => v.usuario === 'outrouser')).toBeTruthy();
     expect(get.body.visitas.find(v => v.usuario === 'usuario-forjado')).toBeFalsy();
   });
+
+  it('registra a página válida enviada e cai em "dashboard" para valores inválidos', async () => {
+    await request(app).post('/api/visitas').send({ pagina: 'flashcards' });
+    await request(app).post('/api/visitas').send({ pagina: 'pagina-que-nao-existe' });
+
+    const adminLogin = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
+    const get = await request(app)
+      .get('/api/visitas')
+      .set('Authorization', `Bearer ${adminLogin.body.token}`);
+
+    expect(get.body.visitas.some(v => v.pagina === 'flashcards')).toBe(true);
+    expect(get.body.visitas.some(v => v.pagina === 'pagina-que-nao-existe')).toBe(false);
+    expect(Array.isArray(get.body.porDia)).toBe(true);
+    expect(Array.isArray(get.body.porPagina)).toBe(true);
+    expect(typeof get.body.unicos).toBe('number');
+  });
 });

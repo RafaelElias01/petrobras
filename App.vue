@@ -89,7 +89,7 @@ async function registrarVisita() {
     await fetch('/api/visitas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usuario })
+      body: JSON.stringify({ usuario, pagina: view.value })
     });
     visitaRegistrada.value = true;
   } catch {}

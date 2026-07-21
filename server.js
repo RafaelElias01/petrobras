@@ -415,16 +415,24 @@ function salvarVisitas(data) {
   }
 }
 
+const PAGINAS_VALIDAS = new Set([
+  'dashboard', 'checklist', 'ciclo', 'horas', 'simulados', 'erros',
+  'flashcards', 'diario', 'relatorio', 'exercicios', 'plano', 'admin'
+]);
+
 app.post('/api/visitas', (req, res) => {
   // Nunca confia no campo `usuario` vindo do body (input do client, fácil de
   // forjar). Se houver um token válido, usa o usuário autenticado; senão,
   // registra como visitante anônimo.
   const usuario = usuarioDoToken(req) || 'anônimo';
   const ip = req.ip || 'desconhecido';
+  const paginaBruta = typeof req.body?.pagina === 'string' ? req.body.pagina : '';
+  const pagina = PAGINAS_VALIDAS.has(paginaBruta) ? paginaBruta : 'dashboard';
   const visitas = lerVisitas();
   visitas.push({
     usuario,
     ip,
+    pagina,
     data: new Date().toISOString().split('T')[0],
     hora: new Date().toTimeString().split(' ')[0],
     timestamp: Date.now()
@@ -443,8 +451,35 @@ app.get('/api/visitas', (req, res) => {
   const visitas = lerVisitas();
   const total = visitas.length;
   const hoje = new Date().toISOString().split('T')[0];
+  const unicos = new Set(visitas.map(v => v.usuario === 'anônimo' ? `ip:${v.ip}` : `u:${v.usuario}`)).size;
+
+  const porDiaMap = new Map();
+  for (const v of visitas) {
+    porDiaMap.set(v.data, (porDiaMap.get(v.data) || 0) + 1);
+  }
+  const porDia = Array.from(porDiaMap.entries())
+    .map(([data, total]) => ({ data, total }))
+    .sort((a, b) => a.data.localeCompare(b.data))
+    .slice(-30);
+
+  const porPaginaMap = new Map();
+  for (const v of visitas) {
+    const p = v.pagina || 'dashboard';
+    porPaginaMap.set(p, (porPaginaMap.get(p) || 0) + 1);
+  }
+  const porPagina = Array.from(porPaginaMap.entries())
+    .map(([pagina, total]) => ({ pagina, total }))
+    .sort((a, b) => b.total - a.total);
+
   visitas.reverse();
-  res.json({ total, hoje: visitas.filter(v => v.data === hoje).length, visitas: visitas.slice(0, 100) });
+  res.json({
+    total,
+    hoje: visitas.filter(v => v.data === hoje).length,
+    unicos,
+    porDia,
+    porPagina,
+    visitas: visitas.slice(0, 200)
+  });
 });
 
 app.get('/api/planos', (req, res) => {
