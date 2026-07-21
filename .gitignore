@@ -16,3 +16,9 @@ ssh-key-*.key
 # Dados de usuarios / PII (senhas plaintext, emails) — NUNCA commitar
 dados/usuarios.json
 dados/newsletter.json
+
+# Log de visitas contém IP + usuário de visitantes reais de produção (PII sob
+# LGPD) e é reescrito a cada acesso ao site -- nunca deveria ter entrado no
+# histórico do git (foi commitado por engano em f06ad8d). Removido do
+# tracking; server.js continua lendo/escrevendo normalmente em disco na VM.
+dados/visitas.json
