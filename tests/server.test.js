@@ -41,7 +41,7 @@ describe('POST /api/auth/register', () => {
       .send({ usuario: 'fulano', nome: 'Fulano', email: 'fulano@ex.com', senha: '123456' });
     expect(res.status).toBe(200);
     expect(res.body.token).toBeTruthy();
-    expect(res.body.user).toMatchObject({ usuario: 'fulano', role: 'user' });
+    expect(res.body.user).toMatchObject({ usuario: 'fulano', role: 'user', premium: false });
   });
 
   it('rejeita usuário duplicado', async () => {
@@ -64,6 +64,7 @@ describe('POST /api/auth/login', () => {
     const res = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
     expect(res.status).toBe(200);
     expect(res.body.token).toBeTruthy();
+    expect(res.body.user).toMatchObject({ usuario: 'fulano', premium: false });
   });
 
   it('rejeita senha errada', async () => {
@@ -78,6 +79,7 @@ describe('POST /api/auth/login', () => {
   });
 });
 
+<<<<<<< HEAD
 describe('POST /api/premium/confirmar (removido)', () => {
   it('rota não existe mais -- ativar premium sem passar pelo Mercado Pago era um bypass de pagamento', async () => {
     // Endpoint antigo do fluxo de PIX manual: ativava premium só com o
@@ -87,10 +89,128 @@ describe('POST /api/premium/confirmar (removido)', () => {
     // continuou exposto e funcional -- qualquer usuário logado podia
     // ativar premium de graça chamando a rota direto. Removido.
     await request(app)
+=======
+describe('/api/admin/usuarios', () => {
+  let tokenComum, tokenAdmin;
+
+  beforeAll(async () => {
+    let res = await request(app)
+      .post('/api/auth/register')
+      .send({ usuario: 'chefe', nome: 'Chefe', email: 'chefe@ex.com', senha: '123456' });
+    tokenAdmin = res.body.token;
+
+    // Promove 'chefe' a admin direto no arquivo -- não existe rota pra
+    // "primeiro admin" de propósito (bootstrap é manual/infra, não client-facing).
+    const usuarios = JSON.parse(fs.readFileSync(process.env.USUARIOS_PATH, 'utf-8'));
+    const idx = usuarios.findIndex(u => u.usuario === 'chefe');
+    usuarios[idx].role = 'admin';
+    fs.writeFileSync(process.env.USUARIOS_PATH, JSON.stringify(usuarios, null, 2));
+
+    res = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
+    tokenComum = res.body.token;
+  });
+
+  describe('GET', () => {
+    it('bloqueia sem token', async () => {
+      const res = await request(app).get('/api/admin/usuarios');
+      expect(res.status).toBe(403);
+    });
+
+    it('bloqueia usuário comum (não-admin)', async () => {
+      const res = await request(app).get('/api/admin/usuarios').set('Authorization', `Bearer ${tokenComum}`);
+      expect(res.status).toBe(403);
+    });
+
+    it('lista usuários reais pra admin, sem vazar senhaHash', async () => {
+      const res = await request(app).get('/api/admin/usuarios').set('Authorization', `Bearer ${tokenAdmin}`);
+      expect(res.status).toBe(200);
+      expect(res.body.find(u => u.usuario === 'fulano')).toBeTruthy();
+      expect(res.body.every(u => u.senhaHash === undefined)).toBe(true);
+    });
+  });
+
+  describe('POST', () => {
+    it('bloqueia usuário comum', async () => {
+      const res = await request(app)
+        .post('/api/admin/usuarios')
+        .set('Authorization', `Bearer ${tokenComum}`)
+        .send({ usuario: 'naoautorizado', nome: 'X', senha: '123456' });
+      expect(res.status).toBe(403);
+    });
+
+    it('admin cria novo usuário e ele passa a existir de verdade em dados/usuarios.json', async () => {
+      const res = await request(app)
+        .post('/api/admin/usuarios')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ usuario: 'criadopelopainel', nome: 'Criado Pelo Painel', senha: '123456', role: 'user' });
+      expect(res.status).toBe(200);
+      expect(res.body.senhaHash).toBeUndefined();
+
+      const salvo = JSON.parse(fs.readFileSync(process.env.USUARIOS_PATH, 'utf-8'));
+      expect(salvo.find(u => u.usuario === 'criadopelopainel')).toBeTruthy();
+
+      const listaRes = await request(app).get('/api/admin/usuarios').set('Authorization', `Bearer ${tokenAdmin}`);
+      expect(listaRes.body.find(u => u.usuario === 'criadopelopainel')).toBeTruthy();
+    });
+  });
+
+  describe('PUT', () => {
+    it('atualiza nome e role de um usuário existente', async () => {
+      const res = await request(app)
+        .put('/api/admin/usuarios/criadopelopainel')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ nome: 'Nome Editado', role: 'admin' });
+      expect(res.status).toBe(200);
+      expect(res.body.nome).toBe('Nome Editado');
+      expect(res.body.role).toBe('admin');
+    });
+
+    it('404 pra usuário inexistente', async () => {
+      const res = await request(app)
+        .put('/api/admin/usuarios/nao-existe')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ nome: 'X' });
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('DELETE', () => {
+    it('bloqueia remover o próprio usuário', async () => {
+      const res = await request(app)
+        .delete('/api/admin/usuarios/chefe')
+        .set('Authorization', `Bearer ${tokenAdmin}`);
+      expect(res.status).toBe(400);
+    });
+
+    it('remove outro usuário', async () => {
+      const res = await request(app)
+        .delete('/api/admin/usuarios/criadopelopainel')
+        .set('Authorization', `Bearer ${tokenAdmin}`);
+      expect(res.status).toBe(200);
+      const salvo = JSON.parse(fs.readFileSync(process.env.USUARIOS_PATH, 'utf-8'));
+      expect(salvo.find(u => u.usuario === 'criadopelopainel')).toBeUndefined();
+    });
+  });
+});
+
+describe('POST /api/premium/confirmar', () => {
+  it('bloqueia sem token', async () => {
+    const res = await request(app).post('/api/premium/confirmar').send({ usuario: 'fulano' });
+    expect(res.status).toBe(401);
+  });
+
+  it('bloqueia token de um usuário tentando confirmar premium de outro', async () => {
+    const outro = await request(app)
+>>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
       .post('/api/auth/register')
       .send({ usuario: 'outrouser', nome: 'Outro', email: 'outro@ex.com', senha: '123456' });
     const res = await request(app).post('/api/premium/confirmar').send({ usuario: 'fulano' });
     expect(res.status).toBe(404);
+  });
+
+  it('login passa a refletir premium:true depois da ativação', async () => {
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
+    expect(login.body.user).toMatchObject({ usuario: 'fulano', premium: true });
   });
 });
 

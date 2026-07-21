@@ -2,11 +2,15 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useAdmin } from './useAdmin.js';
 
+<<<<<<< HEAD
 const props = defineProps({ usuarioLogado: String, token: String });
+=======
+const props = defineProps({ usuarioLogado: String, token: { type: String, default: '' } });
+>>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
 
 const {
-  usuarios, editandoUsuario, totalUsuarios, admins, usuariosComuns,
-  carregarUsuarios, novoUsuario, editarUsuario, salvarUsuario,
+  usuarios, editandoUsuario, carregando, erro, totalUsuarios, admins, usuariosComuns,
+  setToken, carregarUsuarios, novoUsuario, editarUsuario, salvarUsuario,
   removerUsuario, cancelarEdicao
 } = useAdmin();
 
@@ -39,6 +43,8 @@ async function carregarVisitas() {
 
 onMounted(() => {
   carregarVisitas();
+  setToken(props.token);
+  carregarUsuarios();
 });
 
 const visitasFiltradas = computed(() => {
@@ -80,9 +86,10 @@ watch(editandoUsuario, (e) => {
   }
 });
 
-function handleSalvar() {
+async function handleSalvar() {
   erroForm.value = '';
-  if (!formUsuario.value.trim() || !formNome.value.trim() || !formSenha.value.trim() || !formConfirmar.value.trim()) {
+  const senhaObrigatoria = !editandoExistente.value;
+  if (!formUsuario.value.trim() || !formNome.value.trim() || (senhaObrigatoria && (!formSenha.value.trim() || !formConfirmar.value.trim()))) {
     erroForm.value = 'Todos os campos são obrigatórios.';
     return;
   }
@@ -90,7 +97,7 @@ function handleSalvar() {
     erroForm.value = 'Usuário deve ter no mínimo 3 caracteres.';
     return;
   }
-  if (formSenha.value.length < 3) {
+  if (formSenha.value && formSenha.value.length < 3) {
     erroForm.value = 'Senha deve ter no mínimo 3 caracteres.';
     return;
   }
@@ -98,22 +105,23 @@ function handleSalvar() {
     erroForm.value = 'Senhas não conferem.';
     return;
   }
-  salvarUsuario({
+  await salvarUsuario({
     usuario: formUsuario.value.trim(),
     nome: formNome.value.trim(),
     senha: formSenha.value,
     role: formRole.value,
   });
+  if (erro.value) erroForm.value = erro.value;
 }
 
 function handleEditar(u) {
   editarUsuario(u);
 }
 
-function handleRemover(u) {
+async function handleRemover(u) {
   if (u.usuario === props.usuarioLogado) return;
   if (!confirm(`Tem certeza que deseja remover o usuário "${u.usuario}"?`)) return;
-  removerUsuario(u.usuario);
+  await removerUsuario(u.usuario);
 }
 
 function handleNovo() {
@@ -234,6 +242,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
         <span>Usuários Cadastrados</span>
         <button v-if="!editando" @click="handleNovo" class="btn-novo-usuario">+ Novo Usuário</button>
       </div>
+      <p v-if="erro" class="erro-form">⚠ {{ erro }}</p>
       <div class="tabela-wrapper">
         <table class="admin-table">
           <thead>
@@ -256,7 +265,10 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
                 <button @click="handleRemover(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-delete" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }">✕</button>
               </td>
             </tr>
-            <tr v-if="usuarios.length === 0">
+            <tr v-if="carregando && usuarios.length === 0">
+              <td colspan="4" class="empty-cell">Carregando usuários...</td>
+            </tr>
+            <tr v-else-if="usuarios.length === 0">
               <td colspan="4" class="empty-cell">Nenhum usuário cadastrado.</td>
             </tr>
           </tbody>

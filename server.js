@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import bcrypt from 'bcryptjs';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { hojeBrasiliaISO } from './dataLocal.js';
+import { Resend } from 'resend';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,33 @@ const mpClient = process.env.MP_ACCESS_TOKEN
   : null;
 if (!mpClient) {
   console.warn('MP_ACCESS_TOKEN nao configurado: checkout Mercado Pago desativado.');
+}
+
+// Email de boas-vindas pós-cadastro (Resend). Só ativa com a API key
+// configurada via env var; sem ela, o cadastro segue funcionando normalmente,
+// só sem o email. RESEND_FROM precisa ser um remetente de domínio verificado
+// no Resend -- sem isso, usar o padrão de teste "onboarding@resend.dev".
+const resendClient = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const EMAIL_FROM = process.env.RESEND_FROM || 'Estudo Petrobras <onboarding@resend.dev>';
+if (!resendClient) {
+  console.warn('RESEND_API_KEY nao configurado: email de boas-vindas desativado.');
+}
+
+async function enviarEmailBoasVindas({ email, nome, usuario }) {
+  if (!resendClient) return;
+  try {
+    await resendClient.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: 'Bem-vindo(a) ao Estudo Petrobras!',
+      html: `<p>Olá, ${nome}!</p>
+        <p>Sua conta foi criada com sucesso. Seu usuário de acesso é: <strong>${usuario}</strong></p>
+        <p>Por segurança, nunca enviamos sua senha por email -- guarde-a em local seguro.</p>
+        <p>Bons estudos!</p>`,
+    });
+  } catch (e) {
+    console.error('Erro ao enviar email de boas-vindas:', e);
+  }
 }
 
 // Segurança de cabeçalhos. GA4/Facebook Pixel removidos do index.html (IDs
@@ -206,7 +234,9 @@ app.post('/api/auth/register', authLimiter, (req, res) => {
   usuarios.push({ usuario: usuarioNormalizado, nome, email, senhaHash, role: 'user', premium: false, criadoEm: new Date().toISOString() });
   salvarUsuarios(usuarios);
   const token = criarSessao(usuarioNormalizado);
-  res.json({ ok: true, token, user: { usuario: usuarioNormalizado, nome, role: 'user' } });
+  res.json({ ok: true, token, user: { usuario: usuarioNormalizado, nome, role: 'user', premium: false } });
+  // Depois da resposta: não atrasa nem falha o cadastro se o email demorar/der erro.
+  enviarEmailBoasVindas({ email, nome, usuario: usuarioNormalizado });
 });
 
 // Hash bcrypt válido (60 chars) usado só como referência de timing quando o
@@ -227,7 +257,84 @@ app.post('/api/auth/login', authLimiter, (req, res) => {
   const ok = bcrypt.compareSync(senha, hashRef);
   if (!user || !ok) return res.status(401).json({ erro: 'Usuário ou senha inválidos' });
   const token = criarSessao(user.usuario);
-  res.json({ ok: true, token, user: { usuario: user.usuario, nome: user.nome, role: user.role || 'user' } });
+  res.json({ ok: true, token, user: { usuario: user.usuario, nome: user.nome, role: user.role || 'user', premium: user.premium || false } });
+});
+
+// Resolve o usuário autenticado (via token de sessão) e confere role==='admin'
+// direto em dados/usuarios.json -- fonte única de verdade. Usado por toda a
+// seção /api/admin/* abaixo.
+function usuarioAdminDoToken(req) {
+  const nomeUsuario = usuarioDoToken(req);
+  if (!nomeUsuario) return null;
+  const usuarios = lerUsuarios();
+  const user = usuarios.find(u => u.usuario === nomeUsuario);
+  return user && user.role === 'admin' ? user : null;
+}
+
+function semSenhaHash(u) {
+  const { senhaHash, ...resto } = u;
+  return resto;
+}
+
+// Painel de administração: CRUD de usuários direto em dados/usuarios.json
+// (mesmo arquivo usado por /api/auth/*). Antes disso o painel (Admin.vue)
+// lia/escrevia só em localStorage do navegador -- por isso cadastros reais
+// (via /api/auth/register) nunca apareciam pra quem abrisse o admin em outra
+// sessão/máquina. Essas rotas passam a ser a fonte real de dados do painel.
+app.get('/api/admin/usuarios', (req, res) => {
+  if (!usuarioAdminDoToken(req)) return res.status(403).json({ erro: 'Acesso restrito a administradores' });
+  const usuarios = lerUsuarios();
+  res.json(usuarios.map(semSenhaHash));
+});
+
+app.post('/api/admin/usuarios', (req, res) => {
+  if (!usuarioAdminDoToken(req)) return res.status(403).json({ erro: 'Acesso restrito a administradores' });
+  const { usuario, nome, senha, role } = req.body;
+  if (!usuario || typeof usuario !== 'string' || usuario.length < 3) return res.status(400).json({ erro: 'Usuário inválido (mín. 3 caracteres)' });
+  if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório (mín. 2 caracteres)' });
+  if (!senha || typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
+  const roleFinal = role === 'admin' ? 'admin' : 'user';
+  const usuarios = lerUsuarios();
+  if (usuarios.find(u => u.usuario === usuario)) return res.status(409).json({ erro: 'Usuário já existe' });
+  const senhaHash = bcrypt.hashSync(senha, 10);
+  const novo = { usuario, nome, email: '', senhaHash, role: roleFinal, premium: false, criadoEm: new Date().toISOString() };
+  usuarios.push(novo);
+  salvarUsuarios(usuarios);
+  res.json(semSenhaHash(novo));
+});
+
+app.put('/api/admin/usuarios/:usuario', (req, res) => {
+  if (!usuarioAdminDoToken(req)) return res.status(403).json({ erro: 'Acesso restrito a administradores' });
+  const { usuario } = req.params;
+  const { nome, senha, role } = req.body;
+  const usuarios = lerUsuarios();
+  const idx = usuarios.findIndex(u => u.usuario === usuario);
+  if (idx === -1) return res.status(404).json({ erro: 'Usuário não encontrado' });
+  if (nome !== undefined) {
+    if (typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório (mín. 2 caracteres)' });
+    usuarios[idx].nome = nome;
+  }
+  if (role !== undefined) {
+    usuarios[idx].role = role === 'admin' ? 'admin' : 'user';
+  }
+  if (senha) {
+    if (typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
+    usuarios[idx].senhaHash = bcrypt.hashSync(senha, 10);
+  }
+  salvarUsuarios(usuarios);
+  res.json(semSenhaHash(usuarios[idx]));
+});
+
+app.delete('/api/admin/usuarios/:usuario', (req, res) => {
+  const admin = usuarioAdminDoToken(req);
+  if (!admin) return res.status(403).json({ erro: 'Acesso restrito a administradores' });
+  const { usuario } = req.params;
+  if (usuario === admin.usuario) return res.status(400).json({ erro: 'Não é possível remover o próprio usuário' });
+  const usuarios = lerUsuarios();
+  const existe = usuarios.some(u => u.usuario === usuario);
+  if (!existe) return res.status(404).json({ erro: 'Usuário não encontrado' });
+  salvarUsuarios(usuarios.filter(u => u.usuario !== usuario));
+  res.json({ ok: true });
 });
 
 app.post('/api/auth/logout', (req, res) => {

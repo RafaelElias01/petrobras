@@ -1,43 +1,58 @@
-import { ref, computed, watch } from 'vue';
-import { Armazenamento } from './armazenamento.js';
-import { getDefaultUsuarios, hashPassword } from './usuarios.js';
+import { ref, computed } from 'vue';
 
 let instance;
 
+// Fonte de dados: API do servidor (dados/usuarios.json), não mais
+// localStorage. O painel precisa enxergar os cadastros reais feitos via
+// POST /api/auth/register, então o servidor é a única fonte de verdade.
 export function useAdmin() {
   if (instance) return instance;
 
   const usuarios = ref([]);
   const editandoUsuario = ref(null);
   const carregado = ref(false);
+  const carregando = ref(false);
+  const erro = ref('');
+  const token = ref('');
 
   const totalUsuarios = computed(() => usuarios.value.length);
-  const admins = computed(() => usuarios.value.filter(u => u.role === 'admin'));
-  const usuariosComuns = computed(() => usuarios.value.filter(u => u.role === 'user'));
+  const admins = computed(() => usuarios.value.filter(u => u.role === 'admin').length);
+  const usuariosComuns = computed(() => usuarios.value.filter(u => u.role !== 'admin').length);
 
-  watch(usuarios, (novoValor) => {
-    Armazenamento.salvar('admin_usuarios', novoValor);
-  }, { deep: true });
+  function setToken(novoToken) {
+    token.value = novoToken || '';
+  }
 
-  async function carregarUsuarios() {
-    if (carregado.value) return;
-    const data = await Armazenamento.carregar('admin_usuarios', null);
-    if (data && Array.isArray(data) && data.length > 0) {
-      if (data[0].senha && !data[0].senhaHash) {
-        const migrados = await Promise.all(data.map(async u => ({
-          ...u,
-          senhaHash: await hashPassword(u.senha),
-          senha: undefined
-        })));
-        usuarios.value = migrados;
-        Armazenamento.salvar('admin_usuarios', migrados);
-      } else {
-        usuarios.value = data;
+  function authHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token.value}`,
+    };
+  }
+
+  async function carregarUsuarios(force = false) {
+    if (carregado.value && !force) return;
+    carregando.value = true;
+    erro.value = '';
+    try {
+      const res = await fetch('/api/admin/usuarios', { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) {
+        erro.value = data.erro || 'Erro ao carregar usuários';
+        return;
       }
+<<<<<<< HEAD
     } else {
       usuarios.value = await getDefaultUsuarios();
+=======
+      usuarios.value = data;
+      carregado.value = true;
+    } catch (e) {
+      erro.value = 'Erro de conexão com o servidor';
+    } finally {
+      carregando.value = false;
+>>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
     }
-    carregado.value = true;
   }
 
   function novoUsuario() {
@@ -48,31 +63,54 @@ export function useAdmin() {
     editandoUsuario.value = { ...u, senha: '' };
   }
 
-  async function salvarUsuario() {
-    if (!editandoUsuario.value) return;
-    const u = { ...editandoUsuario.value };
+  async function salvarUsuario(dados) {
+    const u = { ...(dados || editandoUsuario.value) };
     if (!u.usuario || !u.nome) return;
-    const idx = usuarios.value.findIndex(ex => ex.usuario === u.usuario);
-    if (idx > -1) {
-      if (u.senha) {
-        u.senhaHash = await hashPassword(u.senha);
+    erro.value = '';
+    const existente = usuarios.value.find(ex => ex.usuario === u.usuario);
+    try {
+      let res, data;
+      if (existente) {
+        res = await fetch(`/api/admin/usuarios/${encodeURIComponent(u.usuario)}`, {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({ nome: u.nome, role: u.role, senha: u.senha || undefined }),
+        });
+        data = await res.json();
+        if (!res.ok) { erro.value = data.erro || 'Erro ao salvar usuário'; return; }
+        const idx = usuarios.value.findIndex(ex => ex.usuario === u.usuario);
+        usuarios.value[idx] = data;
       } else {
-        u.senhaHash = usuarios.value[idx].senhaHash;
+        if (!u.senha) return;
+        res = await fetch('/api/admin/usuarios', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ usuario: u.usuario, nome: u.nome, senha: u.senha, role: u.role }),
+        });
+        data = await res.json();
+        if (!res.ok) { erro.value = data.erro || 'Erro ao criar usuário'; return; }
+        usuarios.value.push(data);
       }
-      u.senha = undefined;
-      usuarios.value[idx] = u;
-    } else {
-      if (!u.senha) return;
-      u.senhaHash = await hashPassword(u.senha);
-      u.senha = undefined;
-      usuarios.value.push(u);
+      editandoUsuario.value = null;
+    } catch (e) {
+      erro.value = 'Erro de conexão com o servidor';
     }
-    editandoUsuario.value = null;
   }
 
-  function removerUsuario(usuario, loggedInUser) {
+  async function removerUsuario(usuario, loggedInUser) {
     if (loggedInUser && usuario === loggedInUser) return;
-    usuarios.value = usuarios.value.filter(u => u.usuario !== usuario);
+    erro.value = '';
+    try {
+      const res = await fetch(`/api/admin/usuarios/${encodeURIComponent(usuario)}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) { erro.value = data.erro || 'Erro ao remover usuário'; return; }
+      usuarios.value = usuarios.value.filter(u => u.usuario !== usuario);
+    } catch (e) {
+      erro.value = 'Erro de conexão com o servidor';
+    }
   }
 
   function cancelarEdicao() {
@@ -80,9 +118,9 @@ export function useAdmin() {
   }
 
   instance = {
-    usuarios, editandoUsuario, carregado,
+    usuarios, editandoUsuario, carregado, carregando, erro,
     totalUsuarios, admins, usuariosComuns,
-    carregarUsuarios, novoUsuario, editarUsuario,
+    setToken, carregarUsuarios, novoUsuario, editarUsuario,
     salvarUsuario, removerUsuario, cancelarEdicao
   };
   return instance;

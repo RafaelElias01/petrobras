@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { hashPassword, carregarUsuarios, salvarUsuarios } from './usuarios.js';
 import BaseInput from './BaseInput.vue';
 import PasswordInput from './PasswordInput.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
@@ -225,6 +224,7 @@ async function handleRegister() {
       } catch {}
     }
 
+<<<<<<< HEAD
     try {
       const lista = await carregarUsuarios();
       const senhaHash = await hashPassword(senhaDigitada.value);
@@ -240,6 +240,8 @@ async function handleRegister() {
       console.error("Falha ao espelhar usuário localmente", e);
     }
 
+=======
+>>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
     cadastroCarregando.value = false;
     cadastroSucesso.value = `Conta criada com sucesso! Seja bem-vindo, ${nomeCadastro.value.trim()}. Entrando no dashboard...`;
     cadastroTimeout = setTimeout(() => {

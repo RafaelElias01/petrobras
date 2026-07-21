@@ -5,7 +5,10 @@ import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
 import ErrorBoundary from './ErrorBoundary.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
+<<<<<<< HEAD
 import IconeNav from './IconeNav.vue';
+=======
+>>>>>>> e7ea91e (fix: painel admin nao mostrava cadastros reais; premium nao bloqueava nada)
 
 const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
 const Horas = defineAsyncComponent(() => import('./Horas.vue'));
@@ -38,8 +41,14 @@ const FEATURES_BLOQUEADAS_DEMO = new Set([
 const isDemo = computed(() =>
   usuarioAtual.value?.usuario === 'estudante' && usuarioAtual.value?.role !== 'admin'
 );
+// Mesmo bloqueio que a demo sempre teve, agora vale pra qualquer conta --
+// só quem pagou (premium:true) ou é admin acessa essas features. Antes disso
+// uma conta gratuita própria tinha acesso total, sem nunca precisar pagar.
+const temAcessoPremium = computed(() =>
+  usuarioAtual.value?.role === 'admin' || usuarioAtual.value?.premium === true
+);
 function featureBloqueada(view) {
-  return isDemo.value && FEATURES_BLOQUEADAS_DEMO.has(view);
+  return FEATURES_BLOQUEADAS_DEMO.has(view) && !temAcessoPremium.value;
 }
 
 // Limite de acesso demo: contado no servidor por sessão de login (ver
@@ -235,6 +244,48 @@ function verificarSessao() {
   } catch { logout() }
 }
 
+function persistirSessaoAtual() {
+  const bruto = localStorage.getItem(SESSAO_KEY);
+  if (!bruto) return;
+  try {
+    const sessao = JSON.parse(bruto);
+    sessao.user = usuarioAtual.value;
+    localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+    sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+  } catch { /* sessão inválida: próxima verificarSessao() já desloga */ }
+}
+
+// Consulta read-only (não ativa nada) -- quem ativa premium de verdade é o
+// webhook do Mercado Pago (POST /api/premium/webhook, assinatura verificada).
+async function atualizarStatusPremium() {
+  if (!usuarioAtual.value || usuarioAtual.value.premium) return;
+  try {
+    const res = await fetch(`/api/premium/status/${encodeURIComponent(usuarioAtual.value.usuario)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.premium) {
+      usuarioAtual.value = { ...usuarioAtual.value, premium: true };
+      persistirSessaoAtual();
+    }
+  } catch { /* sem conexão: tentativa seguinte do polling resolve */ }
+}
+
+// O Mercado Pago acrescenta parâmetros (status=approved, payment_id, etc) na
+// URL de retorno (back_urls.success). Quem ativa premium de fato é o webhook
+// (assíncrono, server-to-server) -- aqui só ficamos de olho por alguns
+// segundos pra refletir na sessão assim que ele processar, sem exigir F5.
+async function verificarRetornoPagamento() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('status') || params.get('collection_status');
+  if (status !== 'approved') return;
+  history.replaceState(null, '', window.location.pathname + window.location.hash);
+  for (let tentativa = 0; tentativa < 6; tentativa++) {
+    await atualizarStatusPremium();
+    if (usuarioAtual.value?.premium) return;
+    await new Promise(r => setTimeout(r, 2000));
+  }
+}
+
 onMounted(async () => {
   document.documentElement.dataset.tema = tema.value;
   window.addEventListener('hashchange', navegarHash);
@@ -243,6 +294,7 @@ onMounted(async () => {
   verificarSessao();
   navegarHash();
   registrarVisita();
+  if (autenticado.value) verificarRetornoPagamento();
   setTimeout(() => {
     carregando.value = false;
   }, 200);
@@ -355,8 +407,8 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
         <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @keydown.escape="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
           <div class="overlay-card" @click.stop>
             <div class="login-card-header">
-              <h2>Pagamento Premium</h2>
-              <p>Escaneie o QR Code abaixo com o app do seu banco.</p>
+              <h2>Recurso Premium</h2>
+              <p>Assine o Premium pra desbloquear esse recurso.</p>
             </div>
             <PremiumCheckout :token="tokenSessaoAtual()" :onClose="() => irPara('dashboard')" :onSessaoExpirada="sessaoExpiradaNoServidor" />
           </div>

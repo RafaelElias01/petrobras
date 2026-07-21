@@ -14,7 +14,8 @@ Vue 3 + Vite (SPA hash routing) ──build──► dist/
 Express server.js (porta 3000) ◄──────────────┘
   ├── serve dist/ (static)
   ├── GET /api/planos/*
-  ├── POST /api/auth/register → dados/usuarios.json (email obrigatorio)
+  ├── POST /api/auth/register → dados/usuarios.json (email obrigatorio, envia email boas-vindas via Resend)
+  ├── GET/POST/PUT/DELETE /api/admin/usuarios → dados/usuarios.json (admin-only, token role='admin')
   ├── POST /api/newsletter → dados/newsletter.json
   ├── GET /api/premium/status/:usuario (retorna premium + email)
   ├── POST /api/premium/confirmar (ativa premium do usuario)
@@ -29,8 +30,9 @@ Express server.js (porta 3000) ◄──────────────┘
 → Validacoes: 3+ chars, senhas conferem, usuario unico
 → **Email obrigatorio** no cadastro (server valida formato + unicidade)
 → **Senha com hash bcrypt no servidor** (`bcryptjs`, cost 10). Migração one-time rehasheia qualquer `senha` plaintext antiga em `senhaHash` no boot.
-→ Login real via `POST /api/auth/login` (retorna `{ token, user }`). App.vue tenta servidor primeiro, com fallback local (`autenticar()`) só p/ demo users admin/estudante.
-→ Apos registro, `emit('registro-sucesso')` → App.vue: `handleRegisterSuccess()` faz login automatico
+→ Login real via `POST /api/auth/login` (retorna `{ token, user }`). Sem fallback client-side — auth 100% servidor.
+→ Apos registro, envia email de boas-vindas (Resend, `RESEND_API_KEY`) e `emit('registro-sucesso')` → App.vue: `handleRegisterSuccess()` faz login automatico
+→ Painel Admin (Admin.vue/useAdmin.js) lê/escreve usuarios via `/api/admin/usuarios` (token precisa ter role='admin' em dados/usuarios.json) — NUNCA voltar a usar localStorage aqui, foi a causa de usuarios cadastrados nao aparecerem no painel
 
 **QUANDO** for "lead magnet", "newsletter", "material gratuito", "guia":
 → `materiais/guia-estudos-gratuito.md` (lead magnet)
@@ -84,16 +86,19 @@ Express server.js (porta 3000) ◄──────────────┘
 | `server.js` | Toda API (auth, premium, visitas, planos) | `dados/` diretorio na VM, `package.json` (deps) |
 | `estilo.css` | Todas as paginas internas | `main.js` (import obrigatorio) |
 | `.github/workflows/deploy.yml` | CI inteiro | Secrets do GitHub, VM systemd service |
-| `usuarios.js` | Autenticacao local + admin hash | `Login.vue`, `App.vue` |
+| `useAdmin.js` | Painel admin (CRUD usuarios via API) | `Admin.vue`, `server.js` (`/api/admin/usuarios`) |
 | `armazenamento.js` | Toda persistencia local | NENHUM outro arquivo — singleton puro |
 | `dados.js` | Conteudos, ciclo, materias | `use*.js` composables |
 
 ## Diagnosticos Rapidos (sintoma → causa → conserto)
 
 **"login nao funciona / 401"**
-→ Admin hash mudou? `carregarUsuarios()` detecta e forca update
 → Sessao expirou? Token tem 7-day TTL
 → Outra aba? `storage` event faz logout automatico
+
+**"usuario cadastrado nao aparece no painel Admin"**
+→ Painel deve ler de `/api/admin/usuarios` (server, fonte real). Se alguem reintroduzir leitura via `Armazenamento`/localStorage aqui, volta o bug — cada navegador tem seu proprio localStorage, nunca reflete cadastros de outros usuarios
+→ Confirmar que quem esta logado tem `role: 'admin'` em `dados/usuarios.json` (endpoint retorna 403 senao)
 
 **"pagina sem estilo"**
 → `estilo.css` nao importado em `main.js` — causa #1 de CSS quebrado
