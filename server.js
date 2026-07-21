@@ -79,10 +79,14 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Rate-limit mais estrito para auth (anti brute-force)
+// Rate-limit mais estrito para auth (anti brute-force). Em teste (NODE_ENV=test)
+// o supertest reusa sempre o mesmo IP simulado, então o próprio arquivo de
+// testes (que já passa de 20 chamadas de login/registro) estouraria o limite
+// sem nenhuma tentativa maliciosa real -- por isso o teto sobe bastante nesse
+// ambiente, sem afetar o comportamento em produção.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: process.env.NODE_ENV === 'test' ? 1000 : 20,
   message: { erro: 'Muitas tentativas de autenticação. Aguarde alguns minutos.' }
 });
 
