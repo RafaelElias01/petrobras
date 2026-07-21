@@ -52,6 +52,15 @@ describe('useChecklist', () => {
     expect(itensConcluidos(materia)).toBe(0);
   });
 
+  it('alternarItem retorna o novo estado (true ao marcar, false ao desmarcar)', async () => {
+    const { alternarItem } = await montarChecklist();
+    const materia = CONTEUDOS[0];
+    const grupo = materia.grupos[0];
+
+    expect(alternarItem(materia.id, grupo.nome, 0)).toBe(true);
+    expect(alternarItem(materia.id, grupo.nome, 0)).toBe(false);
+  });
+
   it('totalGeral e totalConcluidoGeral somam todas as matérias de CONTEUDOS', async () => {
     const { totalGeral, totalConcluidoGeral, alternarItem } = await montarChecklist();
     const esperado = CONTEUDOS.reduce((acc, m) => acc + contarTopicos(m), 0);

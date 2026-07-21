@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useChecklist } from './useChecklist.js';
+import { useDiario } from './useDiario.js';
+import { hojeLocalISO } from './dataLocal.js';
 import { CONTEUDOS } from './dados.js';
 import IconeNav from './IconeNav.vue';
 
@@ -11,12 +13,23 @@ const {
   checklist, alternarItem
 } = useChecklist();
 
+const { agendarRevisao } = useDiario();
+
 const conteudos = CONTEUDOS;
 
 const abaAtiva = ref(null);
 
 function toggleAba(id) {
   abaAtiva.value = abaAtiva.value === id ? null : id;
+}
+
+// Ao marcar (não desmarcar) um tópico como concluído, agenda a revisão
+// espaçada dele (D+1/D+7/D+30) automaticamente.
+function handleToggleItem(materia, topico, materiaId, grupoNome, idx) {
+  const concluido = alternarItem(materiaId, grupoNome, idx);
+  if (concluido) {
+    agendarRevisao(topico, materia.nome, hojeLocalISO());
+  }
 }
 </script>
 
@@ -61,7 +74,7 @@ function toggleAba(id) {
           </div>
           <div v-show="gruposAbertos[m.id+'-'+g.nome]">
             <label v-for="(t, idx) in g.topicos" :key="t" class="item-check" :class="{ concluido: checklist[`${m.id}-${g.nome}-${idx}`] }">
-              <input type="checkbox" :checked="checklist[`${m.id}-${g.nome}-${idx}`]" @change="alternarItem(m.id, g.nome, idx)">
+              <input type="checkbox" :checked="checklist[`${m.id}-${g.nome}-${idx}`]" @change="handleToggleItem(m, t, m.id, g.nome, idx)">
               <span class="texto">{{ t }}</span>
             </label>
           </div>

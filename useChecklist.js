@@ -21,9 +21,12 @@ export function useChecklist() {
     Armazenamento.salvar('gruposAbertos', novoValor);
   }, { deep: true });
 
+  // Retorna o novo estado (true = acabou de marcar como concluído) pra quem
+  // chama poder reagir só nesse caso (ex: agendar revisão espaçada).
   function alternarItem(materiaId, grupoNome, topicoIndex) {
     const id = `${materiaId}-${grupoNome}-${topicoIndex}`;
     checklist.value[id] = !checklist.value[id];
+    return checklist.value[id];
   }
 
   const totalItens = (materia) => materia.grupos.reduce((acc, g) => acc + g.topicos.length, 0);

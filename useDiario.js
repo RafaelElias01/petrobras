@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
 import { REVISAO_INTERVALOS } from './dados.js';
-import { hojeLocalISO } from './dataLocal.js';
+import { hojeLocalISO, dataLocalISO } from './dataLocal.js';
 
 let instance;
 
@@ -32,20 +32,28 @@ export function useDiario() {
     Armazenamento.salvar('revisoes', novoValor);
   }, { deep: true });
 
+  // Não agenda revisão duplicada pro mesmo tópico se já existir uma pendente
+  // (ex: usuário desmarca e marca o item de novo no mesmo dia).
   function agendarRevisao(topico, materia, dataOrigem) {
+    const jaTemPendente = revisoes.value.some(r => r.topico === topico && r.materia === materia && !r.concluida);
+    if (jaTemPendente) return;
+    // new Date('YYYY-MM-DD') parseia como UTC meia-noite -- em fusos
+    // negativos (Brasil) isso "volta" pro dia anterior em horário local,
+    // fazendo `data.setDate(...)` operar sobre o dia errado. Constrói a data
+    // a partir dos componentes explícitos (ano/mês/dia), sempre em horário
+    // local, pra somar dias sem essa ambiguidade.
+    const [ano, mes, dia] = dataOrigem.split('-').map(Number);
     REVISAO_INTERVALOS.forEach(intervalo => {
-      const data = new Date(dataOrigem);
-      data.setDate(data.getDate() + intervalo.dias);
+      const data = new Date(ano, mes - 1, dia + intervalo.dias);
       revisoes.value.push({
         id: Date.now() + Math.random(),
         topico,
         materia,
-        data: data.toISOString().slice(0, 10),
+        data: dataLocalISO(data),
         intervalo: intervalo.rotulo,
         concluida: false
       });
     });
-    alert(`${REVISAO_INTERVALOS.length} revisões agendadas para '${topico}'!`);
   }
 
   const revisoesPendentes = computed(() => revisoes.value.filter(r => !r.concluida && new Date(r.data) <= new Date(diarioData.value)));
