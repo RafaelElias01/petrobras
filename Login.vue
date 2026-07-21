@@ -287,7 +287,7 @@ async function handleLeadMagnet() {
 </script>
 
 <template>
-  <div class="login-wrapper">
+  <main class="login-wrapper">
     <div class="login-container">
       <div class="login-brand">
         <div class="brand-badge">🔥 Edital 2026</div>
@@ -452,7 +452,7 @@ async function handleLeadMagnet() {
       <div class="lead-magnet-section" :class="{ sucesso: leadMagnetSucesso }">
         <template v-if="!leadMagnetSucesso">
           <div class="lead-magnet-badge">🎁 Grátis</div>
-          <h3 class="lead-magnet-title">Guia Definitivo de Estudos</h3>
+          <h2 class="lead-magnet-title">Guia Definitivo de Estudos</h2>
           <p class="lead-magnet-subtitle">Baixe grátis o guia completo com o passo a passo para ser aprovado na Petrobras — cronograma, dicas da Cesgranrio e checklist de estudos.</p>
           <form @submit.prevent="handleLeadMagnet" class="lead-magnet-form">
             <label class="lead-magnet-label">Nome</label>
@@ -468,7 +468,7 @@ async function handleLeadMagnet() {
         <template v-else>
           <div class="lead-magnet-success">
             <span class="lead-magnet-success-icon">✅</span>
-            <h3>Guia enviado!</h3>
+            <h2>Guia enviado!</h2>
             <p>Verifique seu email para baixar o material. Enquanto isso, conheça a plataforma completa.</p>
             <button @click="abrirLinkPremium" class="login-premium-link">👑 Conhecer o Premium — R$ 49,90</button>
           </div>
@@ -501,7 +501,7 @@ async function handleLeadMagnet() {
 
       <FaqSection />
     </div>
-  </div>
+  </main>
 
   <transition name="notif">
     <div v-if="notificacao" class="social-notification">
@@ -758,7 +758,7 @@ async function handleLeadMagnet() {
 }
 
 .tab-btn.ativo {
-  background: var(--c-brand-primary);
+  background: var(--c-brand-primary-dark);
   color: #fff;
 }
 
