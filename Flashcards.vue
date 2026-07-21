@@ -6,7 +6,7 @@ import { useFlashcardReview } from './useFlashcardReview.js';
 const {
   flashcards, editandoFlashcard, flashcardsAgrupados, carregarFlashcards,
   novoFlashcard, salvarFlashcard, editarFlashcard, removerFlashcard, cancelarFlashcard,
-  cardsParaRevisar,
+  cardsParaRevisar, MATERIAS,
 } = useFlashcards();
 
 const {
@@ -99,9 +99,7 @@ onMounted(() => {
             <label>Matéria</label>
             <select v-model="editandoFlashcard.materia">
               <option value="">Selecione...</option>
-              <option>Português</option>
-              <option>Matemática</option>
-              <option>Química</option>
+              <option v-for="m in MATERIAS" :key="m">{{ m }}</option>
             </select>
           </div>
           <div class="form-group full-width">
@@ -137,7 +135,7 @@ onMounted(() => {
           <div class="config-row">
             <label>Matérias (deixe vazio para todas)</label>
             <div class="config-checkboxes">
-              <label v-for="m in ['Português', 'Matemática', 'Química']" :key="m" class="config-check">
+              <label v-for="m in MATERIAS" :key="m" class="config-check">
                 <input type="checkbox" :value="m" v-model="opcoesRevisao.materias"> {{ m }}
               </label>
             </div>

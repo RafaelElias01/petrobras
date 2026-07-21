@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
+import { CONTEUDOS } from './dados.js';
 
 let instance;
 
@@ -9,6 +10,12 @@ export function useFlashcards() {
   const flashcards = ref([]);
   const editandoFlashcard = ref(null);
   const carregado = ref(false);
+
+  // Nomes de todas as matérias do conteúdo (não só Português/Matemática/
+  // Química) -- usado no agrupamento pra flashcards das outras 3 matérias
+  // (Processos de Petróleo, Segurança/Meio Ambiente, Metrologia/Controle)
+  // não ficarem "invisíveis" (fora de qualquer grupo exibido).
+  const MATERIAS = CONTEUDOS.map(m => m.nome);
 
   const LEITNER_BOXES = { 1: 1, 2: 3, 3: 7, 4: 14, 5: 30 };
 
@@ -28,7 +35,7 @@ export function useFlashcards() {
 
   const flashcardsAgrupados = computed(() => {
     const grupos = {};
-    ['Português', 'Matemática', 'Química'].forEach(m => grupos[m] = []);
+    MATERIAS.forEach(m => grupos[m] = []);
     flashcards.value.forEach(f => {
       if (grupos[f.materia]) grupos[f.materia].push(f);
     });
@@ -175,7 +182,7 @@ export function useFlashcards() {
     flashcardsAgrupados, carregarFlashcards, novoFlashcard, salvarFlashcard,
     editarFlashcard: (c) => editandoFlashcard.value = { ...c },
     removerFlashcard, cancelarFlashcard: () => editandoFlashcard.value = null,
-    cardsParaRevisar,
+    cardsParaRevisar, MATERIAS,
   };
   return instance;
 }

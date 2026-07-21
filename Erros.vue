@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useErros } from './useErros.js';
+import { CONTEUDOS } from './dados.js';
 
 const {
   totalErros, erros, errosPorMateria, errosFrequentes,
@@ -8,6 +9,12 @@ const {
   carregarErros, novoErro, salvarErro, cancelarErro, editarErro, removerErro,
   registrarRevisao, marcarRevisaoAcertou
 } = useErros();
+
+// Antes a lista de matérias do formulário era fixa (Português/Matemática/
+// Química), então não dava pra registrar erro nas outras 3 matérias do
+// conteúdo (Processos de Petróleo, Segurança/Meio Ambiente, Metrologia/
+// Controle) -- usa CONTEUDOS pra cobrir todas.
+const materiasDisponiveis = CONTEUDOS.map(m => m.nome);
 
 onMounted(() => {
   carregarErros();
@@ -90,9 +97,7 @@ function tipoLabel(t) {
             <label>Matéria</label>
             <select v-model="editandoErro.materia">
               <option value="">Selecione...</option>
-              <option>Português</option>
-              <option>Matemática</option>
-              <option>Química</option>
+              <option v-for="m in materiasDisponiveis" :key="m">{{ m }}</option>
             </select>
           </div>
           <div class="form-grupo">

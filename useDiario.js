@@ -2,6 +2,7 @@ import { ref, computed, watch } from 'vue';
 import { Armazenamento } from './armazenamento.js';
 import { REVISAO_INTERVALOS } from './dados.js';
 import { hojeLocalISO, dataLocalISO } from './dataLocal.js';
+import { useHoras } from './useHoras.js';
 
 let instance;
 
@@ -64,16 +65,25 @@ export function useDiario() {
     if (rev) rev.concluida = true;
   }
 
-  // Dias consecutivos com pelo menos um item do diário concluído, olhando
+  // Dias consecutivos com pelo menos uma hora de estudo registrada, olhando
   // pra trás a partir de hoje até encontrar o primeiro dia sem registro.
+  //
+  // Antes isso lia de `diario`, que só é escrito por `alternarDiario` --
+  // função que nenhum componente da UI chama em lugar nenhum do app (só o
+  // teste unitário a exercita diretamente). Na prática `diario` nunca é
+  // populado por uso real, então o streak sempre dava 0 no Dashboard, não
+  // importa quanto o usuário estudasse. `horas` (useHoras.js) é a fonte real
+  // de estudo do dia (escrita por adicionarHoras/setHora em Diario.vue,
+  // Horas.vue, Ciclo.vue), então usamos ela aqui.
+  const { horas } = useHoras();
   const diasEstudoConsecutivos = computed(() => {
     let streak = 0;
     const cursor = new Date();
     cursor.setMinutes(cursor.getMinutes() - cursor.getTimezoneOffset());
     for (let i = 0; i < 365; i++) {
       const chave = cursor.toISOString().slice(0, 10);
-      const dia = diario.value[chave];
-      const estudou = dia && Object.values(dia).some(Boolean);
+      const registros = horas.value[chave];
+      const estudou = registros && Object.values(registros).some(v => v > 0);
       if (!estudou) break;
       streak++;
       cursor.setDate(cursor.getDate() - 1);

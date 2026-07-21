@@ -296,7 +296,7 @@ function formatarHoras(h) {
   transition: all var(--transicao);
   text-align: left;
 }
-.btn-materia:hover { border-color: var(--cor, var(--primaria)); background: #f8f9ff; }
+.btn-materia:hover { border-color: var(--cor, var(--primaria)); background: color-mix(in srgb, var(--cor, var(--primaria)) 8%, var(--card)); }
 .btn-materia.ativa {
   border-color: var(--cor, var(--primaria));
   background: color-mix(in srgb, var(--cor, var(--primaria)) 8%, var(--card));
