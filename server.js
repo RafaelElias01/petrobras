@@ -188,21 +188,30 @@ function seedUsuariosDemo() {
 }
 seedUsuariosDemo();
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 app.post('/api/auth/register', authLimiter, (req, res) => {
   const { usuario, nome, senha, email } = req.body;
-  if (!usuario || typeof usuario !== 'string' || usuario.length < 3) return res.status(400).json({ erro: 'Usuário inválido (mín. 3 caracteres)' });
-  if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório (mín. 2 caracteres)' });
-  if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
+  if (!usuario || typeof usuario !== 'string' || usuario.length < 3 || usuario.length > 50) return res.status(400).json({ erro: 'Usuário inválido (mín. 3 caracteres)' });
+  if (!nome || typeof nome !== 'string' || nome.length < 2 || nome.length > 50) return res.status(400).json({ erro: 'Nome é obrigatório (mín. 2 caracteres)' });
+  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
   if (!senha || typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
+  const usuarioNormalizado = usuario.toLowerCase();
   const usuarios = lerUsuarios();
-  if (usuarios.find(u => u.usuario === usuario)) return res.status(409).json({ erro: 'Usuário já existe' });
+  if (usuarios.find(u => u.usuario.toLowerCase() === usuarioNormalizado)) return res.status(409).json({ erro: 'Usuário já existe' });
   if (usuarios.find(u => u.email === email)) return res.status(409).json({ erro: 'Email já cadastrado' });
   const senhaHash = bcrypt.hashSync(senha, 10);
-  usuarios.push({ usuario, nome, email, senhaHash, role: 'user', premium: false, criadoEm: new Date().toISOString() });
+  usuarios.push({ usuario: usuarioNormalizado, nome, email, senhaHash, role: 'user', premium: false, criadoEm: new Date().toISOString() });
   salvarUsuarios(usuarios);
-  const token = criarSessao(usuario);
-  res.json({ ok: true, token, user: { usuario, nome, role: 'user' } });
+  const token = criarSessao(usuarioNormalizado);
+  res.json({ ok: true, token, user: { usuario: usuarioNormalizado, nome, role: 'user' } });
 });
+
+// Hash bcrypt válido (60 chars) usado só como referência de timing quando o
+// usuário não existe -- precisa ser um hash bcrypt de verdade (não uma string
+// qualquer com o prefixo "$2b$10$"), senão bcrypt.compareSync lança/erra e o
+// tempo de resposta não fica equivalente ao caso de usuário existente.
+const HASH_DUMMY_ANTI_TIMING = bcrypt.hashSync('dummy-anti-timing-estudo-petrobras', 10);
 
 app.post('/api/auth/login', authLimiter, (req, res) => {
   const { usuario, senha } = req.body;
@@ -212,18 +221,25 @@ app.post('/api/auth/login', authLimiter, (req, res) => {
   const usuarios = lerUsuarios();
   const user = usuarios.find(u => u.usuario.toLowerCase() === usuario.toLowerCase());
   // Compara sempre (mesmo sem usuário) para não vazar timing de existência
-  const hashRef = user?.senhaHash || '$2b$10$0000000000000000000000000000000000000000000000000000';
+  const hashRef = user?.senhaHash || HASH_DUMMY_ANTI_TIMING;
   const ok = bcrypt.compareSync(senha, hashRef);
   if (!user || !ok) return res.status(401).json({ erro: 'Usuário ou senha inválidos' });
   const token = criarSessao(user.usuario);
   res.json({ ok: true, token, user: { usuario: user.usuario, nome: user.nome, role: user.role || 'user' } });
 });
 
+app.post('/api/auth/logout', (req, res) => {
+  const auth = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (token) sessoes.delete(token);
+  res.json({ ok: true });
+});
+
 const newsPath = process.env.NEWSLETTER_PATH || path.join(__dirname, 'dados', 'newsletter.json');
 
 app.post('/api/newsletter', (req, res) => {
   const { email, nome } = req.body;
-  if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
+  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
   if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório' });
   let inscricoes = [];
   try {
@@ -399,8 +415,10 @@ function salvarVisitas(data) {
 }
 
 app.post('/api/visitas', (req, res) => {
-  const { usuario } = req.body;
-  if (!usuario || typeof usuario !== 'string' || usuario.length > 50) return res.status(400).json({ erro: 'usuario inválido' });
+  // Nunca confia no campo `usuario` vindo do body (input do client, fácil de
+  // forjar). Se houver um token válido, usa o usuário autenticado; senão,
+  // registra como visitante anônimo.
+  const usuario = usuarioDoToken(req) || 'anônimo';
   const ip = req.ip || 'desconhecido';
   const visitas = lerVisitas();
   visitas.push({
@@ -415,6 +433,12 @@ app.post('/api/visitas', (req, res) => {
 });
 
 app.get('/api/visitas', (req, res) => {
+  // Expõe IP + usuário de todo mundo que visitou o site -- só admin pode ver.
+  const autenticado = usuarioDoToken(req);
+  if (!autenticado) return res.status(401).json({ erro: 'Não autenticado' });
+  const usuarios = lerUsuarios();
+  const user = usuarios.find(u => u.usuario === autenticado);
+  if (!user || user.role !== 'admin') return res.status(403).json({ erro: 'Acesso restrito a administradores' });
   const visitas = lerVisitas();
   const total = visitas.length;
   const hoje = new Date().toISOString().split('T')[0];

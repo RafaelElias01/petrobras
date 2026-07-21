@@ -59,7 +59,6 @@ export function useErros() {
   });
 
   function novoErro() {
-    const idx = erros.value.length + 1;
     editandoErro.value = { id: Date.now(), data: new Date().toISOString().slice(0, 10), materia: '', topico: '', questao: '', pensamento: '', respostaCorreta: '', lacuna: '', classificacao: 'A', revisado: false, revisaoD7: null, revisaoD30: null };
   }
 

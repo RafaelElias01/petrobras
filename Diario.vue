@@ -4,6 +4,7 @@ import { useCiclo } from './useCiclo.js';
 import { useHoras } from './useHoras.js';
 import { CONTEUDOS, CICLO_MAP, mapCicloParaMateriaId } from './dados.js';
 import { ref } from 'vue';
+import IconeNav from './IconeNav.vue';
 
 const {
   revisoesHoje, diarioData, revisoesPendentes,
@@ -80,7 +81,7 @@ function formatarHoras(h) {
       <div v-if="registrosHoje.length > 0" class="log-hoje">
         <div class="log-label">Estudou hoje</div>
         <div v-for="r in registrosHoje" :key="r.id" class="item-log">
-          <span class="log-icone">{{ r.icone }}</span>
+          <span class="log-icone"><IconeNav :nome="r.icone" /></span>
           <span class="log-nome">{{ r.nome }}</span>
           <span class="log-horas">{{ formatarHoras(r.horas) }}</span>
           <div class="log-ajuste">
@@ -105,14 +106,14 @@ function formatarHoras(h) {
             :style="{ '--cor': m.cor }"
             @click="addSelecionado = addSelecionado === m.id ? null : m.id"
           >
-            <span class="btn-materia-icone">{{ m.icone }}</span>
+            <span class="btn-materia-icone"><IconeNav :nome="m.icone" /></span>
             <span class="btn-materia-nome">{{ m.nome.replace(/^[^\s]+\s/, '') }}</span>
           </button>
         </div>
         <transition name="fade">
           <div v-if="addSelecionado" class="add-painel">
             <span class="add-painel-info">
-              {{ materiasVisiveis.find(m => m.id === addSelecionado)?.icone }}
+              <IconeNav :nome="materiasVisiveis.find(m => m.id === addSelecionado)?.icone" />
               {{ materiasVisiveis.find(m => m.id === addSelecionado)?.nome }}
             </span>
             <div class="add-presets">
@@ -222,7 +223,7 @@ function formatarHoras(h) {
 .item-log:hover {
   background: #e8ecf1;
 }
-.log-icone { font-size: 18px; }
+.log-icone { display: inline-flex; width: 17px; height: 17px; flex-shrink: 0; }
 .log-nome { flex: 1; font-size: 14px; font-weight: 500; }
 .log-horas {
   font-size: 14px;
@@ -300,7 +301,7 @@ function formatarHoras(h) {
   background: color-mix(in srgb, var(--cor, var(--primaria)) 8%, var(--card));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--cor, var(--primaria)) 20%, transparent);
 }
-.btn-materia-icone { font-size: 16px; }
+.btn-materia-icone { display: inline-flex; width: 15px; height: 15px; }
 .btn-materia-nome { font-weight: 500; }
 
 /* Painel de Adição */

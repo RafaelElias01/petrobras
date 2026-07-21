@@ -384,6 +384,8 @@ body {
   font-size: 14px;
   font-family: inherit;
   outline: none;
+  background: var(--card);
+  color: var(--texto);
 }
 .form-simulado input:focus { border-color: var(--primaria); }
 
@@ -400,6 +402,13 @@ body {
 }
 
 .form-simulado button:hover { background: var(--primaria-hover); }
+
+.input-total-calculado:disabled {
+  background: var(--fundo-sec);
+  color: var(--texto);
+  opacity: 1;
+  font-weight: 700;
+}
 
 .menu-toggle {
   display: none;
@@ -822,11 +831,11 @@ button {
 
 [data-tema="dark"] {
   --bg: #17130e;
-  --card: #211a12;
+  --card: #2a2117;
   --texto: #f1e9dc;
   --texto-sec: #b8ab97;
-  --borda: #392e21;
-  --fundo-sec: #2a2115;
+  --borda: #453824;
+  --fundo-sec: #382c1c;
   --primaria: #e08a4c;
   --primaria-hover: #ec9c62;
   --sucesso: #5cb875;
@@ -838,8 +847,8 @@ button {
   --sidebar-ativa: rgba(224,138,76,0.32);
 }
 
-[data-tema="dark"] .tabela-horas .total-coluna { background: #2a2115; }
-[data-tema="dark"] .tabela-horas td input { background: #17130e; border-color: #392e21; color: #f1e9dc; }
+[data-tema="dark"] .tabela-horas .total-coluna { background: var(--fundo-sec); }
+[data-tema="dark"] .tabela-horas td input { background: #1e1710; border-color: var(--borda); color: var(--texto); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

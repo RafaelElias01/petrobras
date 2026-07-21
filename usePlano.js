@@ -12,6 +12,7 @@ export function usePlano() {
   const planoSelecionado = ref('');
   const planoHtml = ref('');
   const carregandoPlano = ref(false);
+  let ultimaRequisicaoId = 0;
 
   async function fetchPlanos() {
     try {
@@ -24,18 +25,23 @@ export function usePlano() {
 
   async function carregarPlano() {
     if (!planoSelecionado.value) return;
+    const idRequisicao = ++ultimaRequisicaoId;
     carregandoPlano.value = true;
     planoHtml.value = '';
     try {
       const res = await fetch(`/api/plano/${planoSelecionado.value}`);
       if (res.ok) {
         const md = await res.text();
-        planoHtml.value = marked.parse(md);
+        if (idRequisicao === ultimaRequisicaoId) {
+          planoHtml.value = marked.parse(md);
+        }
       }
     } catch (e) {
       console.error("Falha ao carregar plano", e);
     } finally {
-      carregandoPlano.value = false;
+      if (idRequisicao === ultimaRequisicaoId) {
+        carregandoPlano.value = false;
+      }
     }
   }
 

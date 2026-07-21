@@ -6,6 +6,7 @@ import { useErros } from './useErros.js';
 import { useDiario } from './useDiario.js';
 import { useCiclo } from './useCiclo.js';
 import { CONTEUDOS, META_HORAS_SEMANA } from './dados.js';
+import IconeNav from './IconeNav.vue';
 
 const { progressoGeral, progressoMateria, itensConcluidos, totalItens, totalExerciciosSugeridos } = useChecklist();
 const { horasSemanaAtual, metaSemanaCss } = useHoras();
@@ -70,7 +71,7 @@ const metaHoras = META_HORAS_SEMANA;
       <div class="card-titulo">Progresso por Matéria</div>
       <div v-for="m in conteudos" :key="m.id" class="materia-progresso">
         <div class="cabecalho">
-          <span class="nome">{{ m.icone }} {{ m.nome }}</span>
+          <span class="nome"><IconeNav :nome="m.icone" /> {{ m.nome }}</span>
           <span class="pct">{{ progressoMateria(m) }}% ({{ itensConcluidos(m) }}/{{ totalItens(m) }})</span>
         </div>
         <div class="barra-progresso">
@@ -113,6 +114,13 @@ const metaHoras = META_HORAS_SEMANA;
   color: var(--texto-sec);
 }
 .resumo-plano strong { color: var(--texto); }
+
+.materia-progresso .nome {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.materia-progresso .nome :deep(.icone-nav) { width: 15px; height: 15px; }
 
 @media (max-width: 480px) {
   .streak-card { padding: 12px 16px; gap: 10px; }

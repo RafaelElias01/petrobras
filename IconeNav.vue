@@ -22,6 +22,12 @@ const PATHS = {
   lua: 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z',
   sair: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
   cadeado: 'M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zM7 11V7a5 5 0 0 1 10 0v4',
+  'materia-portugues': 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z',
+  'materia-matematica': 'M4 4h16v16H4zM8 8h.01M16 8h.01M8 16l8-8M8 16h.01M16 16h.01',
+  'materia-quimica': 'M9 3h6M10 3v6.5L5.5 18a1 1 0 0 0 .87 1.5h11.26a1 1 0 0 0 .87-1.5L14 9.5V3M8.5 14h7',
+  'materia-petroleo': 'M12 2v4M12 2c-3 3-5 6-5 10a5 5 0 0 0 10 0c0-4-2-7-5-10zM9 14a3 3 0 0 0 3 3',
+  'materia-seguranca': 'M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z',
+  'materia-metrologia': 'M12 3v18M5 8l-3 6a3 3 0 0 0 6 0l-3-6zM19 8l-3 6a3 3 0 0 0 6 0l-3-6zM5 8h14M12 3l-4 5h8l-4-5z',
 };
 </script>
 

@@ -225,16 +225,20 @@ async function handleRegister() {
       } catch {}
     }
 
-    const lista = await carregarUsuarios();
-    const senhaHash = await hashPassword(senhaDigitada.value);
-    lista.push({
-      usuario: usuarioDigitado.value.trim(),
-      nome: nomeCadastro.value.trim(),
-      email: emailCadastro.value.trim(),
-      senhaHash,
-      role: 'user',
-    });
-    await salvarUsuarios(lista);
+    try {
+      const lista = await carregarUsuarios();
+      const senhaHash = await hashPassword(senhaDigitada.value);
+      lista.push({
+        usuario: usuarioDigitado.value.trim(),
+        nome: nomeCadastro.value.trim(),
+        email: emailCadastro.value.trim(),
+        senhaHash,
+        role: 'user',
+      });
+      await salvarUsuarios(lista);
+    } catch (e) {
+      console.error("Falha ao espelhar usuário localmente", e);
+    }
 
     cadastroCarregando.value = false;
     cadastroSucesso.value = `Conta criada com sucesso! Seja bem-vindo, ${nomeCadastro.value.trim()}. Entrando no dashboard...`;
@@ -287,8 +291,9 @@ async function handleLeadMagnet() {
     <div class="login-container">
       <div class="login-brand">
         <div class="brand-badge">🔥 Edital 2026</div>
-        <h1 class="brand-title">De 38% a 82% de acerto<br>em 3 meses de ciclo certo</h1>
-        <p class="brand-subtitle">Técnico em Química Petrobras • Cesgranrio • 1.000+ vagas previstas</p>
+        <h1 class="brand-title">Petrobras<br>Técnico em Química</h1>
+        <p class="brand-subtitle">Cesgranrio • 1.000+ vagas previstas</p>
+        <p class="brand-outcome">De <strong>38% a 82%</strong> de acerto em 3 meses de ciclo certo</p>
         <div class="brand-highlight">
           <div class="highlight-item">
             <span class="highlight-value">R$ 6.638</span>
@@ -604,7 +609,17 @@ async function handleLeadMagnet() {
 .brand-subtitle {
   font-size: 16px;
   color: var(--c-text-dark);
+  margin-bottom: 12px;
+}
+
+.brand-outcome {
+  font-size: 15px;
+  color: var(--c-text-medium);
   margin-bottom: 24px;
+}
+.brand-outcome strong {
+  color: var(--c-brand-accent);
+  font-weight: 700;
 }
 
 .brand-highlight {

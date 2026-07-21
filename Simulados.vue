@@ -45,7 +45,7 @@ const semanasPlano = SEMANAS_PLANO;
         </div>
         <div>
           <label>Total /60</label>
-          <input type="number" :value="formSimuladoTotal" disabled style="background:#f3f4f6;font-weight:700;">
+          <input type="number" :value="formSimuladoTotal" disabled class="input-total-calculado">
         </div>
         <div>
           <label>&nbsp;</label>

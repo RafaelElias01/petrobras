@@ -1,5 +1,6 @@
 <script setup>
 import { useRelatorio } from './useRelatorio.js';
+import IconeNav from './IconeNav.vue';
 
 const {
   resumo, horasPorMateria, consistenciaSemanal,
@@ -43,7 +44,7 @@ const {
       <div class="card-titulo">📊 Horas por Matéria</div>
       <div v-for="m in horasPorMateria" :key="m.id" class="materia-row">
         <div class="materia-row-header">
-          <span class="materia-row-icon">{{ m.icone }}</span>
+          <span class="materia-row-icon"><IconeNav :nome="m.icone" /></span>
           <span class="materia-row-nome">{{ m.nome }}</span>
           <span class="materia-row-horas">{{ m.horas }}h</span>
           <span v-if="m.totalItens > 0" class="materia-row-check">{{ m.itens }}/{{ m.totalItens }} tópicos</span>
@@ -108,7 +109,7 @@ const {
       <div class="ciclo-grid">
         <div v-for="item in cicloDetalhado" :key="item.idx" class="ciclo-item-mini" :class="{ concluido: item.concluida }">
           <span class="ciclo-item-status">{{ item.concluida ? '✅' : '⏳' }}</span>
-          <span class="ciclo-item-nome">{{ item.icone }} {{ item.materia }}</span>
+          <span class="ciclo-item-nome"><IconeNav :nome="item.icone" /> {{ item.materia }}</span>
           <span class="ciclo-item-tempo">{{ item.horasEstudadas }}h estudadas</span>
         </div>
       </div>
@@ -146,7 +147,7 @@ const {
   gap: 8px;
   margin-bottom: 6px;
 }
-.materia-row-icon { font-size: 16px; }
+.materia-row-icon { display: inline-flex; width: 15px; height: 15px; }
 .materia-row-nome { flex: 1; font-size: 14px; font-weight: 500; }
 .materia-row-horas {
   font-size: 14px;

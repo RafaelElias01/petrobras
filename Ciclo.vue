@@ -1,5 +1,6 @@
 <script setup>
 import { useCiclo } from './useCiclo.js';
+import IconeNav from './IconeNav.vue';
 
 const {
   materiaAtual, cicloCompleto, cicloExpandido, ciclo,
@@ -45,7 +46,7 @@ const {
             completo: completosPorItem[i] > 0 && i !== idxOriginalAtual
           }"
         >
-          <span>{{ m.icone }}</span>
+          <span class="ciclo-item-icone"><IconeNav :nome="m.icone" /></span>
           <span>{{ m.materia }}</span>
           <span class="ciclo-item-peso">{{ completosPorItem[i] }}/{{ m.peso }}</span>
         </div>
@@ -131,6 +132,13 @@ const {
   color: var(--texto);
   border: 1px solid var(--borda);
   transition: all 0.2s ease;
+}
+
+.ciclo-item-icone {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .ciclo-item.atual {

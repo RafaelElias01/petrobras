@@ -50,6 +50,7 @@ export function useCiclo() {
   });
 
   function avancarCiclo() {
+    if (!totalPonderado.value) return;
     const item = CICLO_PONDERADO.value[ciclo.value.posicao];
     const chave = `item-${item.idxOriginal}`;
     ciclo.value.concluido[chave] = (ciclo.value.concluido[chave] || 0) + 1;

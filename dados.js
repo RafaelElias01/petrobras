@@ -2,7 +2,7 @@ export const CONTEUDOS = [
   {
     id: 'portugues',
     nome: 'Língua Portuguesa',
-    icone: '📝',
+    icone: 'materia-portugues',
     cor: '#4CAF50',
     questoes: 10,
     grupos: [
@@ -87,7 +87,7 @@ export const CONTEUDOS = [
   {
     id: 'matematica',
     nome: 'Matemática',
-    icone: '🔢',
+    icone: 'materia-matematica',
     cor: '#2196F3',
     questoes: 10,
     grupos: [
@@ -180,7 +180,7 @@ export const CONTEUDOS = [
   {
     id: 'quimica',
     nome: 'Química',
-    icone: '🧪',
+    icone: 'materia-quimica',
     cor: '#FF9800',
     questoes: 38,
     grupos: [
@@ -461,7 +461,7 @@ export const CONTEUDOS = [
    {
      id: 'processospetroleo',
      nome: '🛢️ Processos de Petróleo',
-     icone: '🛢️',
+     icone: 'materia-petroleo',
      cor: '#000000',
      questoes: 8,
      grupos: [
@@ -562,7 +562,7 @@ export const CONTEUDOS = [
    {
      id: 'segurancaaambiente',
      nome: '🔐 Segurança, Saúde e Ambiente (SSH)',
-     icone: '🔐',
+     icone: 'materia-seguranca',
      cor: '#D32F2F',
      questoes: 7,
      grupos: [
@@ -674,7 +674,7 @@ export const CONTEUDOS = [
    {
      id: 'metrologiacontrole',
      nome: '⚖️ Metrologia e Controle de Qualidade',
-     icone: '⚖️',
+     icone: 'materia-metrologia',
      cor: '#1976D2',
      questoes: 6,
      grupos: [
@@ -771,15 +771,15 @@ export const META_HORAS_SEMANA = 30;
 export const META_HORAS_DIA = 6;
 
 export const CICLO_ESTUDOS = [
-  { materia: 'Português', icone: '📝', tempo: 80, peso: 4 },
-  { materia: 'Química — Soluções + Inorgânica', icone: '🧪', tempo: 90, peso: 4 },
-  { materia: 'Matemática', icone: '🔢', tempo: 70, peso: 3 },
-  { materia: 'Química — Equilíbrio + pH', icone: '🧪', tempo: 60, peso: 2 },
-  { materia: 'Química — Orgânica', icone: '🧪', tempo: 60, peso: 2 },
-  { materia: 'Química — Cinética + Termo + Eletro', icone: '🧪', tempo: 60, peso: 3 },
-  { materia: 'Química — Substâncias/Propriedades', icone: '🧪', tempo: 40, peso: 1 },
-  { materia: 'Química — Técnicas + Titulometria', icone: '🧪', tempo: 60, peso: 2 },
-  { materia: 'Química — Transformações + Estequiometria', icone: '🧪', tempo: 80, peso: 3 }
+  { materia: 'Português', icone: 'materia-portugues', tempo: 80, peso: 4 },
+  { materia: 'Química — Soluções + Inorgânica', icone: 'materia-quimica', tempo: 90, peso: 4 },
+  { materia: 'Matemática', icone: 'materia-matematica', tempo: 70, peso: 3 },
+  { materia: 'Química — Equilíbrio + pH', icone: 'materia-quimica', tempo: 60, peso: 2 },
+  { materia: 'Química — Orgânica', icone: 'materia-quimica', tempo: 60, peso: 2 },
+  { materia: 'Química — Cinética + Termo + Eletro', icone: 'materia-quimica', tempo: 60, peso: 3 },
+  { materia: 'Química — Substâncias/Propriedades', icone: 'materia-quimica', tempo: 40, peso: 1 },
+  { materia: 'Química — Técnicas + Titulometria', icone: 'materia-quimica', tempo: 60, peso: 2 },
+  { materia: 'Química — Transformações + Estequiometria', icone: 'materia-quimica', tempo: 80, peso: 3 }
 ];
 
 // Mapeia nome do ciclo para ID de CONTEUDOS (mesmo usado em Diario.vue)

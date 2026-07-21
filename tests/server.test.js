@@ -213,11 +213,52 @@ describe('GET /api/planos e GET /api/plano/:id', () => {
 });
 
 describe('POST /api/visitas', () => {
-  it('registra visita e reflete no GET /api/visitas', async () => {
+  it('registra visita anônima (ignora usuario do body, sem token) e reflete no GET /api/visitas (admin)', async () => {
     const post = await request(app).post('/api/visitas').send({ usuario: 'fulano' });
     expect(post.status).toBe(200);
-    const get = await request(app).get('/api/visitas');
+
+    // GET /api/visitas agora exige token de admin.
+    const usuarios = JSON.parse(fs.readFileSync(process.env.USUARIOS_PATH, 'utf-8'));
+    const idx = usuarios.findIndex(u => u.usuario === 'fulano');
+    usuarios[idx].role = 'admin';
+    fs.writeFileSync(process.env.USUARIOS_PATH, JSON.stringify(usuarios, null, 2));
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
+
+    const get = await request(app)
+      .get('/api/visitas')
+      .set('Authorization', `Bearer ${login.body.token}`);
     expect(get.status).toBe(200);
     expect(get.body.total).toBeGreaterThan(0);
+    // O campo `usuario` do body é ignorado sem token: fica registrado como anônimo.
+    expect(get.body.visitas.find(v => v.usuario === 'anônimo')).toBeTruthy();
+  });
+
+  it('bloqueia GET /api/visitas sem token', async () => {
+    const res = await request(app).get('/api/visitas');
+    expect(res.status).toBe(401);
+  });
+
+  it('bloqueia GET /api/visitas com token de usuário não-admin', async () => {
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'outrouser', senha: '123456' });
+    const res = await request(app)
+      .get('/api/visitas')
+      .set('Authorization', `Bearer ${login.body.token}`);
+    expect(res.status).toBe(403);
+  });
+
+  it('usa o usuário do token (não o do body) quando autenticado', async () => {
+    const login = await request(app).post('/api/auth/login').send({ usuario: 'outrouser', senha: '123456' });
+    const post = await request(app)
+      .post('/api/visitas')
+      .set('Authorization', `Bearer ${login.body.token}`)
+      .send({ usuario: 'usuario-forjado' });
+    expect(post.status).toBe(200);
+
+    const adminLogin = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
+    const get = await request(app)
+      .get('/api/visitas')
+      .set('Authorization', `Bearer ${adminLogin.body.token}`);
+    expect(get.body.visitas.find(v => v.usuario === 'outrouser')).toBeTruthy();
+    expect(get.body.visitas.find(v => v.usuario === 'usuario-forjado')).toBeFalsy();
   });
 });

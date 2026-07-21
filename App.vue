@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
 
 import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
@@ -118,7 +118,9 @@ function irPara(novaView) {
   view.value = novaView;
   menuAberta.value = false;
   window.scrollTo(0, 0);
-  window.location.hash = novaView;
+  if (window.location.hash.slice(1) !== novaView) {
+    window.location.hash = novaView;
+  }
 }
 
 function alternarTema() {
@@ -127,9 +129,24 @@ function alternarTema() {
   localStorage.setItem('petro_tema', tema.value);
 }
 
+// Reage a mudanças de hash (F5, link compartilhado, botão voltar/avançar do
+// navegador). NÃO delega para irPara: irPara conta como navegação ativa do
+// usuário (incrementa acesso demo); carregar uma URL com #hash já na barra
+// de endereço não deveria contar como clique em feature bloqueada.
 function navegarHash() {
   const hash = window.location.hash.slice(1);
-  if (hash && views[hash]) view.value = hash;
+  if (hash && views[hash] && hash !== view.value) {
+    view.value = hash;
+    menuAberta.value = false;
+  }
+}
+
+function handleNavegarEvent(e) {
+  if (e.detail) irPara(e.detail);
+}
+
+function handleStorageEvent(e) {
+  if (e.key === SESSAO_KEY) verificarSessao();
 }
 
 async function handleLogin(usuario, senha) {
@@ -221,16 +238,20 @@ function verificarSessao() {
 onMounted(async () => {
   document.documentElement.dataset.tema = tema.value;
   window.addEventListener('hashchange', navegarHash);
-  window.addEventListener('navegar', (e) => { if (e.detail) irPara(e.detail); });
-  window.addEventListener('storage', (e) => {
-    if (e.key === SESSAO_KEY) verificarSessao();
-  });
+  window.addEventListener('navegar', handleNavegarEvent);
+  window.addEventListener('storage', handleStorageEvent);
   verificarSessao();
   navegarHash();
   registrarVisita();
   setTimeout(() => {
     carregando.value = false;
   }, 200);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('hashchange', navegarHash);
+  window.removeEventListener('navegar', handleNavegarEvent);
+  window.removeEventListener('storage', handleStorageEvent);
 });
 
 const views = {
@@ -327,6 +348,7 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
               :is="views[view]"
               :key="view"
               :usuarioLogado="view === 'admin' ? usuarioAtual?.usuario : undefined"
+              :token="view === 'admin' ? tokenSessaoAtual() : undefined"
             />
           </transition>
         </ErrorBoundary>

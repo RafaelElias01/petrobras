@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useChecklist } from './useChecklist.js';
 import { CONTEUDOS } from './dados.js';
+import IconeNav from './IconeNav.vue';
 
 const {
   progressoMateria, totalConcluidoGeral, totalGeral, filtro,
@@ -28,7 +29,7 @@ function toggleAba(id) {
       </button>
       <button v-for="m in conteudos" :key="m.id" class="checklist-tab" :class="{ active: abaAtiva === m.id }"
         :style="abaAtiva === m.id ? { borderBottomColor: m.cor, color: m.cor } : {}" @click="toggleAba(m.id)">
-        {{ m.icone }} {{ m.nome }}
+        <IconeNav :nome="m.icone" /> {{ m.nome }}
         <span class="tab-progress">{{ progressoMateria(m) }}%</span>
       </button>
     </div>
@@ -49,7 +50,7 @@ function toggleAba(id) {
 
       <div v-for="m in (filtro ? conteudosFiltrados : conteudos).filter(c => !abaAtiva || c.id === abaAtiva)" :key="m.id" style="margin-bottom:24px;">
         <h3 style="font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--borda);">
-          {{ m.icone }} {{ m.nome }}
+          <IconeNav :nome="m.icone" /> {{ m.nome }}
           <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">({{ itensConcluidos(m) }}/{{ totalItens(m) }})</span>
         </h3>
         <div v-for="g in m.grupos" :key="g.nome" class="grupo-checklist">

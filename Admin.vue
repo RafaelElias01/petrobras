@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useAdmin } from './useAdmin.js';
 
-const props = defineProps({ usuarioLogado: String });
+const props = defineProps({ usuarioLogado: String, token: String });
 
 const {
   usuarios, editandoUsuario, totalUsuarios, admins, usuariosComuns,
@@ -16,7 +16,10 @@ const visitasHoje = ref(0);
 
 async function carregarVisitas() {
   try {
-    const r = await fetch('/api/visitas');
+    const r = await fetch('/api/visitas', {
+      headers: props.token ? { Authorization: `Bearer ${props.token}` } : {},
+    });
+    if (!r.ok) return;
     const data = await r.json();
     totalVisitas.value = Math.max(32, data.total);
     visitasHoje.value = Math.max(32, data.hoje);
