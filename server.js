@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import bcrypt from 'bcryptjs';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
+import { hojeBrasiliaISO } from './dataLocal.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -266,7 +267,7 @@ app.get('/api/premium/status/:usuario', (req, res) => {
     return res.status(401).json({ erro: 'Não autorizado' });
   }
   const usuarios = lerUsuarios();
-  const user = usuarios.find(u => u.usuario === usuario);
+  const user = usuarios.find(u => u.usuario.toLowerCase() === usuario.toLowerCase());
   if (!user) return res.status(404).json({ erro: 'Usuário não encontrado' });
   res.json({ premium: user.premium || false, premiumEm: user.premiumEm || null, nome: user.nome, email: user.email || '' });
 });
@@ -439,8 +440,8 @@ app.post('/api/visitas', (req, res) => {
     usuario,
     ip,
     pagina,
-    data: new Date().toISOString().split('T')[0],
-    hora: new Date().toTimeString().split(' ')[0],
+    data: hojeBrasiliaISO(),
+    hora: new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour12: false }),
     timestamp: Date.now()
   });
   salvarVisitas(visitas);
@@ -456,7 +457,7 @@ app.get('/api/visitas', (req, res) => {
   if (!user || user.role !== 'admin') return res.status(403).json({ erro: 'Acesso restrito a administradores' });
   const visitas = lerVisitas();
   const total = visitas.length;
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = hojeBrasiliaISO();
   const unicos = new Set(visitas.map(v => v.usuario === 'anônimo' ? `ip:${v.ip}` : `u:${v.usuario}`)).size;
 
   const porDiaMap = new Map();

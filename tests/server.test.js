@@ -3,6 +3,7 @@ import request from 'supertest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { hojeBrasiliaISO } from '../dataLocal.js';
 
 let app;
 let tmpDir;
@@ -262,7 +263,15 @@ describe('POST /api/visitas', () => {
     expect(get.body.visitas.find(v => v.usuario === 'usuario-forjado')).toBeFalsy();
   });
 
-  it('registra a página válida enviada e cai em "dashboard" para valores inválidos', async () => {
+  it('registra a página válida enviada e cai em "dashboard" para valores inválidos; grava e conta "hoje" em horário de Brasília', async () => {
+    // Regressão de fuso: a VM de produção roda em UTC, mas o público é 100%
+    // Brasil. Antes desta correção, tanto a gravação (POST) quanto a
+    // contagem "hoje" (GET) usavam new Date().toISOString() (UTC do
+    // processo), fazendo visitas registradas à noite (horário de Brasília)
+    // contarem como "ontem" no fuso do servidor, ou vice-versa dependendo da
+    // hora. Usa hojeBrasiliaISO() (a mesma função do código de produção) em
+    // vez de uma data hardcoded, pra continuar correto em qualquer fuso do
+    // executor -- incluindo o do CI (UTC).
     await request(app).post('/api/visitas').send({ pagina: 'flashcards' });
     await request(app).post('/api/visitas').send({ pagina: 'pagina-que-nao-existe' });
 
@@ -276,5 +285,9 @@ describe('POST /api/visitas', () => {
     expect(Array.isArray(get.body.porDia)).toBe(true);
     expect(Array.isArray(get.body.porPagina)).toBe(true);
     expect(typeof get.body.unicos).toBe('number');
+
+    const registroRecente = get.body.visitas[0];
+    expect(registroRecente.data).toBe(hojeBrasiliaISO());
+    expect(get.body.hoje).toBeGreaterThan(0);
   });
 });

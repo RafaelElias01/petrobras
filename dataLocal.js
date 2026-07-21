@@ -12,3 +12,11 @@ export function dataLocalISO(data) {
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().slice(0, 10);
 }
+
+// Para uso no servidor: a VM roda em UTC (não no fuso do visitante), mas o
+// público do produto é 100% Brasil -- "hoje" pro admin (ex: contagem de
+// visitas do dia) deve ser sempre horário de Brasília, fixo, independente
+// do fuso do processo Node.
+export function hojeBrasiliaISO() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+}
