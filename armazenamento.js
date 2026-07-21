@@ -55,4 +55,24 @@ function salvar(chave, dados, debounceMs = 1000) {
   }, debounceMs);
 }
 
-export const Armazenamento = { carregar, salvar };
+// Remove todos os dados de estudo salvos neste navegador (ciclo, horas, erros,
+// flashcards, diário, checklist, simulados, favoritos etc.). Chamado no
+// logout: sem isso, os dados ficam sob uma chave global sem isolamento por
+// usuário, então o próximo login no mesmo navegador (comum em computador
+// compartilhado/família) herdaria -- e poderia sobrescrever -- o progresso de
+// estudo de quem saiu. Cancela também debounces de salvar pendentes, pra um
+// `salvar()` atrasado não recriar a chave já removida.
+function limparTudo() {
+  for (const chave of Object.keys(debounceTimers)) {
+    clearTimeout(debounceTimers[chave]);
+    delete debounceTimers[chave];
+  }
+  const chaves = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(prefixo)) chaves.push(k);
+  }
+  chaves.forEach(k => localStorage.removeItem(k));
+}
+
+export const Armazenamento = { carregar, salvar, limparTudo };

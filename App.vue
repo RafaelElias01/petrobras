@@ -6,6 +6,7 @@ import Dashboard from './Dashboard.vue';
 import ErrorBoundary from './ErrorBoundary.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
 import IconeNav from './IconeNav.vue';
+import { Armazenamento } from './armazenamento.js';
 
 const Checklist = defineAsyncComponent(() => import('./Checklist.vue'));
 const Horas = defineAsyncComponent(() => import('./Horas.vue'));
@@ -202,6 +203,15 @@ function logout() {
   sessionStorage.removeItem(SESSAO_KEY);
   localStorage.removeItem(SESSAO_KEY);
   view.value = 'dashboard';
+  // Dados de estudo (ciclo, horas, erros, flashcards, diário, checklist,
+  // simulados, favoritos) ficam salvos sob uma chave global no localStorage,
+  // sem isolamento por usuário -- em computador compartilhado, o próximo
+  // login herdaria (e poderia sobrescrever) o progresso de quem saiu. Limpa
+  // tudo e recarrega a página: o reload também garante que os composables
+  // (que guardam estado em singleton por módulo) recomecem do zero pro
+  // próximo usuário, em vez de manterem em memória os dados do anterior.
+  Armazenamento.limparTudo();
+  window.location.reload();
 }
 
 // Sessão local ainda parece válida, mas o servidor já não reconhece o token
