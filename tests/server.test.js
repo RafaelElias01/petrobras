@@ -78,31 +78,19 @@ describe('POST /api/auth/login', () => {
   });
 });
 
-describe('POST /api/premium/confirmar', () => {
-  it('bloqueia sem token', async () => {
-    const res = await request(app).post('/api/premium/confirmar').send({ usuario: 'fulano' });
-    expect(res.status).toBe(401);
-  });
-
-  it('bloqueia token de um usuário tentando confirmar premium de outro', async () => {
-    const outro = await request(app)
+describe('POST /api/premium/confirmar (removido)', () => {
+  it('rota não existe mais -- ativar premium sem passar pelo Mercado Pago era um bypass de pagamento', async () => {
+    // Endpoint antigo do fluxo de PIX manual: ativava premium só com o
+    // usuário estar autenticado como si mesmo, sem checar pagamento nenhum.
+    // Nunca foi chamado pelo frontend desde que o checkout automático via
+    // Mercado Pago (criar-preferencia + webhook) entrou no lugar, mas
+    // continuou exposto e funcional -- qualquer usuário logado podia
+    // ativar premium de graça chamando a rota direto. Removido.
+    await request(app)
       .post('/api/auth/register')
       .send({ usuario: 'outrouser', nome: 'Outro', email: 'outro@ex.com', senha: '123456' });
-    const res = await request(app)
-      .post('/api/premium/confirmar')
-      .set('Authorization', `Bearer ${outro.body.token}`)
-      .send({ usuario: 'fulano' });
-    expect(res.status).toBe(401);
-  });
-
-  it('permite confirmar o próprio premium com token válido', async () => {
-    const login = await request(app).post('/api/auth/login').send({ usuario: 'fulano', senha: '123456' });
-    const res = await request(app)
-      .post('/api/premium/confirmar')
-      .set('Authorization', `Bearer ${login.body.token}`)
-      .send({ usuario: 'fulano' });
-    expect(res.status).toBe(200);
-    expect(res.body.premium).toBe(true);
+    const res = await request(app).post('/api/premium/confirmar').send({ usuario: 'fulano' });
+    expect(res.status).toBe(404);
   });
 });
 

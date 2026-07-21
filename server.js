@@ -282,18 +282,6 @@ function ativarPremium(usuario) {
   return true;
 }
 
-app.post('/api/premium/confirmar', (req, res) => {
-  const { usuario } = req.body;
-  if (!usuario || typeof usuario !== 'string') return res.status(400).json({ erro: 'Usuário inválido' });
-  // Só o próprio usuário autenticado pode confirmar seu premium.
-  const autenticado = usuarioDoToken(req);
-  if (!autenticado || autenticado.toLowerCase() !== usuario.toLowerCase()) {
-    return res.status(401).json({ erro: 'Não autorizado' });
-  }
-  if (!ativarPremium(usuario)) return res.status(404).json({ erro: 'Usuário não encontrado' });
-  res.json({ ok: true, premium: true });
-});
-
 app.post('/api/premium/criar-preferencia', async (req, res) => {
   const usuario = usuarioDoToken(req);
   if (!usuario) return res.status(401).json({ erro: 'Não autenticado' });
