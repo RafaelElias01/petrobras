@@ -72,7 +72,7 @@ async function iniciar() {
         }
 
         const resposta = encontrarResposta(texto);
-        await sock.sendMessage(remetente, { text: resposta });
+        await sock.sendMessage(remetente, { text: `🤖 ${resposta}` });
         respostasNoMinuto++;
       } catch (e) {
         console.error('Erro ao processar mensagem:', e);
