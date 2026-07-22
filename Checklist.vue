@@ -25,8 +25,8 @@ function toggleAba(id) {
 
 // Ao marcar (não desmarcar) um tópico como concluído, agenda a revisão
 // espaçada dele (D+1/D+7/D+30) automaticamente.
-function handleToggleItem(materia, topico, materiaId, grupoNome, idx) {
-  const concluido = alternarItem(materiaId, grupoNome, idx);
+function handleToggleItem(materia, topico, materiaId, grupoNome, idxOriginal) {
+  const concluido = alternarItem(materiaId, grupoNome, idxOriginal);
   if (concluido) {
     agendarRevisao(topico, materia.nome, hojeLocalISO());
   }
@@ -61,7 +61,7 @@ function handleToggleItem(materia, topico, materiaId, grupoNome, idx) {
         <button @click="colapsarTudo" class="btn-colapsar">📁 Colapsar Tudo</button>
       </div>
 
-      <div v-for="m in (filtro ? conteudosFiltrados : conteudos).filter(c => !abaAtiva || c.id === abaAtiva)" :key="m.id" style="margin-bottom:24px;">
+      <div v-for="m in conteudosFiltrados.filter(c => !abaAtiva || c.id === abaAtiva)" :key="m.id" style="margin-bottom:24px;">
         <h3 style="font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--borda);">
           <IconeNav :nome="m.icone" /> {{ m.nome }}
           <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">({{ itensConcluidos(m) }}/{{ totalItens(m) }})</span>
@@ -73,9 +73,9 @@ function handleToggleItem(materia, topico, materiaId, grupoNome, idx) {
             <span v-if="g.exercicios_sugeridos" style="font-size:11px;color:var(--aviso);font-weight:400;margin-left:8px;">🎯 {{ g.exercicios_sugeridos }} exercícios</span>
           </div>
           <div v-show="gruposAbertos[m.id+'-'+g.nome]">
-            <label v-for="(t, idx) in g.topicos" :key="t" class="item-check" :class="{ concluido: checklist[`${m.id}-${g.nome}-${idx}`] }">
-              <input type="checkbox" :checked="checklist[`${m.id}-${g.nome}-${idx}`]" @change="handleToggleItem(m, t, m.id, g.nome, idx)">
-              <span class="texto">{{ t }}</span>
+            <label v-for="t in g.topicos" :key="t.idxOriginal" class="item-check" :class="{ concluido: checklist[`${m.id}-${g.nome}-${t.idxOriginal}`] }">
+              <input type="checkbox" :checked="checklist[`${m.id}-${g.nome}-${t.idxOriginal}`]" @change="handleToggleItem(m, t.texto, m.id, g.nome, t.idxOriginal)">
+              <span class="texto">{{ t.texto }}</span>
             </label>
           </div>
         </div>

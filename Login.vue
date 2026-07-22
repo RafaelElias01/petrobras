@@ -8,7 +8,7 @@ import HowItWorks from './HowItWorks.vue';
 import IconeNav from './IconeNav.vue';
 
 const props = defineProps({
-  erro: Boolean,
+  erro: String, // '' = sem erro; senão, mensagem a exibir (ver App.vue: handleLogin)
 });
 const emit = defineEmits(['tentativa-login', 'registro-sucesso']);
 
@@ -385,7 +385,7 @@ async function handleLeadMagnet() {
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
-            <p v-if="props.erro" class="msg-erro">⚠ Usuário ou senha inválidos. Tente novamente.</p>
+            <p v-if="props.erro" class="msg-erro">⚠ {{ props.erro }}</p>
           </form>
 
           <form v-else @submit.prevent="handleRegister" class="login-form">

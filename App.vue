@@ -29,8 +29,12 @@ function gerarToken() {
 
 const usuarioAtual = ref(null);
 const autenticado = ref(false);
-const erroLogin = ref(false);
-const erroMsg = ref('');
+// String vazia = sem erro; senão, mensagem exibida no Login.vue. Precisa
+// distinguir "servidor respondeu que a senha está errada" de "não deu pra
+// nem falar com o servidor" -- antes os dois casos caíam na mesma mensagem
+// genérica de "usuário ou senha inválidos", enganando quem digitou certo
+// mas está sem conexão/com o backend fora do ar.
+const erroLogin = ref('');
 
 const FEATURES_BLOQUEADAS_DEMO = new Set([
   'ciclo', 'horas', 'simulados', 'erros',
@@ -164,6 +168,7 @@ async function handleLogin(usuario, senha) {
   // existir em dados/usuarios.json no servidor (ver server.js: seedUsuariosDemo).
   let user = null;
   let serverToken = null;
+  let erroConexao = false;
   try {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
@@ -175,12 +180,16 @@ async function handleLogin(usuario, senha) {
       user = data.user;
       serverToken = data.token || null;
     }
-  } catch { /* backend offline: login falha (sem fallback local) */ }
+  } catch {
+    // backend offline/rede fora do ar: login falha (sem fallback local), mas
+    // precisa de mensagem diferente de "senha errada" (ver erroLogin acima).
+    erroConexao = true;
+  }
 
   if (user) {
     usuarioAtual.value = user;
     autenticado.value = true;
-    erroLogin.value = false;
+    erroLogin.value = '';
     const sessao = { user, token: gerarToken(), serverToken, timestamp: Date.now() };
     sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
     localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
@@ -189,7 +198,9 @@ async function handleLogin(usuario, senha) {
       incrementarDemoCount();
     }
   } else {
-    erroLogin.value = true;
+    erroLogin.value = erroConexao
+      ? 'Erro de conexão com o servidor. Tente novamente.'
+      : 'Usuário ou senha inválidos. Tente novamente.';
   }
 }
 

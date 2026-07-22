@@ -2,7 +2,13 @@ import { ref, computed, watch, watchEffect } from 'vue';
 import { Armazenamento } from './armazenamento.js';
 import { CICLO_ESTUDOS } from './dados.js';
 
+let instance;
+
 export function useCiclo() {
+  if (instance) {
+    return instance;
+  }
+
   const ciclo = ref(Armazenamento.carregar('ciclo', { posicao: 0, concluido: {} }));
 
   const CICLO_PONDERADO = computed(() => {
@@ -61,9 +67,10 @@ export function useCiclo() {
     ciclo.value = { posicao: 0, concluido: {} };
   }
 
-  return {
+  instance = {
     ciclo, cicloExpandido, CICLO_ESTUDOS, materiaAtual, idxOriginalAtual,
     cicloCompleto, completosPorItem, totalPonderado,
     avancarCiclo, reiniciarCiclo
   };
+  return instance;
 }

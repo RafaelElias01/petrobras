@@ -23,6 +23,11 @@ describe('interpretarComando (liga/desliga do bot via WhatsApp)', () => {
     expect(interpretarComando('/bot LIGAR')).toBe('ligar');
   });
 
+  it('ignora espaço duplo/repetido no meio do comando (autocorretor do celular)', () => {
+    expect(interpretarComando('/bot  desligar')).toBe('desligar');
+    expect(interpretarComando('/bot   ligar')).toBe('ligar');
+  });
+
   it('não reconhece mensagem comum (não é um comando) e retorna null', () => {
     expect(interpretarComando('oi, quanto custa o premium?')).toBe(null);
     expect(interpretarComando('bot desligar')).toBe(null); // sem a barra "/", não conta

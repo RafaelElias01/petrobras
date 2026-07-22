@@ -22,7 +22,7 @@ const {
       </div>
       <div class="cartao-stat">
         <div class="valor">{{ totalHorasAcumuladas }}h</div>
-        <div class="rotulo">Total acumulado ({{ Math.round(totalHorasAcumuladas/360*100) }}% da meta)</div>
+        <div class="rotulo">Total acumulado ({{ totalMeta ? Math.round(totalHorasAcumuladas/totalMeta*100) : 0 }}% da meta)</div>
       </div>
     </div>
 

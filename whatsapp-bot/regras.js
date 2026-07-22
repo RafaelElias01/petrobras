@@ -11,7 +11,11 @@ export function normalizar(texto) {
   return texto
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, ''); // remove acentos
+    .replace(/[̀-ͯ]/g, '') // remove acentos
+    // Colapsa espaços internos repetidos (autocorretor do celular, espaço
+    // duplo por engano) -- sem isso, "/bot  desligar" não bate com nenhuma
+    // entrada de interpretarComando() e o comando é ignorado em silêncio.
+    .replace(/\s+/g, ' ');
 }
 
 // Tokeniza em palavras (sem pontuação) pra casar keyword como PALAVRA, não

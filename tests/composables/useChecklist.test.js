@@ -109,10 +109,11 @@ describe('useChecklist', () => {
     expect(gruposAbertos.value).toEqual({});
   });
 
-  it('conteudosFiltrados filtra tópicos por termo de busca (case-insensitive) sem alterar CONTEUDOS', async () => {
+  it('conteudosFiltrados filtra tópicos por termo de busca (case-insensitive) preservando o idxOriginal de cada tópico', async () => {
     const { filtro, conteudosFiltrados } = await montarChecklist();
     const materia = CONTEUDOS[0];
     const grupo = materia.grupos[0];
+    const idxOriginalEsperado = grupo.topicos.indexOf(grupo.topicos[0]);
     const topico = grupo.topicos[0];
     const termo = topico.slice(0, 10);
 
@@ -122,13 +123,18 @@ describe('useChecklist', () => {
     const materiaFiltrada = conteudosFiltrados.value.find(m => m.id === materia.id);
     expect(materiaFiltrada).toBeDefined();
     const grupoFiltrado = materiaFiltrada.grupos.find(g => g.nome === grupo.nome);
-    expect(grupoFiltrado.topicos).toContain(topico);
+    // topicos filtrados carregam { texto, idxOriginal } -- idxOriginal precisa
+    // continuar apontando pra posição na lista completa (não filtrada), senão
+    // marcar um item da busca marca o tópico errado no checklist (bug real
+    // corrigido: idx do array filtrado usado como chave de storage).
+    expect(grupoFiltrado.topicos).toContainEqual({ texto: topico, idxOriginal: idxOriginalEsperado });
 
-    // sem filtro, retorna a lista completa original (mesmo conteúdo — a instância
-    // de CONTEUDOS pode diferir porque dados.js foi reimportado via vi.resetModules())
+    // sem filtro, devolve todos os tópicos (com idxOriginal = posição natural)
     filtro.value = '';
     await nextTick();
-    expect(conteudosFiltrados.value).toEqual(CONTEUDOS);
+    const materiaSemFiltro = conteudosFiltrados.value.find(m => m.id === materia.id);
+    const grupoSemFiltro = materiaSemFiltro.grupos.find(g => g.nome === grupo.nome);
+    expect(grupoSemFiltro.topicos).toEqual(grupo.topicos.map((t, idxOriginal) => ({ texto: t, idxOriginal })));
   });
 
   it('persiste checklist e gruposAbertos no Armazenamento (localStorage)', async () => {

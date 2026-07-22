@@ -84,9 +84,14 @@ async function iniciar() {
         const remetente = msg.key.remoteJid;
         if (!remetente || remetente.endsWith('@g.us')) continue; // ignora grupos
 
+        // Com "mensagens temporárias" ativado no chat, o conteúdo real vem
+        // embrulhado em ephemeralMessage.message -- sem desembrulhar, essas
+        // mensagens (inclusive comandos /bot do próprio dono) caem no `texto`
+        // vazio abaixo e são descartadas em silêncio, sem log nem resposta.
+        const conteudo = msg.message.ephemeralMessage?.message || msg.message;
         const texto =
-          msg.message.conversation ||
-          msg.message.extendedTextMessage?.text ||
+          conteudo.conversation ||
+          conteudo.extendedTextMessage?.text ||
           '';
         if (!texto.trim()) continue;
 
@@ -116,9 +121,14 @@ async function iniciar() {
           continue;
         }
 
+        // Incrementa ANTES do await: o listener é assíncrono e o event emitter
+        // não espera uma chamada terminar antes de disparar a próxima, então
+        // duas mensagens quase simultâneas (upsert batches diferentes) podiam
+        // ler o mesmo valor desatualizado no `if` acima e as duas passarem,
+        // estourando o limite. Reservar a "vaga" já aqui fecha essa corrida.
+        respostasNoMinuto++;
         const resposta = encontrarResposta(texto);
         await sock.sendMessage(remetente, { text: `🤖 ${resposta}` });
-        respostasNoMinuto++;
       } catch (e) {
         console.error('Erro ao processar mensagem:', e);
       }

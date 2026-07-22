@@ -31,10 +31,16 @@ export function useChecklist() {
 
   const totalItens = (materia) => materia.grupos.reduce((acc, g) => acc + g.topicos.length, 0);
 
+  // topicos pode vir como string simples (lista completa, não filtrada) ou
+  // como { texto, idxOriginal } (vindo de conteudosFiltrados) -- o índice
+  // pra montar a chave do checklist sempre precisa ser o original, nunca a
+  // posição dentro de um array já filtrado pela busca.
+  const idxRealDoTopico = (t, idxNoArray) => (typeof t === 'string' ? idxNoArray : t.idxOriginal);
+
   const itensConcluidos = (materia) => {
     return materia.grupos.reduce((acc, g) => {
       return acc + g.topicos.reduce((subAcc, t, idx) => {
-        const id = `${materia.id}-${g.nome}-${idx}`;
+        const id = `${materia.id}-${g.nome}-${idxRealDoTopico(t, idx)}`;
         return subAcc + (checklist.value[id] ? 1 : 0);
       }, 0);
     }, 0);
@@ -42,7 +48,7 @@ export function useChecklist() {
 
   const itensConcluidosGrupo = (materiaId, grupo) => {
     return grupo.topicos.reduce((acc, t, idx) => {
-      const id = `${materiaId}-${grupo.nome}-${idx}`;
+      const id = `${materiaId}-${grupo.nome}-${idxRealDoTopico(t, idx)}`;
       return acc + (checklist.value[id] ? 1 : 0);
     }, 0);
   };
@@ -66,14 +72,18 @@ export function useChecklist() {
     return Math.round((totalConcluidoGeral.value / totalGeral.value) * 100);
   });
 
+  // Cada tópico carrega seu idxOriginal (posição na lista completa, não
+  // filtrada) -- é essa posição que identifica o item no `checklist` (ver
+  // idxRealDoTopico), então precisa sobreviver ao filtro de busca.
   const conteudosFiltrados = computed(() => {
-    if (!filtro.value) return CONTEUDOS;
     const termo = filtro.value.toLowerCase();
     return CONTEUDOS.map(m => ({
       ...m,
       grupos: m.grupos.map(g => ({
         ...g,
-        topicos: g.topicos.filter(t => t.toLowerCase().includes(termo))
+        topicos: g.topicos
+          .map((t, idxOriginal) => ({ texto: t, idxOriginal }))
+          .filter(t => !termo || t.texto.toLowerCase().includes(termo))
       })).filter(g => g.topicos.length > 0)
     })).filter(m => m.grupos.length > 0);
   });

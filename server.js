@@ -302,6 +302,7 @@ function tokenOptOut(usuario) {
 }
 
 app.get('/api/newsletter-premium/descadastrar', (req, res) => {
+  if (!OPTOUT_SECRET) return res.status(503).send('Serviço indisponível.');
   const { usuario, token } = req.query;
   if (!usuario || typeof usuario !== 'string' || !token || typeof token !== 'string') {
     return res.status(400).send('Link inválido.');
@@ -486,23 +487,22 @@ function escreverJsonAtomico(destino, data) {
 
 const usuariosPath = process.env.USUARIOS_PATH || path.join(__dirname, 'dados', 'usuarios.json');
 
+// Propositalmente NÃO engole erro de leitura/parse aqui: se o arquivo existe
+// mas está corrompido/ilegível, silenciar e devolver [] faria qualquer rotina
+// de seed/registro interpretar "sem usuários" e sobrescrever usuarios.json,
+// apagando a base real. Deixa propagar -- vira 500 (rotas, via error handler
+// do Express) ou derruba o boot (seedUsuariosDemo/migrarSenhasPlaintext),
+// que é preferível a corromper silenciosamente os dados.
 function lerUsuarios() {
-  try {
-    if (!fs.existsSync(usuariosPath)) return [];
-    const data = fs.readFileSync(usuariosPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (e) {
-    console.error('Erro ao ler usuários:', e);
-    return [];
-  }
+  if (!fs.existsSync(usuariosPath)) return [];
+  const data = fs.readFileSync(usuariosPath, 'utf-8');
+  return JSON.parse(data);
 }
 
+// Idem: não engolir erro de escrita, senão a rota que chamou isso responde
+// "sucesso" ao cliente mesmo quando nada foi persistido no disco.
 function salvarUsuarios(data) {
-  try {
-    escreverJsonAtomico(usuariosPath, data);
-  } catch (e) {
-    console.error('Erro ao salvar usuarios:', e);
-  }
+  escreverJsonAtomico(usuariosPath, data);
 }
 
 // Migração one-time: qualquer usuário com `senha` em texto plano vira `senhaHash`
@@ -564,7 +564,7 @@ app.post('/api/auth/register', authLimiter, (req, res) => {
   const usuarioNormalizado = usuario.toLowerCase();
   const usuarios = lerUsuarios();
   if (usuarios.find(u => u.usuario.toLowerCase() === usuarioNormalizado)) return res.status(409).json({ erro: 'Usuário já existe' });
-  if (usuarios.find(u => u.email === email)) return res.status(409).json({ erro: 'Email já cadastrado' });
+  if (usuarios.find(u => u.email.toLowerCase() === email.toLowerCase())) return res.status(409).json({ erro: 'Email já cadastrado' });
   const senhaHash = bcrypt.hashSync(senha, 10);
   usuarios.push({ usuario: usuarioNormalizado, nome, email, senhaHash, role: 'user', premium: false, criadoEm: new Date().toISOString() });
   salvarUsuarios(usuarios);

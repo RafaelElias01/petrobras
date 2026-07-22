@@ -20,13 +20,19 @@ const visitasPorPagina = ref([]);
 const filtroData = ref('');
 const filtroUsuario = ref('');
 const filtroIp = ref('');
+const erroVisitas = ref('');
 
 async function carregarVisitas() {
   try {
     const r = await fetch('/api/visitas', {
       headers: props.token ? { Authorization: `Bearer ${props.token}` } : {},
     });
-    if (!r.ok) return;
+    if (!r.ok) {
+      // Sem isso, uma falha aqui deixa todos os cartões em 0/vazio --
+      // indistinguível de "site realmente sem visitas" pro admin.
+      erroVisitas.value = 'Não foi possível carregar as estatísticas de visitas.';
+      return;
+    }
     const data = await r.json();
     totalVisitas.value = data.total;
     visitasHoje.value = data.hoje;
@@ -34,7 +40,10 @@ async function carregarVisitas() {
     visitasPorDia.value = data.porDia || [];
     visitasPorPagina.value = data.porPagina || [];
     visitas.value = data.visitas || [];
-  } catch {}
+    erroVisitas.value = '';
+  } catch {
+    erroVisitas.value = 'Não foi possível carregar as estatísticas de visitas.';
+  }
 }
 
 onMounted(() => {
@@ -145,6 +154,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
 
 <template>
   <div>
+    <p v-if="erroVisitas" class="erro-form">⚠ {{ erroVisitas }}</p>
     <div class="grade-cartoes">
       <div class="cartao-stat">
         <div class="valor">{{ totalUsuarios }}</div>

@@ -43,7 +43,7 @@ const {
           class="ciclo-item"
           :class="{
             atual: i === idxOriginalAtual,
-            completo: completosPorItem[i] > 0 && i !== idxOriginalAtual
+            completo: completosPorItem[i] >= m.peso && i !== idxOriginalAtual
           }"
         >
           <span class="ciclo-item-icone"><IconeNav :nome="m.icone" /></span>

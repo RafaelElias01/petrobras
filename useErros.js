@@ -98,7 +98,12 @@ export function useErros() {
     erros, editandoErro, totalErros, errosAgrupados, errosPorMateria, errosFrequentes,
     regrasDeOuro,
     carregarErros, novoErro, salvarErro, cancelarErro: () => editandoErro.value = null,
-    editarErro: (e) => editandoErro.value = { ...e },
+    // `classificacao || tipo` reaplica o mesmo fallback de migração usado no
+    // resto do arquivo (linhas 50-59): um erro salvo antes da migração só tem
+    // `tipo`, e sem isso o formulário de edição abre com classificacao
+    // undefined -- o <select> mostra "A" selecionado visualmente (primeira
+    // option) sem esse valor realmente estar em editandoErro.
+    editarErro: (e) => editandoErro.value = { ...e, classificacao: e.classificacao || e.tipo || 'A' },
     removerErro, registrarRevisao, marcarRevisaoAcertou
   };
   return instance;

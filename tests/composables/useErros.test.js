@@ -198,6 +198,15 @@ describe('useErros', () => {
     expect(original.topico).toBe('original');
   });
 
+  it('editarErro preenche classificacao a partir do campo legado `tipo` quando o erro é anterior à migração', async () => {
+    const { editandoErro, editarErro } = await montarErros();
+    const erroLegado = { id: 1, materia: MATERIA, topico: 'x', tipo: 'B' }; // sem `classificacao`
+
+    editarErro(erroLegado);
+
+    expect(editandoErro.value.classificacao).toBe('B');
+  });
+
   it('persiste regrasDeOuro no Armazenamento somente após carregarErros()', async () => {
     vi.useFakeTimers();
     try {
