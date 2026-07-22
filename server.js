@@ -38,17 +38,37 @@ if (!resendClient) {
   console.warn('RESEND_API_KEY nao configurado: email de boas-vindas desativado.');
 }
 
+const SITE_URL = 'https://petrobrasacademy.com.br';
+
 async function enviarEmailBoasVindas({ email, nome, usuario }) {
   if (!resendClient) return;
   try {
     await resendClient.emails.send({
       from: EMAIL_FROM,
       to: email,
-      subject: 'Bem-vindo(a) ao Estudo Petrobras!',
-      html: `<p>Olá, ${nome}!</p>
-        <p>Sua conta foi criada com sucesso. Seu usuário de acesso é: <strong>${usuario}</strong></p>
-        <p>Por segurança, nunca enviamos sua senha por email -- guarde-a em local seguro.</p>
-        <p>Bons estudos!</p>`,
+      subject: '🎉 Sua vaga na Petrobras começa agora, ' + nome.split(' ')[0] + '!',
+      html: `
+        <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 480px; margin: 0 auto; color: #241d15;">
+          <p style="font-size: 17px;">Olá, <strong>${nome}</strong>! 👋</p>
+          <p>Sua conta foi criada com sucesso 🚀 Seu usuário de acesso é: <strong>${usuario}</strong></p>
+          <p>🔒 Por segurança, nunca enviamos sua senha por email — guarde-a em local seguro.</p>
+
+          <p>Agora que você já está dentro, uma pergunta rápida: você sabe <strong>exatamente</strong> o que estudar hoje? 🤔</p>
+          <p>É essa dúvida que mais atrasa quem estuda sozinho pra Petrobras. E é exatamente o que o <strong>Premium</strong> resolve:</p>
+          <ul style="padding-left: 20px; line-height: 1.8;">
+            <li>🔁 Ciclo de estudos que te diz o que estudar a cada dia, ponderado pelo peso real da prova</li>
+            <li>🧠 Flashcards com repetição espaçada — a técnica que faz o conteúdo grudar</li>
+            <li>📊 Simulados e banco de questões estilo Cesgranrio, com correção na hora</li>
+            <li>📈 Relatório de desempenho pra você saber onde focar sua energia</li>
+          </ul>
+          <p>Tudo isso por <strong>R$ 49,90 — pagamento único, acesso vitalício</strong>. Sem mensalidade, sem pegadinha.</p>
+
+          <p style="text-align: center; margin: 28px 0;">
+            <a href="${SITE_URL}/#dashboard" style="background: #b5561f; color: #fff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">👑 Quero ser Premium</a>
+          </p>
+
+          <p>Bons estudos — e conta com a gente até a aprovação! 📚✨</p>
+        </div>`,
     });
   } catch (e) {
     console.error('Erro ao enviar email de boas-vindas:', e);
