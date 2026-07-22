@@ -427,6 +427,7 @@ async function handleLeadMagnet() {
                 👑 Seja Premium — <strong>R$ 49,90</strong>
               </button>
               <span class="login-premium-sub">Pagamento único • Acesso vitalício • Pix</span>
+              <span class="login-premium-selo">🛡️ Compra Garantida pelo Mercado Pago</span>
             </div>
             <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
           </div>
@@ -455,6 +456,7 @@ async function handleLeadMagnet() {
             <h2>Guia enviado!</h2>
             <p>Verifique seu email para baixar o material. Enquanto isso, conheça a plataforma completa.</p>
             <button @click="abrirLinkPremium" class="login-premium-link">👑 Conhecer o Premium — R$ 49,90</button>
+            <span class="login-premium-selo">🛡️ Compra Garantida pelo Mercado Pago</span>
           </div>
         </template>
       </div>
@@ -917,6 +919,14 @@ async function handleLeadMagnet() {
   margin-top: 8px;
   font-size: 11px;
   color: var(--c-text-medium);
+}
+
+.login-premium-selo {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--c-text-medium);
+  opacity: 0.85;
 }
 
 .login-card-footer p {

@@ -56,6 +56,8 @@ async function pagarComMercadoPago() {
       <button v-if="onVoltar" @click="onVoltar" class="btn-mercadopago">Criar conta / Entrar</button>
     </template>
 
+    <p class="selo-garantia">🛡️ Compra Garantida pelo Mercado Pago</p>
+
     <button v-if="onVoltar" @click="onVoltar" class="btn-voltar">← Voltar para o Login</button>
   </div>
 </template>
@@ -146,6 +148,13 @@ async function pagarComMercadoPago() {
   font-size: 13px;
   margin-top: 4px;
   margin-bottom: 12px;
+}
+
+.selo-garantia {
+  font-size: 12px;
+  color: var(--premium-texto-sec, rgba(255,255,255,0.7));
+  margin-top: 10px;
+  opacity: 0.85;
 }
 
 .btn-voltar {
