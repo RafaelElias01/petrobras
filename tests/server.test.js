@@ -200,6 +200,27 @@ describe('/api/admin/usuarios', () => {
       expect(res.body.premium).toBe(false);
       expect(res.body.premiumEm).toBeNull();
     });
+
+    it('reenviar premium=true em edição de outro campo não reseta o premiumEm original (painel sempre reenvia o valor atual)', async () => {
+      const concedido = await request(app)
+        .put('/api/admin/usuarios/criadopelopainel')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ premium: true });
+      const premiumEmOriginal = concedido.body.premiumEm;
+      expect(premiumEmOriginal).toBeTruthy();
+
+      await new Promise(r => setTimeout(r, 10));
+
+      // Admin.vue sempre reenvia o `premium` atual (boolean definido) em
+      // QUALQUER save, mesmo editando só o nome -- premiumEm não pode mudar aqui.
+      const editouNome = await request(app)
+        .put('/api/admin/usuarios/criadopelopainel')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ nome: 'Nome Editado', premium: true });
+      expect(editouNome.status).toBe(200);
+      expect(editouNome.body.nome).toBe('Nome Editado');
+      expect(editouNome.body.premiumEm).toBe(premiumEmOriginal);
+    });
   });
 
   describe('DELETE', () => {

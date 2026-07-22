@@ -78,3 +78,30 @@ describe('Envio de email via Resend -- resendClient.emails.send() não lança em
     errorSpy.mockRestore();
   });
 });
+
+describe('Escaping de HTML nos emails com `nome` vindo de input não autenticado', () => {
+  beforeEach(() => {
+    sendMock.mockClear();
+  });
+
+  // POST /api/newsletter não exige login e aceita `nome`/`email` livres --
+  // sem escapar, um nome com markup vira HTML/link arbitrário no email
+  // disparado com o remetente verificado do site (relay de phishing).
+  it('escapa markup no `nome` do email do guia gratuito (lead magnet, rota não autenticada)', async () => {
+    sendMock.mockResolvedValueOnce({ data: { id: 'email-fake-456' }, error: null });
+
+    const nomeMalicioso = '<a href="http://phish.evil/login">Clique aqui</a>';
+    const res = await request(app)
+      .post('/api/newsletter')
+      .send({ email: 'vitima-guia@ex.com', nome: nomeMalicioso });
+    expect(res.status).toBe(200);
+
+    await new Promise(r => setTimeout(r, 50));
+
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    const { html, subject } = sendMock.mock.calls[0][0];
+    expect(html).not.toContain('<a href="http://phish.evil/login">');
+    expect(html).toContain('&lt;a href=&quot;http://phish.evil/login&quot;&gt;');
+    expect(subject).not.toContain('<a href');
+  });
+});

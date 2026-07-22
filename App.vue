@@ -209,6 +209,16 @@ function handleRegisterSuccess(usuario, senha) {
 }
 
 function logout() {
+  // Invalida a sessão no servidor também -- sem isso, o token continua
+  // válido lá (Map em memória, TTL de 7 dias) mesmo depois do "logout",
+  // então alguém com o token capturado antes (ex: devtools, extensão)
+  // continuava autenticado normalmente até o TTL vencer sozinho.
+  // Fire-and-forget: não bloqueia o logout local se a rede falhar.
+  const token = tokenSessaoAtual();
+  if (token) {
+    fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+  }
+
   usuarioAtual.value = null;
   autenticado.value = false;
   sessionStorage.removeItem(SESSAO_KEY);
@@ -233,8 +243,15 @@ function sessaoExpiradaNoServidor() {
   alert('Sua sessão expirou. Faça login novamente.');
 }
 
+// Espelha o TTL menor da conta demo no servidor (server.js: SESSAO_TTL_DEMO,
+// 45min) -- sem isso, a UI local achava a sessão da 'estudante' válida por 7
+// dias (mesmo TTL de conta normal) mesmo já tendo expirado no servidor havia
+// horas, e só descobria no primeiro fetch que desse 401.
+function maxAgeParaSessao(usuario) {
+  return usuario === 'estudante' ? 45 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+}
+
 function verificarSessao() {
-  const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const local = localStorage.getItem(SESSAO_KEY);
   const session = sessionStorage.getItem(SESSAO_KEY);
   if (!session) {
@@ -242,7 +259,7 @@ function verificarSessao() {
       try {
         const parsed = JSON.parse(local);
         if (!parsed?.user?.usuario) { logout(); return; }
-        if (Date.now() - parsed.timestamp > SESSION_MAX_AGE) { logout(); return; }
+        if (Date.now() - parsed.timestamp > maxAgeParaSessao(parsed.user.usuario)) { logout(); return; }
         usuarioAtual.value = parsed.user;
         autenticado.value = true;
         sessionStorage.setItem(SESSAO_KEY, local);
@@ -256,7 +273,7 @@ function verificarSessao() {
     const sessionParsed = JSON.parse(session);
     if (!localParsed || !sessionParsed) { logout(); return; }
     if (localParsed.token !== sessionParsed.token) { logout(); return; }
-    if (Date.now() - localParsed.timestamp > SESSION_MAX_AGE) { logout(); return; }
+    if (Date.now() - localParsed.timestamp > maxAgeParaSessao(localParsed.user?.usuario)) { logout(); return; }
     usuarioAtual.value = localParsed.user;
     autenticado.value = true;
   } catch { logout() }

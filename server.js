@@ -178,11 +178,16 @@ async function enviarEmailBoasVindas({ email, nome, usuario }) {
   if (!resendClient) return;
   try {
     const variante = VARIANTES_BOAS_VINDAS[Math.floor(Math.random() * VARIANTES_BOAS_VINDAS.length)];
+    // nome/usuario são interpolados crus no HTML dos templates acima -- sem
+    // escapar aqui, alguém cadastrando com nome tipo `<a href=phish>...` faria
+    // o email de boas-vindas virar um relay de phishing usando o remetente
+    // verificado do site (mesma classe de bug já corrigida em
+    // enviarEmailNotificacaoPremium).
     const { error } = await resendClient.emails.send({
       from: EMAIL_FROM,
-      subject: `Bem-vindo(a) à plataforma Estudo Petrobras, ${nome.split(' ')[0]}! 🎉`,
+      subject: `Bem-vindo(a) à plataforma Estudo Petrobras, ${escapeHtml(nome.split(' ')[0])}! 🎉`,
       to: email,
-      html: variante.corpo(nome, usuario),
+      html: variante.corpo(escapeHtml(nome), escapeHtml(usuario)),
     });
     if (error) console.error('Erro ao enviar email de boas-vindas (API Resend):', error);
   } catch (e) {
@@ -278,11 +283,15 @@ function corpoEmailGuiaGratuito(nome) {
 async function enviarEmailGuiaGratuito({ email, nome }) {
   if (!resendClient) return;
   try {
+    // POST /api/newsletter não exige autenticação e aceita `nome` livre --
+    // sem escapar, um atacante mandando `nome` com markup faz esse email
+    // (enviado a QUALQUER endereço informado, nem precisa ser o dono)
+    // virar phishing disparado com o remetente verificado do site.
     const { error } = await resendClient.emails.send({
       from: EMAIL_FROM,
-      subject: `${nome.split(' ')[0]}, aqui está seu Guia Definitivo de Estudos 🎁`,
+      subject: `${escapeHtml(nome.split(' ')[0])}, aqui está seu Guia Definitivo de Estudos 🎁`,
       to: email,
-      html: corpoEmailGuiaGratuito(nome),
+      html: corpoEmailGuiaGratuito(escapeHtml(nome)),
     });
     if (error) console.error('Erro ao enviar email do guia gratuito (API Resend):', error);
   } catch (e) {
@@ -338,11 +347,16 @@ async function enviarEmailPropagandaPremium({ email, nome, usuario }) {
   if (!resendClient) return;
   try {
     const variante = VARIANTES_BOAS_VINDAS[Math.floor(Math.random() * VARIANTES_BOAS_VINDAS.length)];
+    // nome/usuario vêm do cadastro (só validado por tamanho, sem whitelist de
+    // caracteres) -- escapar antes de embutir no HTML, mesma razão do email
+    // de boas-vindas/guia gratuito.
+    const nomeSeguro = escapeHtml(nome);
+    const usuarioSeguro = escapeHtml(usuario);
     const { error } = await resendClient.emails.send({
       from: EMAIL_FROM,
-      subject: `${nome.split(' ')[0]}, já pensou em ser Premium na Estudo Petrobras? 👑`,
+      subject: `${escapeHtml(nome.split(' ')[0])}, já pensou em ser Premium na Estudo Petrobras? 👑`,
       to: email,
-      html: corpoPropagandaComOptOut(nome, usuario, variante.corpo(nome, usuario)),
+      html: corpoPropagandaComOptOut(nomeSeguro, usuario, variante.corpo(nomeSeguro, usuarioSeguro)),
     });
     if (error) console.error(`Erro ao enviar email de propaganda pra ${usuario} (API Resend):`, error);
   } catch (e) {
@@ -663,9 +677,16 @@ app.put('/api/admin/usuarios/:usuario', (req, res) => {
   // Concede/revoga premium manualmente (ex: pagamento combinado fora do
   // Mercado Pago). Mesmo bookkeeping do ativarPremium() usado pelo webhook.
   const concedendoPremium = premium === true && !usuarios[idx].premium;
+  const revogandoPremium = premium === false && usuarios[idx].premium;
   if (premium !== undefined) {
     usuarios[idx].premium = premium === true;
-    usuarios[idx].premiumEm = premium === true ? new Date().toISOString() : null;
+    // Só mexe em premiumEm numa transição de verdade -- o form do painel
+    // sempre reenvia o valor atual de `premium` em QUALQUER save (edição de
+    // nome, senha, role...), então sem essa checagem, editar qualquer campo
+    // não relacionado resetava o timestamp real de quando o usuário virou
+    // premium.
+    if (concedendoPremium) usuarios[idx].premiumEm = new Date().toISOString();
+    else if (revogandoPremium) usuarios[idx].premiumEm = null;
   }
   if (senha) {
     if (typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
@@ -701,10 +722,15 @@ app.post('/api/auth/logout', (req, res) => {
 
 const newsPath = process.env.NEWSLETTER_PATH || path.join(__dirname, 'dados', 'newsletter.json');
 
-app.post('/api/newsletter', (req, res) => {
+// authLimiter (não o `limiter` genérico de 200/15min): rota não-autenticada
+// que aceita `email`/`nome` livres e dispara email de verdade via Resend pra
+// QUALQUER endereço informado -- sem um teto baixo, vira vetor de spam/abuso
+// de cota (e, combinado com o nome não fixo, de phishing usando o remetente
+// verificado do site).
+app.post('/api/newsletter', authLimiter, (req, res) => {
   const { email, nome } = req.body;
   if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
-  if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório' });
+  if (!nome || typeof nome !== 'string' || nome.length < 2 || nome.length > 50) return res.status(400).json({ erro: 'Nome é obrigatório (2-50 caracteres)' });
   let inscricoes = [];
   try {
     if (fs.existsSync(newsPath)) inscricoes = JSON.parse(fs.readFileSync(newsPath, 'utf-8'));

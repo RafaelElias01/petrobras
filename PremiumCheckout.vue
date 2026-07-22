@@ -20,12 +20,20 @@ async function pagarComMercadoPago() {
       method: 'POST',
       headers: { Authorization: `Bearer ${props.token}` },
     });
-    if (res.status === 401 || res.status === 403) {
+    if (res.status === 401) {
+      // Token inválido/expirado de verdade -- sessão local está desatualizada.
       if (props.onSessaoExpirada) { props.onSessaoExpirada(); return; }
       erroMp.value = 'Sua sessão expirou. Faça login novamente.';
       return;
     }
     const data = await res.json();
+    if (res.status === 403) {
+      // Autenticado, mas o servidor recusou por regra de negócio (ex: conta
+      // demo não pode comprar premium) -- não é sessão expirada, então não
+      // desloga o usuário; mostra a mensagem real que o servidor mandou.
+      erroMp.value = data.erro || 'Não foi possível iniciar o pagamento.';
+      return;
+    }
     if (res.ok && data.init_point) {
       window.location.href = data.init_point;
     } else {
