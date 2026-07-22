@@ -38,7 +38,7 @@ if (!resendClient) {
   console.warn('RESEND_API_KEY nao configurado: email de boas-vindas desativado.');
 }
 
-const SITE_URL = 'https://petrobrasacademy.com.br';
+const SITE_URL = 'https://www.petrobrasacademy.com.br';
 
 // 4 variantes de copy pro e-mail de boas-vindas, cada uma com um ângulo de
 // marketing diferente (urgência, prova social/salário, empatia, benefícios
@@ -725,11 +725,11 @@ app.post('/api/premium/criar-preferencia', async (req, res) => {
           currency_id: 'BRL',
         }],
         external_reference: usuario,
-        notification_url: 'https://petrobrasacademy.com.br/api/premium/webhook',
+        notification_url: `${SITE_URL}/api/premium/webhook`,
         back_urls: {
-          success: 'https://petrobrasacademy.com.br/#dashboard',
-          failure: 'https://petrobrasacademy.com.br/#dashboard',
-          pending: 'https://petrobrasacademy.com.br/#dashboard',
+          success: `${SITE_URL}/#dashboard`,
+          failure: `${SITE_URL}/#dashboard`,
+          pending: `${SITE_URL}/#dashboard`,
         },
         auto_return: 'approved',
       },

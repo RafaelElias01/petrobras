@@ -98,7 +98,7 @@ function bateKeyword(textoNormalizado, textoTokens, keywordNormalizada) {
   });
 }
 
-export const SITE_URL = 'https://petrobrasacademy.com.br';
+export const SITE_URL = 'https://www.petrobrasacademy.com.br';
 
 export const REGRAS = [
   {
