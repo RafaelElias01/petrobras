@@ -51,22 +51,46 @@ function distanciaLevenshtein(a, b, memo = new Map()) {
 
 // Tolerância cresce com o tamanho da palavra: erro de 1 letra numa palavra
 // curta ("pix" -> "piw") já é mais significativo do que numa palavra longa
-// ("mercadopago" -> "mercadopagp"). Palavras com 3 letras ou menos exigem
+// ("mercadopago" -> "mercadopagp"). Palavras com 4 letras ou menos exigem
 // match exato (evita "e"/"o" virando keyword de qualquer coisa por acaso).
+//
+// Teto de tolerância é 1, não 2: uma varredura de ~150 palavras comuns do
+// português (conjugações, plurais, prefixos re-/ob-) contra as keywords
+// mostrou que tolerância 2 gera falsos positivos reais -- ex.: "contexto"
+// batia em "conteudo" (distância 2), "entendente" em "atendente",
+// "embolso" em "reembolso". Com teto 1 isso desaparece; o custo é deixar
+// de cobrir erro de digitação de 2 letras simultâneas (raro), que ainda
+// cai no fallback "não entendi" (resultado seguro, não uma resposta errada).
 function toleranciaParaTamanho(tamanho) {
-  if (tamanho <= 3) return 0;
-  if (tamanho <= 6) return 1;
-  return 2;
+  if (tamanho <= 4) return 0;
+  return 1;
 }
+
+// Mesmo com teto 1, algumas palavras REAIS do português ficam a distância 1
+// de uma keyword só por coincidência de forma (não são erro de digitação
+// dela) -- achado na mesma varredura: "calor"/"vapor" viram "valor" (preço),
+// "evolução"/"revolução" viram "devolução" (reembolso). Ambos os pares têm
+// significado completamente diferente da keyword, então ficam de fora do
+// fuzzy match aqui (mas continuam batendo por match exato se o usuário
+// digitar a keyword certa). Formato: keywordNormalizada -> Set de palavras
+// normalizadas a ignorar.
+const EXCECOES_FUZZY = new Map([
+  ['valor', new Set(['calor', 'vapor'])],
+  ['devolucao', new Set(['evolucao', 'revolucao'])],
+  ['valeu', new Set(['vale'])],
+  ['diferente', new Set(['deferente'])],
+]);
 
 function bateKeyword(textoNormalizado, textoTokens, keywordNormalizada) {
   if (keywordNormalizada.includes(' ')) {
     return textoNormalizado.includes(keywordNormalizada);
   }
   const tolerancia = toleranciaParaTamanho(keywordNormalizada.length);
+  const excecoes = EXCECOES_FUZZY.get(keywordNormalizada);
   return textoTokens.some(token => {
     if (token === keywordNormalizada) return true;
     if (tolerancia === 0) return false;
+    if (excecoes?.has(token)) return false;
     // Corta cedo se a diferença de tamanho já excede a tolerância --
     // evita rodar Levenshtein em pares obviamente incompatíveis.
     if (Math.abs(token.length - keywordNormalizada.length) > tolerancia) return false;
