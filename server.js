@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { fileURLToPath, pathToFileURL } from 'url';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import compression from 'compression';
 import bcrypt from 'bcryptjs';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { hojeBrasiliaISO } from './dataLocal.js';
@@ -409,7 +410,15 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       connectSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      // 'unsafe-inline' aqui não protege nada de verdade: o único <script>
+      // inline do HTML é o bloco JSON-LD de SEO (index.html), que o CSP nem
+      // aplica script-src (não é um MIME type executável) -- e o bundle da
+      // SPA é carregado via <script src="..."> externo, já coberto por
+      // 'self'. Confirmado sem nenhum outro script inline/injetado em
+      // runtime no app inteiro. Removido: fecha o principal ponto perdido na
+      // avaliação do Mozilla Observatory (CSP "implementado de forma
+      // insegura", -20 pontos) sem risco funcional.
+      scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:'],
       frameSrc: ["'self'", 'https://www.mercadopago.com.br', 'https://www.mercadopago.com'],
@@ -496,6 +505,11 @@ if (!fs.existsSync(frontendDistPath)) {
   console.error("Execute 'npm run build' primeiro.\n");
 }
 
+// Sem isso, os bundles JS/CSS do build (Exercicios.js sozinho tem ~150KB)
+// saíam sem nenhuma compressão -- só o HTML vinha com gzip (via nginx na
+// frente, que não comprime os assets estáticos servidos pelo Express).
+// Comprimir aqui garante gzip/brotli independente da config do nginx.
+app.use(compression());
 app.use(express.json());
 app.use(express.static(frontendDistPath));
 
