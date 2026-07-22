@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: 'Como recebo o acesso após o pagamento?',
-    a: 'É simples e rápido. Após fazer o PIX, você envia o comprovante para o nosso WhatsApp (o link está na página de pagamento). Em poucos minutos, nossa equipe confirma e envia seu login e senha exclusivos.',
+    a: 'É automático. O pagamento é processado pelo Mercado Pago (Pix, cartão ou boleto) e, assim que aprovado, seu Premium é liberado na hora — sem precisar enviar comprovante nem esperar confirmação manual.',
   },
   {
     q: 'O conteúdo está atualizado para o próximo concurso?',
@@ -23,10 +23,6 @@ const faqs = [
   {
     q: 'Posso acessar pelo celular?',
     a: 'Sim. A plataforma é 100% responsiva e funciona perfeitamente em computadores, tablets e celulares. Estude onde e quando quiser.',
-  },
-  {
-    q: 'E se eu não gostar? Tenho alguma garantia?',
-    a: 'Sua satisfação é nossa prioridade. Você tem uma <strong>garantia incondicional de 7 dias</strong>. Se por qualquer motivo achar que a plataforma não é para você, basta nos enviar uma mensagem no WhatsApp e devolvemos 100% do seu dinheiro, sem burocracia.',
   },
 ];
 </script>

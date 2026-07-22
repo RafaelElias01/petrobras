@@ -430,6 +430,9 @@ async function handleLeadMagnet() {
               <span class="login-premium-selo">🛡️ Compra Garantida pelo Mercado Pago</span>
             </div>
             <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
+            <a href="https://wa.me/5551983098650" target="_blank" rel="noopener" class="login-whatsapp-link">
+              💬 Dúvidas? Fale com a gente no WhatsApp
+            </a>
           </div>
         </template>
       </div>
@@ -935,6 +938,18 @@ async function handleLeadMagnet() {
 }
 
 .login-card-footer strong {
+  color: var(--c-text-light);
+}
+
+.login-whatsapp-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--c-text-medium);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.login-whatsapp-link:hover {
   color: var(--c-text-light);
 }
 

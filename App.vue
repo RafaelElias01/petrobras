@@ -388,6 +388,9 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
         <button class="nav-item nav-item-sair" @click="logout">
           <span class="icone"><IconeNav nome="sair" /></span> Sair
         </button>
+        <a href="https://wa.me/5551983098650" target="_blank" rel="noopener" class="nav-item nav-item-whatsapp">
+          💬 Fale conosco
+        </a>
       </div>
     </aside>
 
