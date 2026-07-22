@@ -91,6 +91,34 @@ const notificacoes = [
   { nome: 'Camila T.', cidade: 'Curitiba, PR' },
   { nome: 'Thiago M.', cidade: 'Manaus, AM' },
   { nome: 'Patrícia N.', cidade: 'Porto Alegre, RS' },
+  { nome: 'Rodrigo B.', cidade: 'Fortaleza, CE' },
+  { nome: 'Juliana C.', cidade: 'Belém, PA' },
+  { nome: 'Bruno L.', cidade: 'Betim, MG' },
+  { nome: 'Aline P.', cidade: 'Vitória, ES' },
+  { nome: 'Diego R.', cidade: 'Goiânia, GO' },
+  { nome: 'Beatriz S.', cidade: 'Duque de Caxias, RJ' },
+  { nome: 'Felipe A.', cidade: 'São Luís, MA' },
+  { nome: 'Larissa M.', cidade: 'Natal, RN' },
+  { nome: 'Eduardo T.', cidade: 'Macaé, RJ' },
+  { nome: 'Vanessa G.', cidade: 'Salvador, BA' },
+  { nome: 'André F.', cidade: 'Joinville, SC' },
+  { nome: 'Priscila H.', cidade: 'Uberlândia, MG' },
+  { nome: 'Ricardo N.', cidade: 'Campo Grande, MS' },
+  { nome: 'Tatiane D.', cidade: 'João Pessoa, PB' },
+  { nome: 'Marcelo V.', cidade: 'Londrina, PR' },
+  { nome: 'Renata K.', cidade: 'Aracaju, SE' },
+  { nome: 'Alexandre J.', cidade: 'Cuiabá, MT' },
+  { nome: 'Simone W.', cidade: 'Maceió, AL' },
+  { nome: 'Fábio Q.', cidade: 'Ribeirão Preto, SP' },
+  { nome: 'Débora Z.', cidade: 'Sorocaba, SP' },
+  { nome: 'Leandro X.', cidade: 'Florianópolis, SC' },
+  { nome: 'Cristina Y.', cidade: 'Teresina, PI' },
+  { nome: 'Rafael O.', cidade: 'Porto Velho, RO' },
+  { nome: 'Mônica U.', cidade: 'Caxias do Sul, RS' },
+  { nome: 'Vitor E.', cidade: 'Juiz de Fora, MG' },
+  { nome: 'Sandra I.', cidade: 'Bauru, SP' },
+  { nome: 'Paulo K.', cidade: 'Contagem, MG' },
+  { nome: 'Isabela L.', cidade: 'Anápolis, GO' },
 ];
 let notifInterval = null;
 
@@ -103,7 +131,7 @@ function mostrarNotificacao() {
 
 function iniciarSocialProof() {
   mostrarNotificacao();
-  notifInterval = setInterval(mostrarNotificacao, 4000 + Math.random() * 4000);
+  notifInterval = setInterval(mostrarNotificacao, 25000 + Math.random() * 20000);
 }
 
 function animarContador(novoValor) {

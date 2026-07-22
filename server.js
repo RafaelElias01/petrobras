@@ -150,6 +150,102 @@ async function enviarEmailBoasVindas({ email, nome, usuario }) {
   }
 }
 
+// Corpo do email do lead magnet "Guia Definitivo de Estudos". Conteúdo
+// embutido direto no HTML (não como anexo/link) -- o material é curto (~3KB)
+// e embutir evita depender do usuário clicar num link e evita servir um
+// .md cru como anexo (ruim de abrir no celular). Espelha o conteúdo de
+// materiais/guia-estudos-gratuito.md -- se um mudar, atualizar o outro.
+function corpoEmailGuiaGratuito(nome) {
+  return `
+    <div style="font-family: Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.6; max-width: 600px;">
+      <p>Oi, ${nome}! Aqui está o seu Guia Definitivo de Estudos para o Técnico em Química da Petrobras 🎁</p>
+
+      <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Sobre a Prova</h2>
+      <table style="border-collapse: collapse; width: 100%; font-size: 14px; margin: 12px 0;">
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Vagas previstas</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">1.000+ (Edital 2026)</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Salário inicial</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">R$ 6.638</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>PLR (média)</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">R$ 40.000 - R$ 52.000 / ano</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Benefícios</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">VA, VT, plano de saúde, previdência</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Banca</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">Cesgranrio</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Nível</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">Médio Técnico</td></tr>
+      </table>
+
+      <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Estrutura da Prova</h2>
+      <p><strong>Bloco I - Conhecimentos Básicos (40% do peso)</strong></p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>Português</strong> (20%): Interpretação de texto, gramática normativa, regência, crase, pontuação</li>
+        <li><strong>Matemática</strong> (20%): Operações básicas, proporções, equações, geometria plana, estatística</li>
+      </ul>
+      <p><strong>Bloco II - Conhecimentos Específicos (60% do peso)</strong></p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>Química Geral</strong>: Estequiometria, soluções, termoquímica, cinética química, equilíbrio químico</li>
+        <li><strong>Química Orgânica</strong>: Reações, funções orgânicas, mecanismos, nomenclatura</li>
+        <li><strong>Físico-Química</strong>: Gases, termodinâmica, eletroquímica</li>
+        <li><strong>Química Analítica</strong>: Análise gravimétrica, volumetria, cromatografia</li>
+      </ul>
+      <p><strong>Bloco III - Operações Unitárias</strong></p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li>Processos de separação, destilação, filtração, trocadores de calor</li>
+        <li>Noções de refino de petróleo</li>
+      </ul>
+
+      <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Metodologia de Estudo Recomendada</h2>
+      <p><strong>1. Ciclo Ponderado (o que funciona de verdade)</strong> — divida seu tempo proporcional ao peso de cada matéria:</p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li>Segunda: Português (2h)</li>
+        <li>Terça: Matemática (2h)</li>
+        <li>Quarta: Química Orgânica (3h)</li>
+        <li>Quinta: Química Geral (3h)</li>
+        <li>Sexta: Físico-Química (2h)</li>
+        <li>Sábado: Revisão geral + Simulado (4h)</li>
+        <li>Domingo: Descanso</li>
+      </ul>
+      <p><strong>2. Revisão Espaçada (Flashcards)</strong> — revise nos intervalos: 1 dia → 3 dias → 7 dias → 15 dias → 30 dias</p>
+      <p><strong>3. Simulados Semanais</strong> — 1 completo por semana, cronometrado igual à prova real, corrija e catalogue todos os erros</p>
+      <p><strong>4. Caderno de Erros</strong> — anote cada questão errada, categorize por matéria e tipo, revise semanalmente</p>
+
+      <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Dicas da Banca Cesgranrio</h2>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>Assertivas longas</strong>: leia com calma, a Cesgranrio adora frases extensas</li>
+        <li><strong>"Assinale a incorreta"</strong>: cuidado com pegadinhas</li>
+        <li><strong>Questões contextualizadas</strong>: a banca relaciona teoria com situações reais da indústria</li>
+        <li><strong>Reações orgânicas</strong>: caem TODOS os anos — foco em esterificação, saponificação, oxidação</li>
+      </ul>
+
+      <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Checklist de Aprovação</h2>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li>☐ Matricule-se em uma plataforma especializada</li>
+        <li>☐ Baixe o edital anterior e identifique o peso de cada matéria</li>
+        <li>☐ Monte seu ciclo de estudos personalizado</li>
+        <li>☐ Crie flashcards de revisão para reações orgânicas</li>
+        <li>☐ Faça 1 simulado por semana</li>
+        <li>☐ Corrija e registre todos os erros</li>
+        <li>☐ Revise semanalmente o caderno de erros</li>
+        <li>☐ Estude no mínimo 2h por dia, 6 dias por semana</li>
+        <li>☐ Nos 30 dias antes da prova, foco total em simulados</li>
+      </ul>
+
+      <div style="text-align: center; margin: 28px 0;">
+        <a href="${SITE_URL}" style="background-color: #b5561f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">👑 Conhecer o Premium — R$ 49,90</a>
+      </div>
+      <p style="font-size: 13px; color: #777;">Ciclo Ponderado + Flashcards + Métricas + Simulados Cesgranrio, pagamento único, acesso vitalício.</p>
+    </div>`;
+}
+
+async function enviarEmailGuiaGratuito({ email, nome }) {
+  if (!resendClient) return;
+  try {
+    await resendClient.emails.send({
+      from: EMAIL_FROM,
+      subject: `${nome.split(' ')[0]}, aqui está seu Guia Definitivo de Estudos 🎁`,
+      to: email,
+      html: corpoEmailGuiaGratuito(nome),
+    });
+  } catch (e) {
+    console.error('Erro ao enviar email do guia gratuito:', e);
+  }
+}
+
 // --- Propaganda diária do Premium (opt-out) ---
 // Token de descadastro: HMAC do usuário com um secret do servidor, sem
 // precisar de sessão/login -- link clicável direto do email. Sem
@@ -559,14 +655,24 @@ app.post('/api/newsletter', (req, res) => {
   try {
     if (fs.existsSync(newsPath)) inscricoes = JSON.parse(fs.readFileSync(newsPath, 'utf-8'));
   } catch (e) { /* ignore */ }
-  if (inscricoes.find(i => i.email === email)) return res.json({ ok: true, message: 'Email já cadastrado' });
+  if (inscricoes.find(i => i.email === email)) {
+    res.json({ ok: true, message: 'Email já cadastrado' });
+    // Reenvia mesmo em duplicata: se a pessoa não achou o email da primeira vez
+    // (spam, digitou errado antes e corrigiu agora), pedir de novo deveria
+    // funcionar de novo -- comportamento visível é sempre "Guia enviado!".
+    enviarEmailGuiaGratuito({ email, nome });
+    return;
+  }
   inscricoes.push({ email, nome, origem: req.headers.referer || 'direto', criadoEm: new Date().toISOString() });
   try {
     escreverJsonAtomico(newsPath, inscricoes);
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ erro: 'Erro ao salvar' });
+    return;
   }
+  // Depois da resposta: não atrasa nem falha o cadastro se o email demorar/der erro.
+  enviarEmailGuiaGratuito({ email, nome });
 });
 
 app.get('/api/premium/status/:usuario', (req, res) => {
