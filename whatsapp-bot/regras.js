@@ -182,6 +182,20 @@ export const REGRAS = [
 export const RESPOSTA_PADRAO =
   `Não entendi bem sua pergunta 🤔 Pode tentar de outro jeito? Ou digite *menu* pra ver os assuntos que posso ajudar.\n\nSe preferir, veja tudo no site: ${SITE_URL}`;
 
+// Comandos de controle do bot (liga/desliga/status), digitados pelo próprio
+// dono do número. No WhatsApp isso chega como mensagem "fromMe" -- só quem
+// está logado no aparelho pareado com o bot consegue mandar uma dessas, o
+// que já serve como autenticação (não existe outra forma de gerar uma
+// mensagem fromMe pra esse número). bot.js é responsável por só chamar isso
+// pra mensagens fromMe e por persistir o estado resultante.
+export function interpretarComando(mensagemBruta) {
+  const texto = normalizar(mensagemBruta).trim();
+  if (['/bot desligar', '/bot off', '/bot pausar'].includes(texto)) return 'desligar';
+  if (['/bot ligar', '/bot on', '/bot ativar'].includes(texto)) return 'ligar';
+  if (['/bot status'].includes(texto)) return 'status';
+  return null;
+}
+
 export function encontrarResposta(mensagem) {
   const texto = normalizar(mensagem);
   const textoTokens = tokens(texto);

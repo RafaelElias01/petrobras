@@ -1,11 +1,36 @@
+import fs from 'fs';
 import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import qrcodeTerminal from 'qrcode-terminal';
-import { encontrarResposta } from './regras.js';
+import { encontrarResposta, interpretarComando } from './regras.js';
 
 // Pasta de sessão: fora do git (.gitignore protege whatsapp-bot/auth_info),
 // nunca sincronizada por deploy destrutivo. Guarda as credenciais que
 // permitem reconectar sem escanear QR de novo a cada restart do serviço.
 const AUTH_DIR = process.env.WPP_AUTH_DIR || './auth_info';
+
+// Liga/desliga persistido em disco (fora do git, como auth_info/) -- sem
+// isso, um "/bot desligar" seria esquecido no próximo restart do serviço
+// systemd, e o bot voltaria a responder sozinho sem o dono ter mandado ligar.
+const ESTADO_PATH = process.env.WPP_ESTADO_PATH || './estado.json';
+
+function lerEstadoLigado() {
+  try {
+    const dados = JSON.parse(fs.readFileSync(ESTADO_PATH, 'utf-8'));
+    return dados.ligado !== false;
+  } catch {
+    return true; // sem arquivo ainda (primeira vez) ou corrompido: default ligado
+  }
+}
+
+function salvarEstadoLigado(ligado) {
+  try {
+    fs.writeFileSync(ESTADO_PATH, JSON.stringify({ ligado }, null, 2));
+  } catch (e) {
+    console.error('Erro ao salvar estado.json:', e);
+  }
+}
+
+let ligado = lerEstadoLigado();
 
 // Rate limit defensivo: nunca mais que N respostas automáticas por minuto,
 // mesmo que improvável de estourar num bot de FAQ (recomendação de
@@ -54,7 +79,6 @@ async function iniciar() {
     if (type !== 'notify') return;
     for (const msg of messages) {
       try {
-        if (msg.key.fromMe) continue; // nunca responde a si mesmo
         if (!msg.message) continue;
 
         const remetente = msg.key.remoteJid;
@@ -65,6 +89,27 @@ async function iniciar() {
           msg.message.extendedTextMessage?.text ||
           '';
         if (!texto.trim()) continue;
+
+        // Mensagem enviada pelo próprio dono (do aparelho pareado com o
+        // bot): só aceita comando de controle, nunca vira pergunta de FAQ
+        // nem conta no rate limit de respostas automáticas.
+        if (msg.key.fromMe) {
+          const comando = interpretarComando(texto);
+          if (comando === 'desligar') {
+            ligado = false;
+            salvarEstadoLigado(ligado);
+            await sock.sendMessage(remetente, { text: '🔴 Bot desligado. Não respondo mais ninguém até você mandar "/bot ligar".' });
+          } else if (comando === 'ligar') {
+            ligado = true;
+            salvarEstadoLigado(ligado);
+            await sock.sendMessage(remetente, { text: '🟢 Bot ligado. Voltando a responder normalmente.' });
+          } else if (comando === 'status') {
+            await sock.sendMessage(remetente, { text: `Status atual: ${ligado ? '🟢 ligado' : '🔴 desligado'}` });
+          }
+          continue;
+        }
+
+        if (!ligado) continue; // desligado pelo dono: ignora todo mundo
 
         if (respostasNoMinuto >= LIMITE_RESPOSTAS_POR_MINUTO) {
           console.warn('Limite de respostas/minuto atingido, ignorando mensagem por segurança.');
