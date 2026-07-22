@@ -23,11 +23,55 @@ function tokens(texto) {
   return texto.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 }
 
+// Distância de Levenshtein: número mínimo de inserções/remoções/trocas de
+// letra pra transformar uma palavra na outra. Definição clássica é
+// recursiva (Levenshtein(a, b) = min de 3 subcasos recursivos aparados em 1
+// letra), mas recursão pura reprocessa os mesmos subcasos exponencialmente
+// -- aqui memoizamos por par (i, j) já visitado, então cada subcaso resolve
+// só uma vez (programação dinâmica top-down). Usada pra tolerar erro de
+// digitação no WhatsApp (ex: "presio" ainda bater em "preco").
+function distanciaLevenshtein(a, b, memo = new Map()) {
+  function calcular(i, j) {
+    if (i === 0) return j;
+    if (j === 0) return i;
+    const chave = `${i},${j}`;
+    if (memo.has(chave)) return memo.get(chave);
+
+    const custoTroca = a[i - 1] === b[j - 1] ? 0 : 1;
+    const resultado = Math.min(
+      calcular(i - 1, j) + 1,        // remover letra de a
+      calcular(i, j - 1) + 1,        // inserir letra de b
+      calcular(i - 1, j - 1) + custoTroca, // trocar (ou manter) letra
+    );
+    memo.set(chave, resultado);
+    return resultado;
+  }
+  return calcular(a.length, b.length);
+}
+
+// Tolerância cresce com o tamanho da palavra: erro de 1 letra numa palavra
+// curta ("pix" -> "piw") já é mais significativo do que numa palavra longa
+// ("mercadopago" -> "mercadopagp"). Palavras com 3 letras ou menos exigem
+// match exato (evita "e"/"o" virando keyword de qualquer coisa por acaso).
+function toleranciaParaTamanho(tamanho) {
+  if (tamanho <= 3) return 0;
+  if (tamanho <= 6) return 1;
+  return 2;
+}
+
 function bateKeyword(textoNormalizado, textoTokens, keywordNormalizada) {
   if (keywordNormalizada.includes(' ')) {
     return textoNormalizado.includes(keywordNormalizada);
   }
-  return textoTokens.includes(keywordNormalizada);
+  const tolerancia = toleranciaParaTamanho(keywordNormalizada.length);
+  return textoTokens.some(token => {
+    if (token === keywordNormalizada) return true;
+    if (tolerancia === 0) return false;
+    // Corta cedo se a diferença de tamanho já excede a tolerância --
+    // evita rodar Levenshtein em pares obviamente incompatíveis.
+    if (Math.abs(token.length - keywordNormalizada.length) > tolerancia) return false;
+    return distanciaLevenshtein(token, keywordNormalizada) <= tolerancia;
+  });
 }
 
 export const SITE_URL = 'https://petrobrasacademy.com.br';
@@ -78,7 +122,7 @@ export const REGRAS = [
     resposta: `🧠 Os flashcards usam repetição espaçada, revisando no D+1, D+7 e D+30 — o intervalo certo pra grudar na memória de verdade.\nIsso fica junto com o diário de estudos, que já agenda essas revisões pra você automaticamente.\n📲 ${SITE_URL}`,
   },
   {
-    keywords: ['obrigado', 'obrigada', 'valeu', 'brigado', 'brigada', 'agradecido', 'ate mais', 'falou', 'tchau'],
+    keywords: ['obrigado', 'obrigada', 'valeu', 'vlw', 'obg', 'brigado', 'brigada', 'agradecido', 'ate mais', 'falou', 'tchau'],
     resposta: `🙌 Por nada! Qualquer dúvida é só chamar aqui.\nBons estudos e boa sorte na prova! 🚀`,
   },
   {
