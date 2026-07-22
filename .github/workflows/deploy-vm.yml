@@ -110,3 +110,40 @@ jobs:
             fi
             exit 1
           '
+
+      # --- Bot de WhatsApp (servico systemd separado, mesma VM) ---
+      # Não usa rsync --delete: precisa preservar auth_info/ (sessão pareada
+      # do WhatsApp) e node_modules/, que não vêm do repo. Sem backup/rollback
+      # automático de código aqui -- ver o healthcheck abaixo, que falha
+      # explicitamente (sem tentar "consertar" sozinho) se o bot não conectar
+      # limpo, porque um rollback mal-sucedido de sessão do WhatsApp pediria
+      # QR code novo (precisa escanear no celular, não é recuperável por script).
+      - name: "Sincronizar bot de WhatsApp (bot.js, regras.js, package.json)"
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            whatsapp-bot/bot.js whatsapp-bot/regras.js whatsapp-bot/package.json whatsapp-bot/package-lock.json \
+            ubuntu@163.176.163.213:/opt/petrobras-whatsapp-bot/
+
+      - name: Instalar deps do bot e reiniciar servico
+        run: ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 "cd /opt/petrobras-whatsapp-bot && npm install --omit=dev && sudo systemctl restart petrobras-whatsapp-bot.service"
+
+      - name: Verificar saude do bot de WhatsApp pos-deploy (sem rollback -- ver acima)
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@163.176.163.213 '
+            for i in $(seq 1 10); do
+              sleep 2
+              if systemctl is-active --quiet petrobras-whatsapp-bot.service; then
+                if sudo journalctl -u petrobras-whatsapp-bot.service --since "-30 seconds" --no-pager | grep -q "Bot conectado ao WhatsApp com sucesso"; then
+                  echo "Bot ativo e conectado ao WhatsApp."
+                  exit 0
+                fi
+              fi
+            done
+            echo "Bot nao confirmou conexao ao WhatsApp apos o restart (ou pediu QR novo). Logs recentes:"
+            sudo journalctl -u petrobras-whatsapp-bot.service -n 40 --no-pager
+            echo ""
+            echo "ATENCAO: se os logs acima mostrarem um QR code, a sessao pareada foi perdida --"
+            echo "intervencao manual necessaria (escanear QR novo no celular). Sem rollback automatico"
+            echo "de sessao do WhatsApp, ver whatsapp-bot/README.md."
+            exit 1
+          '
