@@ -14,9 +14,33 @@ export function normalizar(texto) {
     .replace(/[̀-ͯ]/g, ''); // remove acentos
 }
 
+// Tokeniza em palavras (sem pontuação) pra casar keyword como PALAVRA, não
+// como substring solta -- "tempo" não deveria bater dentro de "atempo" ou
+// "contemporaneo", por exemplo. Keywords de mais de uma palavra (ex: "quero
+// falar") continuam comparadas como substring do texto original normalizado,
+// já que são frases, não uma palavra isolada.
+function tokens(texto) {
+  return texto.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+}
+
+function bateKeyword(textoNormalizado, textoTokens, keywordNormalizada) {
+  if (keywordNormalizada.includes(' ')) {
+    return textoNormalizado.includes(keywordNormalizada);
+  }
+  return textoTokens.includes(keywordNormalizada);
+}
+
 export const SITE_URL = 'https://petrobrasacademy.com.br';
 
 export const REGRAS = [
+  {
+    keywords: ['atendente', 'falar com alguem', 'pessoa de verdade', 'humano', 'suporte humano', 'atendimento humano', 'quero falar', 'me chama alguem'],
+    resposta: `👋 Já te encaminhei aqui pro nosso atendimento!\nAlguém do time vai te responder por aqui mesmo, assim que possível.\nSe quiser adiantar, me conta agora o que você precisa que já deixo registrado 🙂`,
+  },
+  {
+    keywords: ['link do pagamento', 'link do mercado pago', 'link pra pagar', 'manda o link', 'me manda o link', 'link de compra'],
+    resposta: `🔗 O pagamento é feito dentro do site, vinculado à sua conta (é assim que garantimos que o Premium é ativado certinho pra você).\n\n1️⃣ Entre ou crie sua conta: ${SITE_URL}\n2️⃣ Clique em "Seja Premium"\n3️⃣ Escolha Pix, cartão ou boleto no Mercado Pago\n\nAprovado, libera na hora! 👑`,
+  },
   {
     keywords: ['preco', 'valor', 'quanto custa', 'quanto e', 'mensalidade'],
     resposta: `💰 O Premium custa *R$ 49,90*, pagamento único — sem mensalidade. Acesso vitalício a todo o conteúdo e atualizações futuras.\n\nAssine direto pelo site: ${SITE_URL}`,
@@ -30,7 +54,35 @@ export const REGRAS = [
     resposta: `Sobre reembolso: fale direto com a gente aqui mesmo que a gente te ajuda a resolver caso a caso. 🙂`,
   },
   {
-    keywords: ['diferente', 'diferenca', 'por que', 'porque', 'vale a pena', 'funciona'],
+    keywords: ['materia', 'materias', 'conteudo', 'assunto', 'o que cai', 'o que tem na prova', 'disciplinas', 'quimica', 'processos de petroleo', 'metrologia'],
+    resposta: `📚 A plataforma cobre tudo que cai na prova da Cesgranrio:\nLíngua Portuguesa (10 questões), Matemática (10 questões), Química (38 questões, é o bloco de específicas), Processos de Petróleo, Segurança/Meio Ambiente e Metrologia/Controle.\nPortuguês + Matemática valem 40% da prova, e as específicas (Química etc.) valem 60% — é pra isso que o ciclo de estudos é ponderado.\n📲 ${SITE_URL}`,
+  },
+  {
+    keywords: ['nao consigo entrar', 'nao consigo acessar', 'nao esta funcionando', 'da erro', 'deu erro', 'bug', 'travou', 'nao abre', 'fora do ar', 'nao carrega', 'problema no site', 'problema tecnico'],
+    resposta: `😕 Poxa, desculpa o transtorno!\nMe conta rapidinho: qual tela você tava tentando acessar e o que aparece na hora do erro (print ajuda bastante).\nVou encaminhar pro time técnico dar uma olhada assim que possível.`,
+  },
+  {
+    keywords: ['conta demo', 'usuario estudante', 'conta estudante', 'conta de teste', 'conta compartilhada', 'demo'],
+    resposta: `🔎 A conta "estudante" é uma demo compartilhada, só pra você experimentar a plataforma.\nEla libera 5 tentativas nas funções bloqueadas e depois pede uma conta própria.\nPor segurança, essa conta demo nunca vira Premium (é compartilhada com outros visitantes) — pra ter acesso completo é preciso criar seu próprio cadastro.\n📲 ${SITE_URL}`,
+  },
+  {
+    keywords: ['funciona mesmo', 'quem ja passou', 'depoimento', 'depoimentos', 'prova social', 'aprovado', 'aprovados', 'da resultado'],
+    resposta: `🏆 Funciona sim, e tem gente aprovada usando:\nCarlos (Macaé) foi de 38% pra 82% de acerto e ficou em 12º lugar. Ana (Salvador) ficou em 6º. Mariana (Duque de Caxias), mãe e trabalha o dia todo, passou estudando só à noite. Bruno (Betim) era fraco em matemática e foi de 3 pra 8 acertos nos simulados.\n📲 ${SITE_URL}`,
+  },
+  {
+    keywords: ['simulado', 'simulados', 'banco de questoes', 'questoes', 'exercicios', 'prova modelo', 'treino de prova'],
+    resposta: `📝 Os simulados usam banco de questões no estilo Cesgranrio, com correção na hora.\nDepois você recebe relatório de desempenho e as que errou vão pro caderno de erros, pra focar exatamente no que precisa melhorar.\n📲 ${SITE_URL}`,
+  },
+  {
+    keywords: ['flashcard', 'flashcards', 'revisao espacada', 'cartao de memorizacao', 'cartoes'],
+    resposta: `🧠 Os flashcards usam repetição espaçada, revisando no D+1, D+7 e D+30 — o intervalo certo pra grudar na memória de verdade.\nIsso fica junto com o diário de estudos, que já agenda essas revisões pra você automaticamente.\n📲 ${SITE_URL}`,
+  },
+  {
+    keywords: ['obrigado', 'obrigada', 'valeu', 'brigado', 'brigada', 'agradecido', 'ate mais', 'falou', 'tchau'],
+    resposta: `🙌 Por nada! Qualquer dúvida é só chamar aqui.\nBons estudos e boa sorte na prova! 🚀`,
+  },
+  {
+    keywords: ['diferente', 'diferenca', 'por que', 'porque', 'vale a pena', 'como funciona'],
     resposta: `🎯 Não somos um "depósito de PDFs". Somos um método de estudo ativo:\n\n🔁 *Ciclo Ponderado* — você estuda o que a Cesgranrio mais cobra\n🧠 *Revisão Espaçada* — flashcards que garantem que você não esqueça\n📊 *Métricas Reais* — você vê seu progresso e ajusta a rota\n\nConheça: ${SITE_URL}`,
   },
   {
@@ -46,7 +98,7 @@ export const REGRAS = [
     resposta: `📱 Sim! A plataforma é 100% responsiva — funciona em computador, tablet e celular. Estude onde e quando quiser: ${SITE_URL}`,
   },
   {
-    keywords: ['cadastro', 'criar conta', 'login', 'entrar', 'esqueci senha', 'esqueci a senha'],
+    keywords: ['cadastro', 'criar conta', 'login', 'como entro', 'esqueci senha', 'esqueci a senha'],
     resposta: `📝 Você pode criar sua conta grátis direto pelo site: ${SITE_URL}\n\nSe esqueceu a senha, fale com a gente aqui que ajudamos a recuperar o acesso.`,
   },
   {
@@ -55,7 +107,7 @@ export const REGRAS = [
   },
   {
     keywords: ['oi', 'ola', 'boa tarde', 'bom dia', 'boa noite', 'menu', 'ajuda'],
-    resposta: `Olá! 👋 Sou o assistente automático do *Estudo Petrobras*.\n\nPosso te ajudar com:\n💰 Preço e pagamento\n👑 O que é o Premium\n📅 Atualização do conteúdo\n📱 Uso no celular\n📝 Cadastro e login\n\nÉ só perguntar! Se precisar falar com uma pessoa, me diga "atendente" que a gente te responde por aqui assim que possível.`,
+    resposta: `Olá! 👋 Sou o assistente automático do *Estudo Petrobras*.\n\nPosso te ajudar com:\n💰 Preço e pagamento\n👑 O que é o Premium\n📚 Matérias e conteúdo\n📝 Simulados e flashcards\n🏆 Resultados de quem já passou\n📝 Cadastro e login\n😕 Problema técnico\n\nÉ só perguntar! Se precisar falar com uma pessoa, me diga "atendente" que a gente te responde por aqui assim que possível.`,
   },
 ];
 
@@ -64,8 +116,9 @@ export const RESPOSTA_PADRAO =
 
 export function encontrarResposta(mensagem) {
   const texto = normalizar(mensagem);
+  const textoTokens = tokens(texto);
   for (const regra of REGRAS) {
-    if (regra.keywords.some(k => texto.includes(normalizar(k)))) {
+    if (regra.keywords.some(k => bateKeyword(texto, textoTokens, normalizar(k)))) {
       return regra.resposta;
     }
   }
