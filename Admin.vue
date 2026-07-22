@@ -69,6 +69,7 @@ const formNome = ref('');
 const formSenha = ref('');
 const formConfirmar = ref('');
 const formRole = ref('user');
+const formPremium = ref(false);
 const erroForm = ref('');
 
 watch(editandoUsuario, (e) => {
@@ -78,6 +79,7 @@ watch(editandoUsuario, (e) => {
     formSenha.value = '';
     formConfirmar.value = '';
     formRole.value = e.role || 'user';
+    formPremium.value = e.premium === true;
     erroForm.value = '';
   }
 });
@@ -106,6 +108,7 @@ async function handleSalvar() {
     nome: formNome.value.trim(),
     senha: formSenha.value,
     role: formRole.value,
+    premium: formPremium.value,
   });
   if (erro.value) erroForm.value = erro.value;
 }
@@ -126,6 +129,7 @@ function handleNovo() {
   formSenha.value = '';
   formConfirmar.value = '';
   formRole.value = 'user';
+  formPremium.value = false;
   erroForm.value = '';
   novoUsuario();
 }
@@ -246,6 +250,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
               <th>Usuário</th>
               <th>Nome</th>
               <th>Role</th>
+              <th>Premium</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -257,15 +262,19 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
                 <span class="role-badge" :class="u.role === 'admin' ? 'role-admin' : 'role-user'">{{ u.role }}</span>
               </td>
               <td>
+                <span v-if="u.premium" class="role-badge role-premium">👑 premium</span>
+                <span v-else class="rotulo-sutil">—</span>
+              </td>
+              <td>
                 <button @click="handleEditar(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-edit" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }">✏️</button>
                 <button @click="handleRemover(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-delete" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }">✕</button>
               </td>
             </tr>
             <tr v-if="carregando && usuarios.length === 0">
-              <td colspan="4" class="empty-cell">Carregando usuários...</td>
+              <td colspan="5" class="empty-cell">Carregando usuários...</td>
             </tr>
             <tr v-else-if="usuarios.length === 0">
-              <td colspan="4" class="empty-cell">Nenhum usuário cadastrado.</td>
+              <td colspan="5" class="empty-cell">Nenhum usuário cadastrado.</td>
             </tr>
           </tbody>
         </table>
@@ -298,6 +307,12 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
             <option value="user">user</option>
             <option value="admin">admin</option>
           </select>
+        </div>
+        <div class="campo-checkbox">
+          <label class="label-checkbox">
+            <input type="checkbox" v-model="formPremium">
+            👑 Premium (concede manualmente, ex: pagamento combinado fora do Mercado Pago)
+          </label>
         </div>
         <div class="form-actions">
           <button @click="handleSalvar" class="btn-salvar">Salvar</button>
@@ -411,6 +426,29 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
 }
 .role-user {
   background: var(--primaria);
+}
+.role-premium {
+  background: #b5561f;
+}
+.rotulo-sutil {
+  color: var(--texto-sec);
+}
+
+.campo-checkbox {
+  grid-column: 1 / -1;
+}
+.label-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--texto);
+  cursor: pointer;
+}
+.label-checkbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 
 .btn-novo-usuario {

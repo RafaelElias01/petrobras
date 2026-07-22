@@ -600,7 +600,7 @@ app.post('/api/admin/usuarios', (req, res) => {
 app.put('/api/admin/usuarios/:usuario', (req, res) => {
   if (!usuarioAdminDoToken(req)) return res.status(403).json({ erro: 'Acesso restrito a administradores' });
   const { usuario } = req.params;
-  const { nome, senha, role } = req.body;
+  const { nome, senha, role, premium } = req.body;
   const usuarios = lerUsuarios();
   const idx = usuarios.findIndex(u => u.usuario === usuario);
   if (idx === -1) return res.status(404).json({ erro: 'Usuário não encontrado' });
@@ -617,6 +617,12 @@ app.put('/api/admin/usuarios/:usuario', (req, res) => {
       if (totalAdmins <= 1) return res.status(400).json({ erro: 'Não é possível remover o último administrador' });
     }
     usuarios[idx].role = roleFinal;
+  }
+  // Concede/revoga premium manualmente (ex: pagamento combinado fora do
+  // Mercado Pago). Mesmo bookkeeping do ativarPremium() usado pelo webhook.
+  if (premium !== undefined) {
+    usuarios[idx].premium = premium === true;
+    usuarios[idx].premiumEm = premium === true ? new Date().toISOString() : null;
   }
   if (senha) {
     if (typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });

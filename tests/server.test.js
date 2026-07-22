@@ -177,6 +177,29 @@ describe('/api/admin/usuarios', () => {
         .send({ nome: 'X' });
       expect(res.status).toBe(404);
     });
+
+    it('admin concede premium manualmente (ex: pagamento combinado fora do Mercado Pago)', async () => {
+      const res = await request(app)
+        .put('/api/admin/usuarios/criadopelopainel')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ premium: true });
+      expect(res.status).toBe(200);
+      expect(res.body.premium).toBe(true);
+      expect(res.body.premiumEm).toBeTruthy();
+
+      const salvo = JSON.parse(fs.readFileSync(process.env.USUARIOS_PATH, 'utf-8'));
+      expect(salvo.find(u => u.usuario === 'criadopelopainel').premium).toBe(true);
+    });
+
+    it('admin revoga premium manualmente', async () => {
+      const res = await request(app)
+        .put('/api/admin/usuarios/criadopelopainel')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ premium: false });
+      expect(res.status).toBe(200);
+      expect(res.body.premium).toBe(false);
+      expect(res.body.premiumEm).toBeNull();
+    });
   });
 
   describe('DELETE', () => {

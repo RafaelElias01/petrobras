@@ -69,7 +69,7 @@ export function useAdmin() {
         res = await fetch(`/api/admin/usuarios/${encodeURIComponent(u.usuario)}`, {
           method: 'PUT',
           headers: authHeaders(),
-          body: JSON.stringify({ nome: u.nome, role: u.role, senha: u.senha || undefined }),
+          body: JSON.stringify({ nome: u.nome, role: u.role, senha: u.senha || undefined, premium: u.premium }),
         });
         data = await res.json();
         if (!res.ok) { erro.value = data.erro || 'Erro ao salvar usuário'; return; }

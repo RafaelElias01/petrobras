@@ -171,6 +171,20 @@ describe('useAdmin', () => {
     expect(usuarios.value[0]).toEqual({ usuario: 'ana', nome: 'Ana Atualizada', role: 'admin' });
   });
 
+  it('salvarUsuario encaminha o campo premium no PUT (concessão manual pelo admin)', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(true, [{ usuario: 'ana', nome: 'Ana', role: 'user' }]))
+      .mockResolvedValueOnce(jsonResponse(true, { usuario: 'ana', nome: 'Ana', role: 'user', premium: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { carregarUsuarios, salvarUsuario } = await montarAdmin();
+    await carregarUsuarios();
+    await salvarUsuario({ usuario: 'ana', nome: 'Ana', role: 'user', senha: '', premium: true });
+
+    const body = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(body.premium).toBe(true);
+  });
+
   it('salvarUsuario define erro.value quando o servidor rejeita a criação', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(false, { erro: 'usuário já existe' })));
 
