@@ -139,12 +139,13 @@ async function enviarEmailBoasVindas({ email, nome, usuario }) {
   if (!resendClient) return;
   try {
     const variante = VARIANTES_BOAS_VINDAS[Math.floor(Math.random() * VARIANTES_BOAS_VINDAS.length)];
-    await resendClient.emails.send({
+    const { error } = await resendClient.emails.send({
       from: EMAIL_FROM,
       subject: `Bem-vindo(a) à plataforma Estudo Petrobras, ${nome.split(' ')[0]}! 🎉`,
       to: email,
       html: variante.corpo(nome, usuario),
     });
+    if (error) console.error('Erro ao enviar email de boas-vindas (API Resend):', error);
   } catch (e) {
     console.error('Erro ao enviar email de boas-vindas:', e);
   }
@@ -238,12 +239,13 @@ function corpoEmailGuiaGratuito(nome) {
 async function enviarEmailGuiaGratuito({ email, nome }) {
   if (!resendClient) return;
   try {
-    await resendClient.emails.send({
+    const { error } = await resendClient.emails.send({
       from: EMAIL_FROM,
       subject: `${nome.split(' ')[0]}, aqui está seu Guia Definitivo de Estudos 🎁`,
       to: email,
       html: corpoEmailGuiaGratuito(nome),
     });
+    if (error) console.error('Erro ao enviar email do guia gratuito (API Resend):', error);
   } catch (e) {
     console.error('Erro ao enviar email do guia gratuito:', e);
   }
@@ -296,12 +298,13 @@ async function enviarEmailPropagandaPremium({ email, nome, usuario }) {
   if (!resendClient) return;
   try {
     const variante = VARIANTES_BOAS_VINDAS[Math.floor(Math.random() * VARIANTES_BOAS_VINDAS.length)];
-    await resendClient.emails.send({
+    const { error } = await resendClient.emails.send({
       from: EMAIL_FROM,
       subject: `${nome.split(' ')[0]}, já pensou em ser Premium na Estudo Petrobras? 👑`,
       to: email,
       html: corpoPropagandaComOptOut(nome, usuario, variante.corpo(nome, usuario)),
     });
+    if (error) console.error(`Erro ao enviar email de propaganda pra ${usuario} (API Resend):`, error);
   } catch (e) {
     console.error(`Erro ao enviar email de propaganda pra ${usuario}:`, e);
   }
