@@ -277,6 +277,7 @@ body {
 }
 
 .grupo-titulo:hover { color: var(--texto); }
+.grupo-titulo:focus-visible { outline: 3px solid var(--primaria); outline-offset: 2px; border-radius: 4px; }
 
 .item-check {
   display: flex;

@@ -66,12 +66,18 @@ function badgeStyle(dificuldade) {
         <div class="quiz-enunciado">{{ quizAtual.enunciado }}</div>
 
         <div v-for="(alt, idx) in quizAtual.alternativas" :key="idx" class="alternativa"
+          role="button"
+          :tabindex="responded ? -1 : 0"
+          :aria-pressed="selecionado === idx"
+          :aria-disabled="responded"
           :class="{
             correct: responded && idx === quizAtual.correta,
             wrong: responded && idx === selecionado && idx !== quizAtual.correta,
             selected: selecionado === idx && !responded
           }"
-          @click="!responded && responderQuestao(quizAtual.id, idx)">
+          @click="!responded && responderQuestao(quizAtual.id, idx)"
+          @keydown.enter.prevent="!responded && responderQuestao(quizAtual.id, idx)"
+          @keydown.space.prevent="!responded && responderQuestao(quizAtual.id, idx)">
           <span class="alternativa-letra"
             :class="{
               'letra-certa': responded && idx === quizAtual.correta,
@@ -151,7 +157,7 @@ function badgeStyle(dificuldade) {
           </div>
           <div class="questao-enunciado">{{ q.enunciado }}</div>
           <div class="questao-alternativas-count">{{ q.alternativas.length }} alternativas</div>
-          <button @click="alternarFavorito(q.id)" class="btn-favorito">★</button>
+          <button @click="alternarFavorito(q.id)" class="btn-favorito" aria-label="Remover dos favoritos" aria-pressed="true">★</button>
         </div>
       </div>
 
@@ -165,7 +171,9 @@ function badgeStyle(dificuldade) {
           </div>
           <div class="questao-enunciado">{{ q.enunciado }}</div>
           <div class="questao-alternativas-count">{{ q.alternativas.length }} alternativas</div>
-          <button @click="alternarFavorito(q.id)" class="btn-favorito">{{ favoritos.includes(q.id) ? '★' : '☆' }}</button>
+          <button @click="alternarFavorito(q.id)" class="btn-favorito"
+            :aria-label="favoritos.includes(q.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
+            :aria-pressed="favoritos.includes(q.id)">{{ favoritos.includes(q.id) ? '★' : '☆' }}</button>
         </div>
       </div>
     </template>
@@ -284,6 +292,10 @@ function badgeStyle(dificuldade) {
 }
 .alternativa:hover {
   border-color: var(--primaria);
+}
+.alternativa:focus-visible {
+  outline: 3px solid var(--primaria);
+  outline-offset: 2px;
 }
 .alternativa.selected {
   border-color: var(--primaria);

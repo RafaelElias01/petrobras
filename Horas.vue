@@ -48,12 +48,15 @@ const {
           <tr v-for="dia in diasSemana" :key="dia.valor">
             <td style="font-weight:600;">{{ dia.rotulo }}</td>
             <td><input type="number" min="0" max="6" step="0.5"
+              :aria-label="`Horas de Português em ${dia.rotulo}`"
               :value="horaValor(semanaAtual, dia.valor, 'portugues')"
               @input="setHora(semanaAtual, dia.valor, 'portugues', $event.target.value)"></td>
             <td><input type="number" min="0" max="6" step="0.5"
+              :aria-label="`Horas de Matemática em ${dia.rotulo}`"
               :value="horaValor(semanaAtual, dia.valor, 'matematica')"
               @input="setHora(semanaAtual, dia.valor, 'matematica', $event.target.value)"></td>
             <td><input type="number" min="0" max="6" step="0.5"
+              :aria-label="`Horas de Química em ${dia.rotulo}`"
               :value="horaValor(semanaAtual, dia.valor, 'quimica')"
               @input="setHora(semanaAtual, dia.valor, 'quimica', $event.target.value)"></td>
             <td class="total-linha">{{ totalDia(semanaAtual, dia.valor) }}</td>

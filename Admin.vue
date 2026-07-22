@@ -154,7 +154,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
 
 <template>
   <div>
-    <p v-if="erroVisitas" class="erro-form">⚠ {{ erroVisitas }}</p>
+    <p v-if="erroVisitas" class="erro-form" role="alert">⚠ {{ erroVisitas }}</p>
     <div class="grade-cartoes">
       <div class="cartao-stat">
         <div class="valor">{{ totalUsuarios }}</div>
@@ -252,7 +252,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
         <span>Usuários Cadastrados</span>
         <button v-if="!editando" @click="handleNovo" class="btn-novo-usuario">+ Novo Usuário</button>
       </div>
-      <p v-if="erro" class="erro-form">⚠ {{ erro }}</p>
+      <p v-if="erro" class="erro-form" role="alert">⚠ {{ erro }}</p>
       <div class="tabela-wrapper">
         <table class="admin-table">
           <thead>
@@ -278,8 +278,8 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
                 <span v-else class="rotulo-sutil">—</span>
               </td>
               <td>
-                <button @click="handleEditar(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-edit" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }">✏️</button>
-                <button @click="handleRemover(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-delete" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }">✕</button>
+                <button @click="handleEditar(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-edit" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }" :aria-label="`Editar usuário ${u.usuario}`">✏️</button>
+                <button @click="handleRemover(u)" :disabled="u.usuario === usuarioLogado" class="btn-acao btn-acao-delete" :class="{ 'btn-desabilitado': u.usuario === usuarioLogado }" :aria-label="`Remover usuário ${u.usuario}`">✕</button>
               </td>
             </tr>
             <tr v-if="carregando && usuarios.length === 0">
@@ -295,7 +295,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
 
     <div v-if="editando" class="card">
       <div class="card-titulo">{{ tituloForm }}</div>
-      <p v-if="erroForm" class="erro-form">{{ erroForm }}</p>
+      <p v-if="erroForm" class="erro-form" role="alert">{{ erroForm }}</p>
       <div class="form-simulado">
         <div>
           <label>Usuário</label>
@@ -435,6 +435,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
 }
 .role-admin {
   background: var(--aviso);
+  color: #241d15;
 }
 .role-user {
   background: var(--primaria);

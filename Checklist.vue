@@ -67,7 +67,11 @@ function handleToggleItem(materia, topico, materiaId, grupoNome, idxOriginal) {
           <span style="font-size:13px;color:var(--texto-sec);font-weight:400;">({{ itensConcluidos(m) }}/{{ totalItens(m) }})</span>
         </h3>
         <div v-for="g in m.grupos" :key="g.nome" class="grupo-checklist">
-          <div class="grupo-titulo" @click="toggleGrupo(m.id, g.nome)">
+          <div class="grupo-titulo" role="button" tabindex="0"
+            :aria-expanded="!!gruposAbertos[m.id+'-'+g.nome]"
+            @click="toggleGrupo(m.id, g.nome)"
+            @keydown.enter.prevent="toggleGrupo(m.id, g.nome)"
+            @keydown.space.prevent="toggleGrupo(m.id, g.nome)">
             {{ gruposAbertos[m.id+'-'+g.nome] ? '▼' : '▶' }} {{ g.nome }}
             <span style="font-size:12px;color:var(--texto-sec);font-weight:400;">({{ itensConcluidosGrupo(m.id, g) }}/{{ g.topicos.length }})</span>
             <span v-if="g.exercicios_sugeridos" style="font-size:11px;color:var(--aviso);font-weight:400;margin-left:8px;">🎯 {{ g.exercicios_sugeridos }} exercícios</span>

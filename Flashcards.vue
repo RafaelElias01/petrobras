@@ -48,7 +48,13 @@ function handleRemoverFlashcard(id) {
 
       <div class="flashcard-review" v-if="cardAtual">
         <div class="flashcard-materia">{{ cardAtual.materia }}</div>
-        <div class="flashcard-card" :class="{ virado: cardAtual.virado }" @click="!cardAtual.virado && (cardAtual.virado = true)">
+        <div class="flashcard-card" :class="{ virado: cardAtual.virado }"
+          role="button"
+          :tabindex="cardAtual.virado ? -1 : 0"
+          :aria-label="cardAtual.virado ? 'Resposta revelada' : 'Clique ou pressione Enter para ver a resposta'"
+          @click="!cardAtual.virado && (cardAtual.virado = true)"
+          @keydown.enter.prevent="!cardAtual.virado && (cardAtual.virado = true)"
+          @keydown.space.prevent="!cardAtual.virado && (cardAtual.virado = true)">
           <div class="flashcard-inner">
             <div class="flashcard-front">
               <div class="flashcard-label">PERGUNTA</div>
@@ -177,8 +183,8 @@ function handleRemoverFlashcard(id) {
               </div>
             </div>
             <div class="flashcard-item-actions">
-              <button class="btn-icon-only" @click="editarFlashcard(card)" title="Editar">✏️</button>
-              <button class="btn-icon-only btn-danger" @click="handleRemoverFlashcard(card.id)" title="Remover">✕</button>
+              <button class="btn-icon-only" @click="editarFlashcard(card)" title="Editar" aria-label="Editar flashcard">✏️</button>
+              <button class="btn-icon-only btn-danger" @click="handleRemoverFlashcard(card.id)" title="Remover" aria-label="Remover flashcard">✕</button>
             </div>
           </div>
         </div>
@@ -221,6 +227,12 @@ function handleRemoverFlashcard(id) {
   min-height: 260px;
   max-width: 560px;
   margin: 0 auto;
+}
+
+.flashcard-card:focus-visible {
+  outline: 3px solid #6366f1;
+  outline-offset: 4px;
+  border-radius: 16px;
 }
 
 .flashcard-inner {

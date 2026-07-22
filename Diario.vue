@@ -87,10 +87,10 @@ function formatarHoras(h) {
           <span class="log-nome">{{ r.nome }}</span>
           <span class="log-horas">{{ formatarHoras(r.horas) }}</span>
           <div class="log-ajuste">
-            <button class="btn-ajuste" @click="adicionarHoras(hoje, r.id, -0.5)" :disabled="r.horas <= 0.25">−</button>
-            <button class="btn-ajuste" @click="adicionarHoras(hoje, r.id, 0.5)">+</button>
+            <button class="btn-ajuste" @click="adicionarHoras(hoje, r.id, -0.5)" :disabled="r.horas <= 0.25" :aria-label="`Diminuir 30 minutos de ${r.nome}`">−</button>
+            <button class="btn-ajuste" @click="adicionarHoras(hoje, r.id, 0.5)" :aria-label="`Adicionar 30 minutos em ${r.nome}`">+</button>
           </div>
-          <button class="btn-log-remover" @click="removerMateria(hoje, r.id)" title="Remover">✕</button>
+          <button class="btn-log-remover" @click="removerMateria(hoje, r.id)" title="Remover" :aria-label="`Remover ${r.nome} do registro de hoje`">✕</button>
         </div>
       </div>
 
@@ -156,7 +156,7 @@ function formatarHoras(h) {
         </div>
         <div class="revisao-acoes">
           <button @click="concluirRevisao(r.id)" class="btn-concluir">✓ Concluída</button>
-          <button @click="removerRevisao(r.id)" class="btn-remover">✕</button>
+          <button @click="removerRevisao(r.id)" class="btn-remover" :aria-label="`Remover revisão de ${r.topico}`">✕</button>
         </div>
       </div>
     </div>

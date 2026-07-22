@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
 
 import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
@@ -53,6 +53,29 @@ function featureBloqueada(view) {
   return FEATURES_BLOQUEADAS_DEMO.has(view) && !temAcessoPremium.value;
 }
 
+const overlayBloqueioRef = ref(null);
+
+function focosNoOverlay() {
+  if (!overlayBloqueioRef.value) return [];
+  return Array.from(
+    overlayBloqueioRef.value.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+  ).filter(el => !el.disabled && el.offsetParent !== null);
+}
+
+function trapFocoOverlay(e) {
+  const focaveis = focosNoOverlay();
+  if (focaveis.length === 0) { e.preventDefault(); return; }
+  const primeiro = focaveis[0];
+  const ultimo = focaveis[focaveis.length - 1];
+  if (e.shiftKey && document.activeElement === primeiro) {
+    e.preventDefault();
+    ultimo.focus();
+  } else if (!e.shiftKey && document.activeElement === ultimo) {
+    e.preventDefault();
+    primeiro.focus();
+  }
+}
+
 // Limite de acesso demo: contado no servidor por sessão de login (ver
 // POST /api/demo/incrementar em server.js), não mais em localStorage —
 // evita burlar limpando storage ou trocando de navegador na mesma sessão.
@@ -92,6 +115,13 @@ const menuAberta = ref(false);
 const view = ref('dashboard');
 const tema = ref(localStorage.getItem('petro_tema') || 'dark');
 const visitaRegistrada = ref(false);
+
+watch(() => featureBloqueada(view.value), async (bloqueada) => {
+  if (bloqueada) {
+    await nextTick();
+    overlayBloqueioRef.value?.focus();
+  }
+});
 
 async function registrarVisita() {
   if (visitaRegistrada.value) return;
@@ -442,7 +472,10 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
             />
           </transition>
         </ErrorBoundary>
-        <div v-if="featureBloqueada(view)" class="overlay-bloqueio" @click="irPara('dashboard')" @keydown.escape="irPara('dashboard')" @scroll.prevent @wheel.prevent @touchmove.prevent>
+        <div v-if="featureBloqueada(view)" class="overlay-bloqueio" ref="overlayBloqueioRef" tabindex="-1"
+          role="dialog" aria-modal="true" aria-label="Recurso Premium"
+          @click="irPara('dashboard')" @keydown.escape="irPara('dashboard')" @keydown.tab="trapFocoOverlay"
+          @scroll.prevent @wheel.prevent @touchmove.prevent>
           <div class="overlay-card" @click.stop>
             <div class="login-card-header">
               <h2>Recurso Premium</h2>
@@ -488,6 +521,10 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   cursor: default;
+}
+
+.overlay-bloqueio:focus {
+  outline: none;
 }
 
 .overlay-card {

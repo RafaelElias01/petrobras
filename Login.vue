@@ -385,7 +385,7 @@ async function handleLeadMagnet() {
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
-            <p v-if="props.erro" class="msg-erro">⚠ {{ props.erro }}</p>
+            <p v-if="props.erro" class="msg-erro" role="alert">⚠ {{ props.erro }}</p>
           </form>
 
           <form v-else @submit.prevent="handleRegister" class="login-form">
@@ -446,7 +446,7 @@ async function handleLeadMagnet() {
               <span>{{ cadastroCarregando ? 'Cadastrando...' : 'Criar Conta' }}</span>
             </button>
             <p v-if="cadastroSucesso" class="msg-sucesso">✅ {{ cadastroSucesso }}</p>
-            <p v-if="cadastroErro" class="msg-erro">⚠ {{ cadastroErro }}</p>
+            <p v-if="cadastroErro" class="msg-erro" role="alert">⚠ {{ cadastroErro }}</p>
             <p class="cadastro-login-link">Já tem conta? <button type="button" class="link-btn" @click="alternarModo">Entrar</button></p>
           </form>
 
@@ -479,7 +479,7 @@ async function handleLeadMagnet() {
             <button type="submit" class="lead-magnet-btn" :disabled="leadMagnetCarregando">
               {{ leadMagnetCarregando ? 'Enviando...' : 'Baixar Guia Grátis' }}
             </button>
-            <p v-if="leadMagnetErro" class="msg-erro">⚠ {{ leadMagnetErro }}</p>
+            <p v-if="leadMagnetErro" class="msg-erro" role="alert">⚠ {{ leadMagnetErro }}</p>
           </form>
         </template>
         <template v-else>

@@ -35,7 +35,7 @@ function handleRemoverErro(id) {
 <template>
   <div class="erros-page">
     <div class="card caderno-header">
-      <h1 class="caderno-titulo">Caderno de Erros — Petrobras 2026</h1>
+      <h2 class="caderno-titulo">Caderno de Erros — Petrobras 2026</h2>
       <p class="caderno-subtitulo">Preencha imediatamente após cada correção de exercícios ou simulados. Revisar seus próprios erros é uma das formas mais eficientes de ganhar pontos na prova.</p>
       <div class="caderno-stats">
         <span class="stat-badge vermelho">{{ totalErros }} erros registrados</span>
@@ -79,8 +79,8 @@ function handleRemoverErro(id) {
                 <span class="tag-class" :class="'class-' + (e.classificacao || e.tipo)">{{ e.classificacao || e.tipo }}</span>
               </td>
               <td class="col-acoes">
-                <button class="btn-acao" @click="editarErro(e)" title="Editar">✏️</button>
-                <button class="btn-acao" @click="handleRemoverErro(e.id)" title="Remover">🗑️</button>
+                <button class="btn-acao" @click="editarErro(e)" title="Editar" aria-label="Editar erro">✏️</button>
+                <button class="btn-acao" @click="handleRemoverErro(e.id)" title="Remover" aria-label="Remover erro">🗑️</button>
               </td>
             </tr>
             <tr v-if="erros.length === 0">
