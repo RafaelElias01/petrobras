@@ -259,6 +259,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
             <tr>
               <th>Usuário</th>
               <th>Nome</th>
+              <th>Email</th>
               <th>Role</th>
               <th>Premium</th>
               <th>Ações</th>
@@ -268,6 +269,7 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
             <tr v-for="u in usuarios" :key="u.usuario">
               <td>{{ u.usuario }}</td>
               <td>{{ u.nome }}</td>
+              <td>{{ u.email || '—' }}</td>
               <td>
                 <span class="role-badge" :class="u.role === 'admin' ? 'role-admin' : 'role-user'">{{ u.role }}</span>
               </td>
@@ -281,10 +283,10 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
               </td>
             </tr>
             <tr v-if="carregando && usuarios.length === 0">
-              <td colspan="5" class="empty-cell">Carregando usuários...</td>
+              <td colspan="6" class="empty-cell">Carregando usuários...</td>
             </tr>
             <tr v-else-if="usuarios.length === 0">
-              <td colspan="5" class="empty-cell">Nenhum usuário cadastrado.</td>
+              <td colspan="6" class="empty-cell">Nenhum usuário cadastrado.</td>
             </tr>
           </tbody>
         </table>
