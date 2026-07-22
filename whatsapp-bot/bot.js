@@ -1,0 +1,87 @@
+import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
+import qrcodeTerminal from 'qrcode-terminal';
+import { encontrarResposta } from './regras.js';
+
+// Pasta de sessão: fora do git (.gitignore protege whatsapp-bot/auth_info),
+// nunca sincronizada por deploy destrutivo. Guarda as credenciais que
+// permitem reconectar sem escanear QR de novo a cada restart do serviço.
+const AUTH_DIR = process.env.WPP_AUTH_DIR || './auth_info';
+
+// Rate limit defensivo: nunca mais que N respostas automáticas por minuto,
+// mesmo que improvável de estourar num bot de FAQ (recomendação de
+// segurança contra detecção de bot pelo WhatsApp -- ver LIVRO_DE_ERROS.md
+// se algum dia isso virar um erro real).
+const LIMITE_RESPOSTAS_POR_MINUTO = 20;
+let respostasNoMinuto = 0;
+setInterval(() => { respostasNoMinuto = 0; }, 60 * 1000).unref();
+
+async function iniciar() {
+  const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: false, // deprecated na v7; usamos o evento manualmente
+  });
+
+  sock.ev.on('creds.update', saveCreds);
+
+  sock.ev.on('connection.update', (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      console.log('\nEscaneie o QR code abaixo com o WhatsApp (Aparelhos conectados > Conectar um aparelho):\n');
+      qrcodeTerminal.generate(qr, { small: true });
+    }
+
+    if (connection === 'close') {
+      const motivo = lastDisconnect?.error?.output?.statusCode;
+      const deslogado = motivo === DisconnectReason.loggedOut;
+      if (deslogado) {
+        console.error('Sessão desconectada pelo usuário (logout no celular). Apague a pasta de auth e rode de novo pra parear.');
+        return;
+      }
+      console.warn('Conexão perdida, reconectando em 3s...', motivo);
+      setTimeout(iniciar, 3000);
+      return;
+    }
+
+    if (connection === 'open') {
+      console.log('Bot conectado ao WhatsApp com sucesso.');
+    }
+  });
+
+  sock.ev.on('messages.upsert', async ({ messages, type }) => {
+    if (type !== 'notify') return;
+    for (const msg of messages) {
+      try {
+        if (msg.key.fromMe) continue; // nunca responde a si mesmo
+        if (!msg.message) continue;
+
+        const remetente = msg.key.remoteJid;
+        if (!remetente || remetente.endsWith('@g.us')) continue; // ignora grupos
+
+        const texto =
+          msg.message.conversation ||
+          msg.message.extendedTextMessage?.text ||
+          '';
+        if (!texto.trim()) continue;
+
+        if (respostasNoMinuto >= LIMITE_RESPOSTAS_POR_MINUTO) {
+          console.warn('Limite de respostas/minuto atingido, ignorando mensagem por segurança.');
+          continue;
+        }
+
+        const resposta = encontrarResposta(texto);
+        await sock.sendMessage(remetente, { text: resposta });
+        respostasNoMinuto++;
+      } catch (e) {
+        console.error('Erro ao processar mensagem:', e);
+      }
+    }
+  });
+}
+
+iniciar().catch((e) => {
+  console.error('Erro fatal ao iniciar o bot:', e);
+  process.exit(1);
+});
