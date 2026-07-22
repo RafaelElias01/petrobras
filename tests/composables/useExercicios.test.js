@@ -118,7 +118,21 @@ describe('useExercicios', () => {
     expect(quizIndex.value).toBe(1);
     expect(selecionado.value).toBe(questoes[1].correta);
     expect(responded.value).toBe(true);
-    expect(quizProgresso.value).toBe(Math.round((1 / 3) * 100));
+    // quizIndex é 0-based (posição 1 = 2ª questão de 3) -- progresso usa
+    // índice+1, senão a barra nunca chegaria a 100% na última questão.
+    expect(quizProgresso.value).toBe(Math.round((2 / 3) * 100));
+  });
+
+  it('quizProgresso chega a 100% na última questão do quiz', async () => {
+    const { iniciarQuiz, proximaQuestao, quizProgresso } = await montarExercicios();
+    const questoes = EXERCICIOS.slice(0, 4);
+    iniciarQuiz(questoes);
+
+    proximaQuestao();
+    proximaQuestao();
+    proximaQuestao();
+
+    expect(quizProgresso.value).toBe(100);
   });
 
   it('proximaQuestao não avança além da última questão', async () => {

@@ -60,7 +60,10 @@ export function useExercicios() {
 
   const quizProgresso = computed(() => {
     if (quizQuestoes.value.length === 0) return 0;
-    return Math.round((quizIndex.value / quizQuestoes.value.length) * 100);
+    // +1: quizIndex é 0-based (mesmo índice usado no rótulo "Questão X de Y",
+    // que soma 1 lá). Sem o +1, a barra de progresso nunca chega a 100% --
+    // na última questão de um quiz de 4 ela mostrava 75%, não 100%.
+    return Math.round(((quizIndex.value + 1) / quizQuestoes.value.length) * 100);
   });
 
   const quizAcertos = computed(() => {
