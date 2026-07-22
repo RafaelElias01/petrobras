@@ -20,6 +20,16 @@ onMounted(() => {
   carregarErros();
 });
 
+// `window` não está na lista de globais que o compilador do Vue resolve
+// dentro de expressões de template -- usado direto no @click, vira
+// `_ctx.window.confirm` e quebra em produção ("Cannot read properties of
+// undefined (reading 'confirm')"). Precisa estar aqui no <script setup>.
+function handleRemoverErro(id) {
+  if (window.confirm('Remover este erro?')) {
+    removerErro(id);
+  }
+}
+
 </script>
 
 <template>
@@ -70,7 +80,7 @@ onMounted(() => {
               </td>
               <td class="col-acoes">
                 <button class="btn-acao" @click="editarErro(e)" title="Editar">✏️</button>
-                <button class="btn-acao" @click="window.confirm('Remover este erro?') && removerErro(e.id)" title="Remover">🗑️</button>
+                <button class="btn-acao" @click="handleRemoverErro(e.id)" title="Remover">🗑️</button>
               </td>
             </tr>
             <tr v-if="erros.length === 0">

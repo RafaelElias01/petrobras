@@ -7,6 +7,18 @@ const {
   CICLO_ESTUDOS, idxOriginalAtual, completosPorItem, totalPonderado,
   avancarCiclo, reiniciarCiclo
 } = useCiclo();
+
+// `window` não está na lista de globais que o compilador do Vue resolve
+// dentro de expressões de template (Math/Date/JSON etc estão, window não) --
+// chamado direto no template, `window.confirm(...)` vira `_ctx.window.confirm`
+// e quebra em produção com "Cannot read properties of undefined (reading
+// 'confirm')". Precisa estar aqui no <script setup>, onde `window` é mesmo o
+// global do navegador.
+function handleReiniciarCiclo() {
+  if (window.confirm('Tem certeza? Isso vai resetar todo o ciclo.')) {
+    reiniciarCiclo();
+  }
+}
 </script>
 
 <template>
@@ -55,7 +67,7 @@ const {
         <button @click="avancarCiclo" class="btn-avancar">
           Concluí esta matéria → Avançar
         </button>
-        <button @click="window.confirm('Tem certeza? Isso vai resetar todo o ciclo.') && reiniciarCiclo()" class="btn-reiniciar">
+        <button @click="handleReiniciarCiclo" class="btn-reiniciar">
           Reiniciar Ciclo
         </button>
       </div>

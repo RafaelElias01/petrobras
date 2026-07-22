@@ -9,6 +9,16 @@ const {
 
 const semanasPlano = SEMANAS_PLANO;
 const totalQuestoes = SIMULADO_TOTAL_QUESTOES;
+
+// `window` não está na lista de globais que o compilador do Vue resolve
+// dentro de expressões de template -- usado direto no @click, vira
+// `_ctx.window.confirm` e quebra em produção ("Cannot read properties of
+// undefined (reading 'confirm')"). Precisa estar aqui no <script setup>.
+function handleRemoverSimulado(semana) {
+  if (window.confirm('Remover este simulado?')) {
+    removerSimulado(semana);
+  }
+}
 </script>
 
 <template>
@@ -72,7 +82,7 @@ const totalQuestoes = SIMULADO_TOTAL_QUESTOES;
             <td>{{ s.quimica }}/38</td>
             <td><strong>{{ s.total }}/{{ totalQuestoes }}</strong></td>
             <td :style="{ color: s.porcentagem >= 70 ? 'var(--sucesso)' : s.porcentagem >= 50 ? 'var(--aviso)' : 'var(--erro)', fontWeight: 700 }">{{ s.porcentagem }}%</td>
-            <td><button @click="window.confirm('Remover este simulado?') && removerSimulado(s.semana)" style="background:none;border:none;cursor:pointer;color:var(--erro);font-size:16px;">✕</button></td>
+            <td><button @click="handleRemoverSimulado(s.semana)" style="background:none;border:none;cursor:pointer;color:var(--erro);font-size:16px;">✕</button></td>
           </tr>
           <tr v-if="simuladosOrdenados.length === 0">
             <td colspan="8" style="color:var(--texto-sec);padding:20px;">Nenhum simulado registrado ainda.</td>

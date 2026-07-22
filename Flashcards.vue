@@ -20,6 +20,16 @@ const totalCards = computed(() => flashcards.value.length);
 onMounted(() => {
   carregarFlashcards();
 });
+
+// `window` não está na lista de globais que o compilador do Vue resolve
+// dentro de expressões de template -- usado direto no @click, vira
+// `_ctx.window.confirm` e quebra em produção ("Cannot read properties of
+// undefined (reading 'confirm')"). Precisa estar aqui no <script setup>.
+function handleRemoverFlashcard(id) {
+  if (window.confirm('Remover este flashcard?')) {
+    removerFlashcard(id);
+  }
+}
 </script>
 
 <template>
@@ -168,7 +178,7 @@ onMounted(() => {
             </div>
             <div class="flashcard-item-actions">
               <button class="btn-icon-only" @click="editarFlashcard(card)" title="Editar">✏️</button>
-              <button class="btn-icon-only btn-danger" @click="window.confirm('Remover este flashcard?') && removerFlashcard(card.id)" title="Remover">✕</button>
+              <button class="btn-icon-only btn-danger" @click="handleRemoverFlashcard(card.id)" title="Remover">✕</button>
             </div>
           </div>
         </div>
