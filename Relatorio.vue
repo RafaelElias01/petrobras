@@ -110,7 +110,7 @@ const {
         <div v-for="item in cicloDetalhado" :key="item.idx" class="ciclo-item-mini" :class="{ concluido: item.concluida }">
           <span class="ciclo-item-status">{{ item.concluida ? '✅' : '⏳' }}</span>
           <span class="ciclo-item-nome"><IconeNav :nome="item.icone" /> {{ item.materia }}</span>
-          <span class="ciclo-item-tempo">{{ item.horasEstudadas }}h estudadas</span>
+          <span class="ciclo-item-tempo">{{ item.horasEstudadas }}h estudadas{{ item.horasCompartilhadas ? ' (total da matéria)' : '' }}</span>
         </div>
       </div>
     </div>

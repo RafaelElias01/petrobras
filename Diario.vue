@@ -38,6 +38,7 @@ function adicionarNovaMateria() {
 
 function estudarCiclo(incremento) {
   const id = mapCicloParaMateriaId(materiaAtual.value.materia);
+  if (!id) return; // matéria do ciclo sem correspondência conhecida (ver dados.js)
   adicionarHoras(hoje, id, incremento);
 }
 

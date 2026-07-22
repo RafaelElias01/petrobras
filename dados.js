@@ -792,10 +792,26 @@ export const CICLO_MAP = {
   'metrologia': 'metrologiacontrole'
 };
 
+// Normaliza (min\u00fasculo + remove acento) os DOIS lados antes de comparar.
+// Bug real que existia aqui: `nome` tinha os acentos removidos mas as chaves
+// de CICLO_MAP ('portugu\u00eas', 'qu\u00edmica', ...) continuavam acentuadas, ent\u00e3o
+// 'portugues'.includes('portugu\u00eas') era SEMPRE false -- nenhum item do ciclo
+// batia com NENHUMA chave, e todo item (Portugu\u00eas, Matem\u00e1tica, qualquer
+// Qu\u00edmica) ca\u00eda incondicionalmente no fallback. Isso significava que o bot\u00e3o
+// "Estudar" do Di\u00e1rio (estudarCiclo -> adicionarHoras) sempre registrava as
+// horas no bucket errado, n\u00e3o importa a mat\u00e9ria que o usu\u00e1rio estivesse
+// estudando no ciclo.
+function normalizarTexto(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Retorna null quando nenhuma palavra-chave bate -- sem correspond\u00eancia n\u00e3o
+// deve virar "quimica" por padr\u00e3o (isso poluiria silenciosamente as horas
+// reais de Qu\u00edmica com dados de outro assunto).
 export function mapCicloParaMateriaId(nomeMateria) {
-  const nome = nomeMateria.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const match = Object.keys(CICLO_MAP).find(k => nome.includes(k));
-  return CICLO_MAP[match] || 'quimica';
+  const nome = normalizarTexto(nomeMateria);
+  const match = Object.keys(CICLO_MAP).find(k => nome.includes(normalizarTexto(k)));
+  return CICLO_MAP[match] || null;
 }
 
 export const DIAS_SEMANA = [

@@ -20,9 +20,22 @@ export function useRelatorio() {
   const diario = useDiario();
   const ciclo = useCiclo();
 
+  // Última semana com QUALQUER hora registrada -- não confundir com
+  // `semanaAtual` de useHoras.js, que é só a semana que o usuário navegou
+  // manualmente na tela Horas.vue (ref(1), nunca persiste nem segue a data
+  // real). Usar semanaAtual aqui faria o relatório mostrar pra sempre os
+  // dados da semana 1 (ou de onde quer que o usuário tenha navegado por
+  // último), mesmo já estando várias semanas à frente.
+  const ultimaSemanaComDados = computed(() => {
+    for (let s = SEMANAS_PLANO; s >= 1; s--) {
+      if (horas.horasSemana(s) > 0) return s;
+    }
+    return 0;
+  });
+
   const resumo = computed(() => ({
     totalHoras: horas.totalHorasAcumuladas.value,
-    horasSemana: horas.horasSemanaAtual.value,
+    horasSemana: ultimaSemanaComDados.value > 0 ? horas.horasSemana(ultimaSemanaComDados.value) : 0,
     metaSemana: META_HORAS_SEMANA,
     conteudoProgresso: checklist.progressoGeral.value,
     cicloProgresso: ciclo.cicloCompleto.value,
@@ -53,17 +66,19 @@ export function useRelatorio() {
   });
 
   const consistenciaSemanal = computed(() => {
+    const ultima = ultimaSemanaComDados.value;
     const semanas = [];
-    for (let s = 1; s <= SEMANAS_PLANO; s++) {
+    // Vai só até a última semana com dados -- ir até SEMANAS_PLANO listaria
+    // semanas FUTURAS (que o usuário ainda nem alcançou) como "0%" em
+    // vermelho, como se fossem semanas em que ele falhou a meta.
+    for (let s = 1; s <= ultima; s++) {
       const total = horas.horasSemana(s);
-      if (total > 0 || semanas.length > 0) {
-        semanas.push({
-          semana: s,
-          horas: total,
-          meta: META_HORAS_SEMANA,
-          pct: Math.round((total / META_HORAS_SEMANA) * 100)
-        });
-      }
+      semanas.push({
+        semana: s,
+        horas: total,
+        meta: META_HORAS_SEMANA,
+        pct: Math.round((total / META_HORAS_SEMANA) * 100)
+      });
     }
     return semanas;
   });
@@ -96,12 +111,27 @@ export function useRelatorio() {
   });
 
   const cicloDetalhado = computed(() => {
+    // mapCicloParaMateriaId agrupa vários itens do ciclo (ex: as 6 linhas de
+    // "Química — ...") sob o MESMO materiaId, porque as horas só são
+    // registradas por matéria (useHoras.js), não por subtópico do ciclo --
+    // não existe id granular o suficiente pra separar. Sem sinalizar isso,
+    // cada uma dessas linhas mostra o total inteiro de horas de Química como
+    // se fosse exclusivo dela, dando a impressão de 6x mais horas estudadas
+    // do que o real quando somadas visualmente.
+    const contagemPorMateriaId = {};
+    CICLO_ESTUDOS.forEach(item => {
+      const id = mapCicloParaMateriaId(item.materia);
+      contagemPorMateriaId[id] = (contagemPorMateriaId[id] || 0) + 1;
+    });
+
     return CICLO_ESTUDOS.map((item, idx) => {
       const concluida = (ciclo.ciclo.value.concluido[`item-${idx}`] || 0) > 0;
       const materiaId = mapCicloParaMateriaId(item.materia);
       let horasEstudadas = 0;
-      for (let s = 1; s <= SEMANAS_PLANO; s++) {
-        horasEstudadas += horas.totalMateriaSemana(s, materiaId);
+      if (materiaId) {
+        for (let s = 1; s <= SEMANAS_PLANO; s++) {
+          horasEstudadas += horas.totalMateriaSemana(s, materiaId);
+        }
       }
       return {
         materia: item.materia,
@@ -109,6 +139,7 @@ export function useRelatorio() {
         tempo: item.tempo,
         concluida,
         horasEstudadas: Math.round(horasEstudadas * 10) / 10,
+        horasCompartilhadas: contagemPorMateriaId[materiaId] > 1,
         idx
       };
     });
@@ -166,13 +197,6 @@ export function useRelatorio() {
     }
 
     return recs;
-  });
-
-  const ultimaSemanaComDados = computed(() => {
-    for (let s = SEMANAS_PLANO; s >= 1; s--) {
-      if (horas.horasSemana(s) > 0) return s;
-    }
-    return 0;
   });
 
   const mediaDiaria = computed(() => {

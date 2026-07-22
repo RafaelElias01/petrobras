@@ -84,6 +84,37 @@ describe('useRelatorio', () => {
     expect(semana2.pct).toBe(50);
   });
 
+  it('consistenciaSemanal não lista semanas futuras (sem dados ainda) como se tivessem 0% de meta falhada', async () => {
+    vi.resetModules();
+    const { useHoras } = await import('../../useHoras.js');
+    const horas = useHoras();
+    horas.setHora(1, 'seg', 'quimica', META_HORAS_SEMANA); // só a semana 1 tem dados
+
+    const { useRelatorio } = await import('../../useRelatorio.js');
+    const { consistenciaSemanal } = useRelatorio();
+
+    // Antes do fix, o loop ia até SEMANAS_PLANO inteiro assim que a 1ª semana
+    // com dados aparecia, listando as semanas 2..12 (futuras) como 0%.
+    expect(consistenciaSemanal.value.length).toBe(1);
+    expect(consistenciaSemanal.value[0].semana).toBe(1);
+  });
+
+  it('resumo.horasSemana reflete a última semana com dados, não a semana 1 fixa (semanaAtual de useHoras nunca muda sozinha)', async () => {
+    vi.resetModules();
+    const { useHoras } = await import('../../useHoras.js');
+    const horas = useHoras();
+    horas.setHora(1, 'seg', 'quimica', META_HORAS_SEMANA); // semana 1: meta batida
+    horas.setHora(5, 'seg', 'quimica', 2); // semana 5 (mais recente): só 2h
+
+    const { useRelatorio } = await import('../../useRelatorio.js');
+    const { resumo } = useRelatorio();
+
+    // Antes do fix, resumo.horasSemana vinha de horas.horasSemanaAtual (presa
+    // na semana 1 por padrão), mostrando a meta como batida mesmo a semana
+    // real (5) estando muito atrás.
+    expect(resumo.value.horasSemana).toBe(2);
+  });
+
   it('diasRecentes sempre retorna exatamente 7 dias, terminando em hoje', async () => {
     const { diasRecentes } = await montarRelatorio();
     expect(diasRecentes.value.length).toBe(7);
@@ -108,6 +139,16 @@ describe('useRelatorio', () => {
     const { cicloDetalhado } = await montarRelatorio();
     expect(cicloDetalhado.value.length).toBeGreaterThan(0);
     expect(cicloDetalhado.value.every(c => c.concluida === false)).toBe(true);
+  });
+
+  it('cicloDetalhado sinaliza horasCompartilhadas quando vários itens do ciclo mapeiam pro mesmo materiaId (ex: subtópicos de Química)', async () => {
+    const { cicloDetalhado } = await montarRelatorio();
+    const itensQuimica = cicloDetalhado.value.filter(c => /química/i.test(c.materia));
+    expect(itensQuimica.length).toBeGreaterThan(1); // pré-condição: há >1 subtópico de Química no ciclo
+    expect(itensQuimica.every(c => c.horasCompartilhadas === true)).toBe(true);
+
+    const portugues = cicloDetalhado.value.find(c => /português/i.test(c.materia));
+    expect(portugues.horasCompartilhadas).toBe(false);
   });
 
   it('recomendacoes acusa desequilíbrio quando uma matéria muito estudada ofusca outra pouco estudada', async () => {
