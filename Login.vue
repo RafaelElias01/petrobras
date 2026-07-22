@@ -5,6 +5,7 @@ import PasswordInput from './PasswordInput.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
 import FaqSection from './FaqSection.vue';
 import HowItWorks from './HowItWorks.vue';
+import IconeNav from './IconeNav.vue';
 
 const props = defineProps({
   erro: Boolean,
@@ -431,7 +432,7 @@ async function handleLeadMagnet() {
             </div>
             <p>Conta de demonstração: <strong>estudante</strong> / <strong>petro2026</strong></p>
             <a href="https://wa.me/5551983098650" target="_blank" rel="noopener" class="login-whatsapp-link">
-              💬 Dúvidas? Fale com a gente no WhatsApp
+              <IconeNav nome="whatsapp" /> Dúvidas? Fale com a gente no WhatsApp
             </a>
           </div>
         </template>
@@ -942,15 +943,22 @@ async function handleLeadMagnet() {
 }
 
 .login-whatsapp-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 10px;
-  font-size: 12px;
-  color: var(--c-text-medium);
+  font-size: 14px;
+  font-weight: 600;
+  color: #25d366;
   text-decoration: none;
   transition: color 0.2s;
 }
+.login-whatsapp-link svg {
+  width: 18px;
+  height: 18px;
+}
 .login-whatsapp-link:hover {
-  color: var(--c-text-light);
+  color: #1da851;
 }
 
 @keyframes slideUp {

@@ -389,7 +389,7 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
           <span class="icone"><IconeNav nome="sair" /></span> Sair
         </button>
         <a href="https://wa.me/5551983098650" target="_blank" rel="noopener" class="nav-item nav-item-whatsapp">
-          💬 Fale conosco
+          <span class="icone"><IconeNav nome="whatsapp" /></span> Fale conosco
         </a>
       </div>
     </aside>
@@ -547,6 +547,15 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
 .nav-item-sair {
   margin-top: 4px;
   color: var(--erro);
+}
+
+.nav-item-whatsapp {
+  color: #25d366;
+  font-weight: 600;
+}
+.nav-item-whatsapp:hover {
+  color: #25d366;
+  background: rgba(37,211,102,0.12);
 }
 
 .login-card-header {
