@@ -20,19 +20,13 @@ onMounted(() => {
   carregarErros();
 });
 
-function tipoLabel(t) {
-  if (t === 'A') return 'A - Desconhecimento';
-  if (t === 'B') return 'B - Confusão';
-  if (t === 'C') return 'C - Atenção';
-  return '';
-}
 </script>
 
 <template>
   <div class="erros-page">
     <div class="card caderno-header">
       <h1 class="caderno-titulo">Caderno de Erros — Petrobras 2026</h1>
-      <p class="caderno-subtitulo">Preencha imediatamente após cada correção de exercícios ou simulados. Cada erro preenchido é um ponto garantido na prova.</p>
+      <p class="caderno-subtitulo">Preencha imediatamente após cada correção de exercícios ou simulados. Revisar seus próprios erros é uma das formas mais eficientes de ganhar pontos na prova.</p>
       <div class="caderno-stats">
         <span class="stat-badge vermelho">{{ totalErros }} erros registrados</span>
         <span class="stat-badge azul">{{ errosPorMateria.filter(m => m.revisados > 0).length }} matérias com revisão</span>
@@ -190,7 +184,7 @@ function tipoLabel(t) {
 
     <div class="card">
       <div class="card-titulo">
-        <span>Erros Frequentes (refazer 7 dias depois)</span>
+        <span>Erros Frequentes (refazer em D+7 e D+30)</span>
       </div>
       <div class="tabela-wrapper">
         <table class="caderno-tabela">

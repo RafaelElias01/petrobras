@@ -453,14 +453,14 @@ export const EXERCICIOS = [
     grupo: 'Ortografia e Acentuação',
     enunciado: 'Assinale a opção em que a palavra recebe acento gráfico pela mesma regra de "química":',
     alternativas: [
-      'Análise',
-      'Lâmpada',
-      'Fácil',
+      'Café',
+      'Amável',
+      'Órgão',
       'Álcool',
       'Técnico'
     ],
     correta: 4,
-    explicacao: '"Química" é proparoxítona, assim como "técnico". Todas as proparoxítonas são acentuadas. "Análise" também é proparoxítona, mas a questão pede a mesma regra e ambas são proparoxítonas, porém "técnico" segue a mesma padrão de tonicidade que "química".',
+    explicacao: '"Química" é proparoxítona, e todas as proparoxítonas são acentuadas, sem exceção — mesma regra de "técnico". As demais seguem regras diferentes: "café" é oxítona terminada em -e; "amável" é paroxítona terminada em -l; "órgão" é paroxítona terminada em ditongo -ão; "álcool" é paroxítona terminada em -l (grupo -ol).',
     dificuldade: 'medio'
   },
   {

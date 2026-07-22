@@ -141,7 +141,7 @@ async function enviarEmailBoasVindas({ email, nome, usuario }) {
     const variante = VARIANTES_BOAS_VINDAS[Math.floor(Math.random() * VARIANTES_BOAS_VINDAS.length)];
     await resendClient.emails.send({
       from: EMAIL_FROM,
-      subject: `Bem-vindo(a) à plataforma de Estudos Petrobras Academy, ${nome.split(' ')[0]}! 🎉`,
+      subject: `Bem-vindo(a) à plataforma Estudo Petrobras, ${nome.split(' ')[0]}! 🎉`,
       to: email,
       html: variante.corpo(nome, usuario),
     });
@@ -161,42 +161,45 @@ function corpoEmailGuiaGratuito(nome) {
       <p>Oi, ${nome}! Aqui está o seu Guia Definitivo de Estudos para o Técnico em Química da Petrobras 🎁</p>
 
       <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Sobre a Prova</h2>
+      <p>A Cesgranrio organiza o concurso da Petrobras desde 2012. Para Técnico em Química, a prova objetiva costuma ter 79 questões, divididas assim:</p>
       <table style="border-collapse: collapse; width: 100%; font-size: 14px; margin: 12px 0;">
-        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Vagas previstas</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">1.000+ (Edital 2026)</td></tr>
-        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Salário inicial</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">R$ 6.638</td></tr>
-        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>PLR (média)</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">R$ 40.000 - R$ 52.000 / ano</td></tr>
-        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Benefícios</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">VA, VT, plano de saúde, previdência</td></tr>
-        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Banca</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">Cesgranrio</td></tr>
-        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Nível</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">Médio Técnico</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Português</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">10 questões</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Matemática</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">10 questões</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Química (Geral, Orgânica, Físico-Química, Analítica)</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">38 questões</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Processos de Petróleo</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">8 questões</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Segurança, Saúde e Ambiente (SSH)</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">7 questões</td></tr>
+        <tr><td style="padding: 6px 10px; border: 1px solid #eee;"><strong>Metrologia e Controle de Qualidade</strong></td><td style="padding: 6px 10px; border: 1px solid #eee;">6 questões</td></tr>
       </table>
+      <p style="font-size: 13px; color: #777;">Confira sempre o edital vigente para confirmar vagas, salário, benefícios e a distribuição exata de questões — esses dados variam a cada concurso.</p>
 
       <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Estrutura da Prova</h2>
-      <p><strong>Bloco I - Conhecimentos Básicos (40% do peso)</strong></p>
+      <p><strong>Português e Matemática (25% do total)</strong></p>
       <ul style="padding-left: 20px; line-height: 1.8;">
-        <li><strong>Português</strong> (20%): Interpretação de texto, gramática normativa, regência, crase, pontuação</li>
-        <li><strong>Matemática</strong> (20%): Operações básicas, proporções, equações, geometria plana, estatística</li>
+        <li><strong>Português</strong>: Interpretação de texto, gramática normativa, regência, crase, pontuação</li>
+        <li><strong>Matemática</strong>: Operações básicas, proporções, equações, geometria plana, estatística</li>
       </ul>
-      <p><strong>Bloco II - Conhecimentos Específicos (60% do peso)</strong></p>
+      <p><strong>Química (48% do total — a matéria com mais peso)</strong></p>
       <ul style="padding-left: 20px; line-height: 1.8;">
         <li><strong>Química Geral</strong>: Estequiometria, soluções, termoquímica, cinética química, equilíbrio químico</li>
         <li><strong>Química Orgânica</strong>: Reações, funções orgânicas, mecanismos, nomenclatura</li>
         <li><strong>Físico-Química</strong>: Gases, termodinâmica, eletroquímica</li>
-        <li><strong>Química Analítica</strong>: Análise gravimétrica, volumetria, cromatografia</li>
+        <li><strong>Química Analítica</strong>: Titulometria, análise instrumental, técnicas de laboratório</li>
       </ul>
-      <p><strong>Bloco III - Operações Unitárias</strong></p>
+      <p><strong>Conhecimentos Técnicos (27% do total)</strong></p>
       <ul style="padding-left: 20px; line-height: 1.8;">
-        <li>Processos de separação, destilação, filtração, trocadores de calor</li>
-        <li>Noções de refino de petróleo</li>
+        <li><strong>Processos de Petróleo</strong>: Exploração e produção, refino, blend de produtos, logística</li>
+        <li><strong>Segurança, Saúde e Ambiente (SSH)</strong>: Legislação, identificação de riscos, resposta a emergências</li>
+        <li><strong>Metrologia e Controle de Qualidade</strong>: Instrumentação, controle de processo, sistemas de qualidade (ISO)</li>
       </ul>
 
       <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Metodologia de Estudo Recomendada</h2>
-      <p><strong>1. Ciclo Ponderado (o que funciona de verdade)</strong> — divida seu tempo proporcional ao peso de cada matéria:</p>
+      <p><strong>1. Ciclo Ponderado (o que funciona de verdade)</strong> — como Química vale quase metade da prova, ela deve ocupar quase metade do seu tempo de estudo:</p>
       <ul style="padding-left: 20px; line-height: 1.8;">
-        <li>Segunda: Português (2h)</li>
-        <li>Terça: Matemática (2h)</li>
-        <li>Quarta: Química Orgânica (3h)</li>
-        <li>Quinta: Química Geral (3h)</li>
-        <li>Sexta: Físico-Química (2h)</li>
+        <li>Segunda: Química Geral (2h)</li>
+        <li>Terça: Química Orgânica (2h)</li>
+        <li>Quarta: Português (1h30) + Matemática (1h30)</li>
+        <li>Quinta: Físico-Química + Química Analítica (2h)</li>
+        <li>Sexta: Processos de Petróleo, SSH ou Metrologia, alternando (2h)</li>
         <li>Sábado: Revisão geral + Simulado (4h)</li>
         <li>Domingo: Descanso</li>
       </ul>
@@ -209,15 +212,15 @@ function corpoEmailGuiaGratuito(nome) {
         <li><strong>Assertivas longas</strong>: leia com calma, a Cesgranrio adora frases extensas</li>
         <li><strong>"Assinale a incorreta"</strong>: cuidado com pegadinhas</li>
         <li><strong>Questões contextualizadas</strong>: a banca relaciona teoria com situações reais da indústria</li>
-        <li><strong>Reações orgânicas</strong>: caem TODOS os anos — foco em esterificação, saponificação, oxidação</li>
+        <li><strong>Reações orgânicas</strong>: costumam aparecer com frequência — foco em esterificação, saponificação, oxidação</li>
+        <li><strong>Não deixe Química para depois</strong>: como é quase metade da prova, um ponto percentual a mais em Química vale mais que o mesmo esforço em qualquer outra matéria</li>
       </ul>
 
       <h2 style="color: #b5561f; font-size: 18px; margin-top: 24px;">Checklist de Aprovação</h2>
       <ul style="padding-left: 20px; line-height: 1.8;">
-        <li>☐ Matricule-se em uma plataforma especializada</li>
-        <li>☐ Baixe o edital anterior e identifique o peso de cada matéria</li>
-        <li>☐ Monte seu ciclo de estudos personalizado</li>
-        <li>☐ Crie flashcards de revisão para reações orgânicas</li>
+        <li>☐ Baixe o edital vigente e confirme o peso e a quantidade de questões de cada matéria</li>
+        <li>☐ Monte seu ciclo de estudos personalizado, dando mais peso à Química</li>
+        <li>☐ Crie flashcards de revisão para reações orgânicas e para os tópicos de Processos de Petróleo, SSH e Metrologia</li>
         <li>☐ Faça 1 simulado por semana</li>
         <li>☐ Corrija e registre todos os erros</li>
         <li>☐ Revise semanalmente o caderno de erros</li>

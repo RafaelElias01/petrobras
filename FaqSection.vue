@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: 'O conteúdo está atualizado para o próximo concurso?',
-    a: 'Sim. Todo o nosso conteúdo é baseado na análise dos últimos editais da Cesgranrio para Técnico em Química, incluindo o de 2023. O acesso vitalício garante que você receberá todas as atualizações para os próximos concursos sem custo adicional.',
+    a: 'Sim. Todo o nosso conteúdo é baseado na análise dos últimos editais da Cesgranrio para Técnico em Química. O acesso vitalício garante que você receberá todas as atualizações para os próximos concursos sem custo adicional.',
   },
   {
     q: 'Posso acessar pelo celular?',
