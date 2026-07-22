@@ -409,7 +409,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://browser-intake-us3-datadoghq.com'],
       // 'unsafe-inline' aqui não protege nada de verdade: o único <script>
       // inline do HTML é o bloco JSON-LD de SEO (index.html), que o CSP nem
       // aplica script-src (não é um MIME type executável) -- e o bundle da
