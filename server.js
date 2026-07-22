@@ -150,6 +150,101 @@ async function enviarEmailBoasVindas({ email, nome, usuario }) {
   }
 }
 
+// --- Propaganda diária do Premium (opt-out) ---
+// Token de descadastro: HMAC do usuário com um secret do servidor, sem
+// precisar de sessão/login -- link clicável direto do email. Sem
+// OPTOUT_SECRET configurado, usa MP_WEBHOOK_SECRET como fallback (já é um
+// segredo só do servidor); se nenhum dos dois existir, o agendador de
+// propaganda simplesmente não roda (ver startAgendadorPropaganda).
+const OPTOUT_SECRET = process.env.OPTOUT_SECRET || process.env.MP_WEBHOOK_SECRET || '';
+function tokenOptOut(usuario) {
+  return crypto.createHmac('sha256', OPTOUT_SECRET).update(usuario).digest('hex');
+}
+
+app.get('/api/newsletter-premium/descadastrar', (req, res) => {
+  const { usuario, token } = req.query;
+  if (!usuario || typeof usuario !== 'string' || !token || typeof token !== 'string') {
+    return res.status(400).send('Link inválido.');
+  }
+  const tokenEsperado = tokenOptOut(usuario);
+  const bufEsperado = Buffer.from(tokenEsperado);
+  const bufRecebido = Buffer.from(token);
+  const valido = bufEsperado.length === bufRecebido.length && crypto.timingSafeEqual(bufEsperado, bufRecebido);
+  if (!valido) return res.status(403).send('Link inválido ou expirado.');
+
+  const usuarios = lerUsuarios();
+  const idx = usuarios.findIndex(u => u.usuario === usuario);
+  if (idx === -1) return res.status(404).send('Usuário não encontrado.');
+  usuarios[idx].optOutPropaganda = true;
+  salvarUsuarios(usuarios);
+  res.send('Você não vai mais receber nossos emails sobre o Premium. Se mudar de ideia, é só assinar direto pelo site.');
+});
+
+// Mesmas 4 variantes de ângulo do email de boas-vindas, adaptadas pra quem
+// já está usando a plataforma há um tempo (sem a linha "seu cadastro foi
+// confirmado") e com rodapé de opt-out -- exigência legal/anti-spam de
+// qualquer email de marketing recorrente.
+function corpoPropagandaComOptOut(nome, usuario, corpoHtml) {
+  const linkOptOut = `${SITE_URL}/api/newsletter-premium/descadastrar?usuario=${encodeURIComponent(usuario)}&token=${tokenOptOut(usuario)}`;
+  return `${corpoHtml}
+    <p style="font-size: 12px; color: #999; margin-top: 24px; border-top: 1px solid #eee; padding-top: 12px;">
+      Você recebeu esse email porque tem uma conta em petrobrasacademy.com.br.
+      Não quer mais receber novidades sobre o Premium? <a href="${linkOptOut}" style="color: #999;">Clique aqui para não receber mais</a>.
+    </p>`;
+}
+
+async function enviarEmailPropagandaPremium({ email, nome, usuario }) {
+  if (!resendClient) return;
+  try {
+    const variante = VARIANTES_BOAS_VINDAS[Math.floor(Math.random() * VARIANTES_BOAS_VINDAS.length)];
+    await resendClient.emails.send({
+      from: EMAIL_FROM,
+      subject: `${nome.split(' ')[0]}, já pensou em ser Premium na Estudo Petrobras? 👑`,
+      to: email,
+      html: corpoPropagandaComOptOut(nome, usuario, variante.corpo(nome, usuario)),
+    });
+  } catch (e) {
+    console.error(`Erro ao enviar email de propaganda pra ${usuario}:`, e);
+  }
+}
+
+// Dispara 1x/dia (checagem a cada hora) pra todo usuário com premium!==true
+// e optOutPropaganda!==true. Controle de "já enviado hoje" em memória
+// (ultimoEnvioPropaganda) evita duplicar se a checagem rodar mais de uma vez
+// no mesmo dia -- não sobrevive a um restart do processo, então na pior
+// hipótese (restart no meio do dia) um usuário pode receber 2 emails no
+// mesmo dia, nunca 0.
+let ultimoEnvioPropaganda = null;
+async function rodarEnvioPropagandaDiaria() {
+  const hoje = hojeBrasiliaISO();
+  if (ultimoEnvioPropaganda === hoje) return;
+  if (!resendClient || !OPTOUT_SECRET) return;
+  ultimoEnvioPropaganda = hoje;
+  const usuarios = lerUsuarios();
+  const alvos = usuarios.filter(u => u.premium !== true && u.optOutPropaganda !== true && u.email);
+  console.log(`Propaganda diária Premium: enviando pra ${alvos.length} usuário(s).`);
+  for (const u of alvos) {
+    await enviarEmailPropagandaPremium({ email: u.email, nome: u.nome, usuario: u.usuario });
+  }
+}
+
+const HORA_ENVIO_PROPAGANDA = 9; // 9h, horário de Brasília
+function startAgendadorPropaganda() {
+  if (!resendClient) {
+    console.warn('RESEND_API_KEY nao configurado: propaganda diária do Premium desativada.');
+    return;
+  }
+  if (!OPTOUT_SECRET) {
+    console.warn('OPTOUT_SECRET/MP_WEBHOOK_SECRET nao configurado: propaganda diária do Premium desativada (sem secret pra assinar o link de opt-out).');
+    return;
+  }
+  setInterval(() => {
+    const horaBrasilia = Number(new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }).format(new Date()));
+    if (horaBrasilia === HORA_ENVIO_PROPAGANDA) rodarEnvioPropagandaDiaria();
+  }, 60 * 60 * 1000).unref();
+}
+startAgendadorPropaganda();
+
 // Segurança de cabeçalhos. GA4/Facebook Pixel removidos do index.html (IDs
 // placeholder) — CSP não referencia mais esses domínios. Reativar aqui
 // junto com o index.html quando houver IDs reais.
