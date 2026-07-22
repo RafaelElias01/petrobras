@@ -84,4 +84,76 @@ describe('useDiario', () => {
     expect(revisoesPendentes.value.length).toBe(1);
     expect(revisoesPendentes.value[0].intervalo).toBe('D+1 (24h)');
   });
+
+  it('revisoesHoje só inclui revisões não concluídas com data exatamente igual a hoje', async () => {
+    vi.setSystemTime(new Date('2026-07-22T10:00:00-03:00'));
+    try {
+      const { agendarRevisao, revisoesHoje } = await montarDiario();
+      // D+1 a partir de 21/07 cai em 22/07 -- exatamente "hoje" no relógio simulado.
+      agendarRevisao('pH', 'Química', '2026-07-21');
+
+      expect(revisoesHoje.value.length).toBe(1);
+      expect(revisoesHoje.value[0].intervalo).toBe('D+1 (24h)');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('revisoesHoje exclui revisões já concluídas mesmo se a data bater com hoje', async () => {
+    vi.setSystemTime(new Date('2026-07-22T10:00:00-03:00'));
+    try {
+      const { agendarRevisao, revisoes, revisoesHoje, concluirRevisao } = await montarDiario();
+      agendarRevisao('pH', 'Química', '2026-07-21');
+      const revisaoDeHoje = revisoes.value.find(r => r.data === '2026-07-22');
+      concluirRevisao(revisaoDeHoje.id);
+
+      expect(revisoesHoje.value.length).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('diasEstudoConsecutivos é 0 quando não há nenhuma hora registrada', async () => {
+    const { diasEstudoConsecutivos } = await montarDiario();
+    expect(diasEstudoConsecutivos.value).toBe(0);
+  });
+
+  it('diasEstudoConsecutivos conta a sequência de dias com horas > 0 a partir de hoje, parando no primeiro buraco', async () => {
+    vi.resetModules();
+    vi.setSystemTime(new Date('2026-07-22T10:00:00-03:00'));
+    try {
+      const { useHoras } = await import('../../useHoras.js');
+      const horas = useHoras();
+      // Grava direto no namespace por-data (chave usada por diasEstudoConsecutivos),
+      // simulando 3 dias seguidos de estudo (20, 21, 22) e um buraco em 19.
+      horas.horas.value['2026-07-22'] = { quimica: 2 };
+      horas.horas.value['2026-07-21'] = { quimica: 1 };
+      horas.horas.value['2026-07-20'] = { portugues: 1 };
+      horas.horas.value['2026-07-18'] = { quimica: 5 }; // antes do buraco em 19, não deve contar
+
+      const { useDiario } = await import('../../useDiario.js');
+      const { diasEstudoConsecutivos } = useDiario();
+
+      expect(diasEstudoConsecutivos.value).toBe(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('diasEstudoConsecutivos ignora um dia cujo registro existe mas com todas as horas zeradas', async () => {
+    vi.resetModules();
+    vi.setSystemTime(new Date('2026-07-22T10:00:00-03:00'));
+    try {
+      const { useHoras } = await import('../../useHoras.js');
+      const horas = useHoras();
+      horas.horas.value['2026-07-22'] = { quimica: 0, portugues: 0 };
+
+      const { useDiario } = await import('../../useDiario.js');
+      const { diasEstudoConsecutivos } = useDiario();
+
+      expect(diasEstudoConsecutivos.value).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

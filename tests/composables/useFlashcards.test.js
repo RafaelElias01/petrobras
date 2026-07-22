@@ -99,4 +99,80 @@ describe('useFlashcards', () => {
     expect(flashcards.value.length).toBe(totalAntes - 1);
     expect(flashcards.value.find(f => f.id === idParaRemover)).toBeUndefined();
   });
+
+  it('editarFlashcard copia o card pra edição (cópia, não referência ao original)', async () => {
+    const { flashcards, carregarFlashcards, editarFlashcard, editandoFlashcard } = await montarFlashcards();
+    await carregarFlashcards();
+    const original = flashcards.value[0];
+
+    editarFlashcard(original);
+    editandoFlashcard.value.frente = 'Alterado só na cópia';
+
+    expect(editandoFlashcard.value).not.toBe(original);
+    expect(original.frente).not.toBe('Alterado só na cópia');
+  });
+
+  it('cancelarFlashcard limpa editandoFlashcard sem alterar o deck', async () => {
+    const { flashcards, carregarFlashcards, novoFlashcard, cancelarFlashcard, editandoFlashcard } = await montarFlashcards();
+    await carregarFlashcards();
+    const totalAntes = flashcards.value.length;
+
+    novoFlashcard();
+    cancelarFlashcard();
+
+    expect(editandoFlashcard.value).toBeNull();
+    expect(flashcards.value.length).toBe(totalAntes);
+  });
+
+  it('salvarFlashcard com id existente atualiza o card em vez de duplicar', async () => {
+    const { flashcards, carregarFlashcards, editarFlashcard, editandoFlashcard, salvarFlashcard } = await montarFlashcards();
+    await carregarFlashcards();
+    const alvo = flashcards.value[0];
+    const totalAntes = flashcards.value.length;
+
+    editarFlashcard(alvo);
+    editandoFlashcard.value.verso = 'Resposta atualizada';
+    salvarFlashcard();
+
+    expect(flashcards.value.length).toBe(totalAntes);
+    expect(flashcards.value.find(f => f.id === alvo.id).verso).toBe('Resposta atualizada');
+  });
+
+  it('flashcardsAgrupados cobre TODAS as matérias de CONTEUDOS, mesmo as sem nenhum card', async () => {
+    vi.resetModules();
+    const { CONTEUDOS } = await import('../../dados.js');
+    const { useFlashcards } = await import('../../useFlashcards.js');
+    const { flashcards, carregarFlashcards, flashcardsAgrupados, novoFlashcard, editandoFlashcard, salvarFlashcard } = useFlashcards();
+    await carregarFlashcards();
+
+    // esvazia o deck e insere um único card, só pra confirmar que uma matéria
+    // sem NENHUM flashcard ainda aparece como chave (array vazio) no agrupamento.
+    flashcards.value.length = 0;
+    novoFlashcard();
+    editandoFlashcard.value.materia = CONTEUDOS[0].nome;
+    editandoFlashcard.value.frente = 'x';
+    editandoFlashcard.value.verso = 'y';
+    salvarFlashcard();
+
+    const grupos = flashcardsAgrupados.value;
+    expect(Object.keys(grupos).length).toBe(CONTEUDOS.length);
+    expect(grupos[CONTEUDOS[0].nome].length).toBe(1);
+    if (CONTEUDOS.length > 1) {
+      expect(grupos[CONTEUDOS[1].nome]).toEqual([]);
+    }
+  });
+
+  it('flashcardsAgrupados ignora cards com matéria que não existe em CONTEUDOS (órfãos)', async () => {
+    vi.resetModules();
+    const { useFlashcards } = await import('../../useFlashcards.js');
+    const { flashcards, carregarFlashcards, flashcardsAgrupados } = useFlashcards();
+    await carregarFlashcards();
+
+    flashcards.value.push({ id: 999999, materia: 'Matéria Inexistente', frente: 'x', verso: 'y', box: 1, lastReviewed: null });
+
+    const grupos = flashcardsAgrupados.value;
+    expect(grupos['Matéria Inexistente']).toBeUndefined();
+    const totalAgrupado = Object.values(grupos).reduce((acc, arr) => acc + arr.length, 0);
+    expect(totalAgrupado).toBe(flashcards.value.length - 1); // o órfão não aparece em nenhum grupo
+  });
 });

@@ -221,6 +221,74 @@ describe('/api/admin/usuarios', () => {
         .send({ role: 'user' });
       expect(rebaixaBloqueada.status).toBe(400);
     });
+
+    it('bloqueia remover (DELETE) o único admin restante quando outros 2 admins já foram removidos antes', async () => {
+      // 3 admins: 'chefe' + 'adminb' + 'adminc'. 'adminb' deleta 'adminc' (3->2,
+      // permitido) e depois 'chefe' (2->1, também permitido -- a regra só
+      // bloqueia quando o total JÁ é 1). 'adminb' vira o único admin: a
+      // checagem de "remover o próprio usuário" roda antes da de "último
+      // admin" no código-fonte, então ele não consegue se autodeletar --
+      // confirmando que a API nunca deixa o sistema sem nenhum administrador.
+      await request(app)
+        .post('/api/auth/register')
+        .send({ usuario: 'adminb', nome: 'Admin B', email: 'adminb@ex.com', senha: '123456' });
+      await request(app)
+        .put('/api/admin/usuarios/adminb')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ role: 'admin' });
+      await request(app)
+        .post('/api/auth/register')
+        .send({ usuario: 'adminc', nome: 'Admin C', email: 'adminc@ex.com', senha: '123456' });
+      await request(app)
+        .put('/api/admin/usuarios/adminc')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ role: 'admin' });
+
+      const loginB = await request(app).post('/api/auth/login').send({ usuario: 'adminb', senha: '123456' });
+      const tokenB = loginB.body.token;
+
+      const deleteC = await request(app)
+        .delete('/api/admin/usuarios/adminc')
+        .set('Authorization', `Bearer ${tokenB}`);
+      expect(deleteC.status).toBe(200);
+
+      const deleteChefe = await request(app)
+        .delete('/api/admin/usuarios/chefe')
+        .set('Authorization', `Bearer ${tokenB}`);
+      expect(deleteChefe.status).toBe(200);
+
+      // 'adminb' é agora o único admin -- tentar se autodeletar é bloqueado
+      // (por "próprio usuário", não chega a testar "último admin", mas
+      // confirma que a API nunca deixa o sistema sem nenhum administrador).
+      const autodelete = await request(app)
+        .delete('/api/admin/usuarios/adminb')
+        .set('Authorization', `Bearer ${tokenB}`);
+      expect(autodelete.status).toBe(400);
+
+      const lista = await request(app).get('/api/admin/usuarios').set('Authorization', `Bearer ${tokenB}`);
+      expect(lista.body.filter(u => u.role === 'admin').length).toBe(1);
+
+      // 'chefe' foi deletado (não só rebaixado) -- recria via register e
+      // promove de novo, restaurando tokenAdmin como admin válido pro resto
+      // da suite. Reusa o mesmo email/usuario 'chefe'.
+      const recriaChefe = await request(app)
+        .post('/api/auth/register')
+        .send({ usuario: 'chefe', nome: 'Chefe', email: 'chefe2@ex.com', senha: '123456' });
+      tokenAdmin = recriaChefe.body.token;
+      await request(app)
+        .put('/api/admin/usuarios/chefe')
+        .set('Authorization', `Bearer ${tokenB}`)
+        .send({ role: 'admin' });
+    });
+
+    it('rejeita senha inválida (muito curta) ao atualizar usuário via PUT', async () => {
+      const res = await request(app)
+        .put('/api/admin/usuarios/fulano')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ nome: 'Fulano', senha: 'ab' });
+      expect(res.status).toBe(400);
+      expect(res.body.erro).toMatch(/Senha inválida/);
+    });
   });
 });
 

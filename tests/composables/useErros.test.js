@@ -146,6 +146,77 @@ describe('useErros', () => {
     expect(errosFrequentes.value[0].classificacao).toBe('B');
   });
 
+  it('errosAgrupados agrupa erros por matéria, cobrindo todas as matérias de CONTEUDOS mesmo sem erro', async () => {
+    const { carregarErros, novoErro, salvarErro, editandoErro, errosAgrupados } = await montarErros();
+    await carregarErros();
+
+    novoErro();
+    editandoErro.value.materia = MATERIA;
+    salvarErro();
+
+    const grupos = errosAgrupados.value;
+    expect(Object.keys(grupos).length).toBe(CONTEUDOS.length);
+    expect(grupos[MATERIA].length).toBe(1);
+    const outraMateria = CONTEUDOS[1].nome;
+    expect(grupos[outraMateria]).toEqual([]);
+  });
+
+  it('errosAgrupados ignora erro com matéria que não existe em CONTEUDOS (órfão)', async () => {
+    const { carregarErros, erros, errosAgrupados } = await montarErros();
+    await carregarErros();
+    erros.value.push({ id: 1, materia: 'Matéria Inexistente', classificacao: 'A', revisado: false });
+
+    const grupos = errosAgrupados.value;
+    expect(grupos['Matéria Inexistente']).toBeUndefined();
+  });
+
+  it('cancelarErro limpa editandoErro sem alterar a lista de erros', async () => {
+    const { carregarErros, novoErro, cancelarErro, editandoErro, erros } = await montarErros();
+    await carregarErros();
+    const totalAntes = erros.value.length;
+
+    novoErro();
+    cancelarErro();
+
+    expect(editandoErro.value).toBeNull();
+    expect(erros.value.length).toBe(totalAntes);
+  });
+
+  it('editarErro copia o erro pra edição (cópia, não referência ao original)', async () => {
+    const { carregarErros, novoErro, salvarErro, editandoErro, editarErro, erros } = await montarErros();
+    await carregarErros();
+    novoErro();
+    editandoErro.value.materia = MATERIA;
+    editandoErro.value.topico = 'original';
+    salvarErro();
+    const original = erros.value[0];
+
+    editarErro(original);
+    editandoErro.value.topico = 'alterado só na cópia';
+
+    expect(editandoErro.value).not.toBe(original);
+    expect(original.topico).toBe('original');
+  });
+
+  it('persiste regrasDeOuro no Armazenamento somente após carregarErros()', async () => {
+    vi.useFakeTimers();
+    try {
+      const { carregarErros, regrasDeOuro } = await montarErros();
+      await carregarErros();
+
+      regrasDeOuro.value[0] = 'Sempre ler o enunciado duas vezes';
+      await nextTick();
+      vi.advanceTimersByTime(1100);
+
+      const { Armazenamento } = await import('../../armazenamento.js');
+      const salvo = Armazenamento.carregar('regrasDeOuro', null);
+      expect(salvo).not.toBeNull();
+      expect(salvo[0]).toBe('Sempre ler o enunciado duas vezes');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('persiste erros no Armazenamento (localStorage) somente após carregarErros()', async () => {
     vi.useFakeTimers();
     try {
