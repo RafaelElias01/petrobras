@@ -2,6 +2,7 @@ import { ref } from 'vue';
 
 const prefixo = 'petrobras_quimica_';
 const debounceTimers = {};
+const pendentes = {}; // chave -> dados ainda não escritos (aguardando o debounce)
 
 export const saveStatus = ref('idle');
 
@@ -33,25 +34,34 @@ function carregar(chave, padrao = null) {
   }
 }
 
+function escreverAgora(chave) {
+  if (!(chave in pendentes)) return;
+  const dados = pendentes[chave];
+  delete pendentes[chave];
+  try {
+    const json = JSON.stringify(dados);
+    const stored = isSensitive(chave) ? encode(json) : json;
+    localStorage.setItem(prefixo + chave, stored);
+    saveStatus.value = 'saved';
+  } catch (e) {
+    console.error(`Falha ao salvar '${chave}'`, e);
+    saveStatus.value = 'error';
+  } finally {
+    setTimeout(() => { if (saveStatus.value !== 'saving') saveStatus.value = 'idle'; }, 2000);
+  }
+}
+
 function salvar(chave, dados, debounceMs = 1000) {
   saveStatus.value = 'saving';
+  pendentes[chave] = dados;
 
   if (debounceTimers[chave]) {
     clearTimeout(debounceTimers[chave]);
   }
 
   debounceTimers[chave] = setTimeout(() => {
-    try {
-      const json = JSON.stringify(dados);
-      const stored = isSensitive(chave) ? encode(json) : json;
-      localStorage.setItem(prefixo + chave, stored);
-      saveStatus.value = 'saved';
-    } catch (e) {
-      console.error(`Falha ao salvar '${chave}'`, e);
-      saveStatus.value = 'error';
-    } finally {
-      setTimeout(() => { if (saveStatus.value !== 'saving') saveStatus.value = 'idle'; }, 2000);
-    }
+    delete debounceTimers[chave];
+    escreverAgora(chave);
   }, debounceMs);
 }
 
@@ -67,12 +77,36 @@ function limparTudo() {
     clearTimeout(debounceTimers[chave]);
     delete debounceTimers[chave];
   }
+  for (const chave of Object.keys(pendentes)) delete pendentes[chave];
   const chaves = [];
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
     if (k && k.startsWith(prefixo)) chaves.push(k);
   }
   chaves.forEach(k => localStorage.removeItem(k));
+}
+
+// `salvar()` sempre debounça (default 1000ms) -- sem isso, marcar o último
+// item de um checklist e fechar a aba (ou dar refresh) em menos de 1s faz o
+// timer nunca disparar: o dado nunca chega a ser escrito no localStorage e a
+// última alteração é perdida em silêncio, sem log nem qualquer indicação pro
+// usuário. `pagehide` cobre navegação/fechamento de aba de forma mais
+// confiável que `beforeunload` em mobile; `visibilitychange` cobre o caso de
+// trocar de app/aba sem necessariamente fechar (comum em celular).
+function flushPendentes() {
+  for (const chave of Object.keys(debounceTimers)) {
+    clearTimeout(debounceTimers[chave]);
+    delete debounceTimers[chave];
+  }
+  for (const chave of Object.keys(pendentes)) escreverAgora(chave);
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', flushPendentes);
+  window.addEventListener('beforeunload', flushPendentes);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushPendentes();
+  });
 }
 
 export const Armazenamento = { carregar, salvar, limparTudo };

@@ -156,4 +156,17 @@ describe('Armazenamento', () => {
 
     expect(localStorage.getItem('petrobras_quimica_pendente')).toBeNull();
   });
+
+  it('escreve imediatamente uma escrita pendente quando a aba é escondida/fechada antes do debounce completar (pagehide/visibilitychange)', async () => {
+    const { Armazenamento } = await montarArmazenamento();
+
+    Armazenamento.salvar('checklist-urgente', { concluido: true }); // debounce padrão de 1000ms
+
+    // Sem isso, fechar a aba/dar refresh em menos de 1s perderia essa
+    // escrita em silêncio -- o timer nunca chegaria a disparar.
+    window.dispatchEvent(new Event('pagehide'));
+
+    expect(localStorage.getItem('petrobras_quimica_checklist-urgente')).toBe(JSON.stringify({ concluido: true }));
+    expect(Armazenamento.carregar('checklist-urgente')).toEqual({ concluido: true });
+  });
 });
