@@ -64,6 +64,19 @@ describe('useFlashcardReview', () => {
     expect(deckRevisao.value.length).toBe(2);
   });
 
+  it('iniciarRevisao trata numCards negativo/inválido como se fosse 1 (não pega o deck inteiro via slice(0, -n))', async () => {
+    const cards = [card(1), card(2), card(3), card(4), card(5)];
+    const { iniciarRevisao, deckRevisao, opcoesRevisao } = await montarReview(cards);
+
+    opcoesRevisao.value.numCards = -1; // <input type="number" min/max> não impede isso via JS
+    opcoesRevisao.value.aleatorio = false;
+    iniciarRevisao();
+
+    // slice(0, -1) pegaria 4 dos 5 cards (o oposto do que "-1" sugere); o
+    // esperado é tratar como inválido e cair no mínimo de 1.
+    expect(deckRevisao.value.length).toBe(1);
+  });
+
   it('iniciarRevisao filtra por matérias selecionadas em opcoesRevisao.materias', async () => {
     const cards = [card(1, 'Química'), card(2, 'Matemática'), card(3, 'Química')];
     const { iniciarRevisao, deckRevisao, opcoesRevisao } = await montarReview(cards);

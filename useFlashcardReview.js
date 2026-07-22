@@ -39,7 +39,13 @@ export function useFlashcardReview(flashcards, cardsParaRevisar) {
       }
     }
 
-    deckRevisao.value = dueCards.slice(0, opcoesRevisao.value.numCards).map(c => ({ ...c, virado: false }));
+    // numCards vem de um <input type="number" min="1" max="100"> (Flashcards.vue),
+    // mas min/max de input number é só validação nativa de formulário -- como
+    // não há checkValidity()/submit antes de chamar iniciarRevisao(), nada
+    // impede um valor negativo ou não-numérico aqui. slice(0, -1) com número
+    // negativo pega quase o array INTEIRO (o oposto do que o campo sugere).
+    const numCards = Math.max(1, Math.min(100, Math.trunc(opcoesRevisao.value.numCards) || 10));
+    deckRevisao.value = dueCards.slice(0, numCards).map(c => ({ ...c, virado: false }));
     cardAtualIndex.value = 0;
     modoRevisao.value = true;
   }
