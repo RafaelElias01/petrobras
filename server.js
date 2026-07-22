@@ -38,6 +38,45 @@ if (!resendClient) {
   console.warn('RESEND_API_KEY nao configurado: email de boas-vindas desativado.');
 }
 
+// Notificação por email pro admin toda vez que alguém assina o Premium
+// (webhook Mercado Pago ou concessão manual pelo painel). Sem
+// ADMIN_NOTIFICATION_EMAIL configurada, essa notificação fica desativada
+// (o sistema segue funcionando normalmente, só sem o aviso).
+const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || '';
+if (!ADMIN_NOTIFICATION_EMAIL) {
+  console.warn('ADMIN_NOTIFICATION_EMAIL nao configurado: notificacao de nova assinatura Premium desativada.');
+}
+
+// nome/usuario/email vêm de cadastro do usuário (nome só é limitado a 2-50
+// chars, sem restrição de caracteres) -- escapar antes de embutir em HTML
+// evita que alguém injete markup/links no email que o ADMIN lê.
+function escapeHtml(texto) {
+  return String(texto)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function enviarEmailNotificacaoPremium({ usuario, nome, email }) {
+  if (!resendClient || !ADMIN_NOTIFICATION_EMAIL) return;
+  try {
+    const nomeSeguro = escapeHtml(nome || usuario);
+    const usuarioSeguro = escapeHtml(usuario);
+    const emailSeguro = email ? escapeHtml(email) : '';
+    const { error } = await resendClient.emails.send({
+      from: EMAIL_FROM,
+      to: ADMIN_NOTIFICATION_EMAIL,
+      subject: `👑 Nova assinatura Premium: ${nomeSeguro}`,
+      html: `<p>O usuário <strong>${nomeSeguro}</strong> (login: ${usuarioSeguro}${emailSeguro ? `, email: ${emailSeguro}` : ''}) acabou de assinar o Premium.</p>`,
+    });
+    if (error) console.error('Erro ao enviar email de notificação de premium (API Resend):', error);
+  } catch (e) {
+    console.error('Erro ao enviar email de notificação de premium:', e);
+  }
+}
+
 const SITE_URL = 'https://www.petrobrasacademy.com.br';
 
 // 4 variantes de copy pro e-mail de boas-vindas, cada uma com um ângulo de
@@ -623,6 +662,7 @@ app.put('/api/admin/usuarios/:usuario', (req, res) => {
   }
   // Concede/revoga premium manualmente (ex: pagamento combinado fora do
   // Mercado Pago). Mesmo bookkeeping do ativarPremium() usado pelo webhook.
+  const concedendoPremium = premium === true && !usuarios[idx].premium;
   if (premium !== undefined) {
     usuarios[idx].premium = premium === true;
     usuarios[idx].premiumEm = premium === true ? new Date().toISOString() : null;
@@ -632,6 +672,8 @@ app.put('/api/admin/usuarios/:usuario', (req, res) => {
     usuarios[idx].senhaHash = bcrypt.hashSync(senha, 10);
   }
   salvarUsuarios(usuarios);
+  // Fire-and-forget: não atrasa nem falha a resposta se o email demorar/der erro.
+  if (concedendoPremium) enviarEmailNotificacaoPremium(usuarios[idx]);
   res.json(semSenhaHash(usuarios[idx]));
 });
 
@@ -706,9 +748,16 @@ function ativarPremium(usuario) {
   const usuarios = lerUsuarios();
   const idx = usuarios.findIndex(u => u.usuario === usuario);
   if (idx === -1) return false;
+  // O Mercado Pago pode reenviar a notificação do mesmo pagamento (retry,
+  // ou eventos separados de "criado"/"atualizado" ambos já aprovados) --
+  // só notifica o admin na transição false -> true, senão cada retry
+  // manda um novo email de "nova assinatura" pro mesmo pagamento.
+  const jaEraPremium = usuarios[idx].premium === true;
   usuarios[idx].premium = true;
   usuarios[idx].premiumEm = new Date().toISOString();
   salvarUsuarios(usuarios);
+  // Fire-and-forget: não atrasa nem falha a ativação se o email demorar/der erro.
+  if (!jaEraPremium) enviarEmailNotificacaoPremium(usuarios[idx]);
   return true;
 }
 
