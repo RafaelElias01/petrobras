@@ -40,35 +40,110 @@ if (!resendClient) {
 
 const SITE_URL = 'https://petrobrasacademy.com.br';
 
+// 4 variantes de copy pro e-mail de boas-vindas, cada uma com um ângulo de
+// marketing diferente (urgência, prova social/salário, empatia, benefícios
+// do cargo) -- sorteada por cadastro, pra variar o apelo entre usuários
+// diferentes. Todo dado usado (salário, PLR, depoimentos) é o mesmo já
+// exibido publicamente em Login.vue -- nada inventado nem prazo/estatística
+// fabricada (propaganda enganosa).
+const VARIANTES_BOAS_VINDAS = [
+  {
+    // A) Urgência/escassez
+    corpo: (nome, usuario) => `
+      <div style="font-family: Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.6;">
+        <p>Fala, ${nome}!</p>
+        <p>Seu cadastro (${usuario}) no <strong>Estudo Petrobras</strong> já está ativo.</p>
+        <p>E aqui vai uma verdade que ninguém fala: enquanto você lê esse e-mail, tem gente que já abriu o ciclo de estudos hoje. A prova da Cesgranrio não espera ninguém terminar de "se organizar" — e concorrência boa pra Técnico da Petrobras é o tipo de vaga que atrai gente estudando há meses.</p>
+        <p>Tempo de estudo é o recurso mais escasso que você tem. Por isso o Premium existe: em vez de você perder semana decidindo o que estudar, o <strong>ciclo de estudos ponderado</strong> já te diz exatamente o que priorizar a cada dia, por peso real da prova — Português + Matemática valem 40%, as específicas de Química valem 60%. Você estuda o que pesa, não o que dá vontade.</p>
+        <ul style="padding-left: 20px; line-height: 1.8;">
+          <li>🔁 Ciclo de estudos por peso de prova (chega de estudar no escuro)</li>
+          <li>🧠 Flashcards com repetição espaçada</li>
+          <li>📊 Simulados e banco de questões estilo Cesgranrio, correção na hora</li>
+          <li>📈 Relatório de desempenho pra você saber onde travar o foco</li>
+        </ul>
+        <p>Por <strong>R$ 49,90</strong>, pagamento único, acesso é vitalício — não é assinatura, você paga uma vez e usa até o dia da prova (e depois dela, se quiser revisar pra próxima).</p>
+        <p style="font-size: 13px; color: #777;">🔒 Por segurança, a gente nunca envia sua senha por e-mail.</p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${SITE_URL}/#dashboard" style="background-color: #b5561f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">👑 Quero ser Premium</a>
+        </div>
+        <p>Quem começa focado sai na frente. Bora?</p>
+      </div>`,
+  },
+  {
+    // B) Prova social/resultado financeiro
+    corpo: (nome, usuario) => `
+      <div style="font-family: Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.6;">
+        <p>Oi, ${nome}!</p>
+        <p>Seu cadastro (${usuario}) no <strong>Estudo Petrobras</strong> foi confirmado. Antes de você começar, quero te mostrar o que já aconteceu com quem começou antes:</p>
+        <ul style="padding-left: 20px; line-height: 1.8;">
+          <li><strong>Carlos M.</strong> (Macaé/RJ) foi de 38% para 82% de acerto em 3 meses, passou em 12º lugar pra Técnico Químico de Petróleo. Hoje tira <strong>R$ 14 mil líquidos por mês</strong>.</li>
+          <li><strong>Ana J.</strong> (Salvador/BA) foi aprovada em 6º lugar e recebeu <strong>R$ 52 mil de PLR</strong> só no primeiro ano.</li>
+          <li><strong>Rafael S.</strong> (Belo Horizonte/MG) passou pra Química de Petróleo: salário base de R$ 6.636, que passa de R$ 10 mil com os benefícios.</li>
+        </ul>
+        <p>Nenhum deles é gênio nem tinha "sorte". Eles usaram o mesmo caminho que está liberado pra você agora: <strong>ciclo de estudos ponderado</strong> (o que estudar, por peso real da prova Cesgranrio), <strong>flashcards com repetição espaçada</strong>, <strong>simulados e banco de questões</strong> com correção na hora e <strong>relatório de desempenho</strong> pra saber exatamente onde melhorar.</p>
+        <p>O Premium custa <strong>R$ 49,90</strong>, pagamento único, sem mensalidade, acesso vitalício. Perto do que representa um salário de concursado da Petrobras, é o tipo de investimento que se paga sozinho.</p>
+        <p style="font-size: 13px; color: #777;">🔒 A gente nunca envia sua senha por e-mail — isso é regra de segurança, sem exceção.</p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${SITE_URL}/#dashboard" style="background-color: #b5561f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">👑 Quero ser Premium</a>
+        </div>
+        <p>O resultado deles começou com um cadastro. O seu já está feito.</p>
+      </div>`,
+  },
+  {
+    // C) Empatia/identificação
+    corpo: (nome, usuario) => `
+      <div style="font-family: Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.6;">
+        <p>Oi, ${nome}, tudo bem?</p>
+        <p>Seu cadastro (${usuario}) já está ativo no <strong>Estudo Petrobras</strong>. E antes de mais nada: a gente sabe que estudar pra concurso raramente acontece nas condições ideais.</p>
+        <p>A Mariana C., de Duque de Caxias, é mãe, trabalha o dia inteiro e só consegue abrir o material à noite, depois que a rotina dá uma trégua. Mesmo assim, passou pra Técnica de Operação. Não foi porque ela tinha mais tempo que os outros — foi porque ela não precisou gastar o pouco tempo que tinha decidindo <em>o que</em> estudar.</p>
+        <p>É exatamente isso que o Premium resolve:</p>
+        <ul style="padding-left: 20px; line-height: 1.8;">
+          <li>O <strong>ciclo de estudos ponderado</strong> já te diz o que estudar a cada dia, pelo peso real da prova Cesgranrio</li>
+          <li><strong>Flashcards com repetição espaçada</strong>, pra revisar rápido nos intervalos que sobram</li>
+          <li><strong>Simulados e questões</strong> com correção na hora, sem depender de ninguém pra saber se acertou</li>
+          <li><strong>Relatório de desempenho</strong>, pra enxergar progresso mesmo estudando pouco por dia</li>
+        </ul>
+        <p>Custa <strong>R$ 49,90</strong>, pagamento único — sem mensalidade pra caber no orçamento, e sem prazo pra usar, é vitalício.</p>
+        <p style="font-size: 13px; color: #777;">🔒 Sua senha nunca é enviada por e-mail, por segurança.</p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${SITE_URL}/#dashboard" style="background-color: #b5561f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">👑 Quero ser Premium</a>
+        </div>
+        <p>Pouco tempo não é desculpa quando o estudo tem direção. Boa sorte na jornada, ${nome}.</p>
+      </div>`,
+  },
+  {
+    // D) Benefícios tangíveis do cargo
+    corpo: (nome, usuario) => `
+      <div style="font-family: Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.6;">
+        <p>Fala, ${nome}!</p>
+        <p>Seu cadastro (${usuario}) no <strong>Estudo Petrobras</strong> está confirmado. Bora falar sobre o que exatamente você está estudando pra conquistar?</p>
+        <p>Passar num concurso técnico da Petrobras não é só salário base no fim do mês. É <strong>PLR</strong>, é <strong>vale-alimentação</strong>, é <strong>vale-transporte</strong>, é <strong>plano de saúde</strong> — o tipo de pacote que muda a vida financeira de verdade, não só o contracheque. O Rafael S., de Belo Horizonte, entrou com salário base de R$ 6.636 e, com os benefícios somados, passa dos R$ 10 mil. A Ana J., de Salvador, recebeu R$ 52 mil de PLR só no primeiro ano.</p>
+        <p>Isso é estabilidade de verdade — o tipo de coisa que vale a pena estudar focado pra conquistar. E é pra isso que o Premium existe:</p>
+        <ul style="padding-left: 20px; line-height: 1.8;">
+          <li>Ciclo de estudos ponderado, pelo peso real de cada assunto na prova Cesgranrio</li>
+          <li>Flashcards com repetição espaçada</li>
+          <li>Simulados e banco de questões com correção na hora</li>
+          <li>Relatório de desempenho pra você acompanhar sua evolução</li>
+        </ul>
+        <p>Tudo isso por <strong>R$ 49,90</strong>, pagamento único, acesso vitalício — sem mensalidade.</p>
+        <p style="font-size: 13px; color: #777;">🔒 Por segurança, nunca enviamos sua senha por e-mail.</p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${SITE_URL}/#dashboard" style="background-color: #b5561f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">👑 Quero ser Premium</a>
+        </div>
+        <p>O salário chama atenção, mas é o pacote completo que muda a vida.</p>
+      </div>`,
+  },
+];
+
 async function enviarEmailBoasVindas({ email, nome, usuario }) {
   if (!resendClient) return;
   try {
+    const variante = VARIANTES_BOAS_VINDAS[Math.floor(Math.random() * VARIANTES_BOAS_VINDAS.length)];
     await resendClient.emails.send({
       from: EMAIL_FROM,
+      subject: `Bem-vindo(a) à plataforma de Estudos Petrobras Academy, ${nome.split(' ')[0]}! 🎉`,
       to: email,
-      subject: '🎉 Sua vaga na Petrobras começa agora, ' + nome.split(' ')[0] + '!',
-      html: `
-        <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 480px; margin: 0 auto; color: #241d15;">
-          <p style="font-size: 17px;">Olá, <strong>${nome}</strong>! 👋</p>
-          <p>Sua conta foi criada com sucesso 🚀 Seu usuário de acesso é: <strong>${usuario}</strong></p>
-          <p>🔒 Por segurança, nunca enviamos sua senha por email — guarde-a em local seguro.</p>
-
-          <p>Agora que você já está dentro, uma pergunta rápida: você sabe <strong>exatamente</strong> o que estudar hoje? 🤔</p>
-          <p>É essa dúvida que mais atrasa quem estuda sozinho pra Petrobras. E é exatamente o que o <strong>Premium</strong> resolve:</p>
-          <ul style="padding-left: 20px; line-height: 1.8;">
-            <li>🔁 Ciclo de estudos que te diz o que estudar a cada dia, ponderado pelo peso real da prova</li>
-            <li>🧠 Flashcards com repetição espaçada — a técnica que faz o conteúdo grudar</li>
-            <li>📊 Simulados e banco de questões estilo Cesgranrio, com correção na hora</li>
-            <li>📈 Relatório de desempenho pra você saber onde focar sua energia</li>
-          </ul>
-          <p>Tudo isso por <strong>R$ 49,90 — pagamento único, acesso vitalício</strong>. Sem mensalidade, sem pegadinha.</p>
-
-          <p style="text-align: center; margin: 28px 0;">
-            <a href="${SITE_URL}/#dashboard" style="background: #b5561f; color: #fff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">👑 Quero ser Premium</a>
-          </p>
-
-          <p>Bons estudos — e conta com a gente até a aprovação! 📚✨</p>
-        </div>`,
+      html: variante.corpo(nome, usuario),
     });
   } catch (e) {
     console.error('Erro ao enviar email de boas-vindas:', e);
