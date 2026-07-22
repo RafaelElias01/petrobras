@@ -436,6 +436,17 @@ const authLimiter = rateLimit({
   message: { erro: 'Muitas tentativas de autenticação. Aguarde alguns minutos.' }
 });
 
+// Contador PRÓPRIO (não authLimiter): /api/newsletter não é autenticação --
+// reusar o mesmo bucket faria um grupo de gente se inscrevendo na newsletter
+// atrás do mesmo IP consumir a cota e começar a bloquear login/registro
+// legítimo no mesmo IP. Mesmo teto (20/15min em produção) pelo mesmo motivo
+// original (rota não-autenticada que dispara email de verdade via Resend).
+const newsletterLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'test' ? 1000 : 20,
+  message: { erro: 'Muitas tentativas. Aguarde alguns minutos.' }
+});
+
 // --- Sessões server-side (em memória, TTL 7 dias) ---
 const SESSAO_TTL = 7 * 24 * 60 * 60 * 1000;
 // Sessão do usuário demo 'estudante' expira bem mais rápido: sem isso, o
@@ -722,12 +733,14 @@ app.post('/api/auth/logout', (req, res) => {
 
 const newsPath = process.env.NEWSLETTER_PATH || path.join(__dirname, 'dados', 'newsletter.json');
 
-// authLimiter (não o `limiter` genérico de 200/15min): rota não-autenticada
-// que aceita `email`/`nome` livres e dispara email de verdade via Resend pra
-// QUALQUER endereço informado -- sem um teto baixo, vira vetor de spam/abuso
-// de cota (e, combinado com o nome não fixo, de phishing usando o remetente
-// verificado do site).
-app.post('/api/newsletter', authLimiter, (req, res) => {
+// newsletterLimiter (não o `limiter` genérico de 200/15min, nem authLimiter):
+// rota não-autenticada que aceita `email`/`nome` livres e dispara email de
+// verdade via Resend pra QUALQUER endereço informado -- sem um teto baixo,
+// vira vetor de spam/abuso de cota (e, combinado com o nome não fixo, de
+// phishing usando o remetente verificado do site). Bucket próprio pra não
+// deixar inscrições na newsletter consumirem a cota de login/registro de
+// quem estiver atrás do mesmo IP.
+app.post('/api/newsletter', newsletterLimiter, (req, res) => {
   const { email, nome } = req.body;
   if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email) || email.length > 200) return res.status(400).json({ erro: 'Email inválido' });
   if (!nome || typeof nome !== 'string' || nome.length < 2 || nome.length > 50) return res.status(400).json({ erro: 'Nome é obrigatório (2-50 caracteres)' });
