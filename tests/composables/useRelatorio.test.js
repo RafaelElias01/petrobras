@@ -49,7 +49,7 @@ describe('useRelatorio', () => {
     // namespace por-semana (horas.value[sem][dia][mat]) -- é por isso que o
     // teste usa setHora(semana, dia, materia, valor) e não adicionarHoras(),
     // que grava num namespace por-data (horas.value[data][materia]) usado só
-    // por totalHoje/registrosHoje. Ver nota de bug real reportada ao final.
+    // por totalHoje/registrosHoje.
     vi.resetModules();
     const { useHoras } = await import('../../useHoras.js');
     const horas = useHoras();
@@ -114,11 +114,12 @@ describe('useRelatorio', () => {
     vi.resetModules();
     const { useHoras } = await import('../../useHoras.js');
     const horas = useHoras();
-    // Estuda todas as matérias exceto uma, pra não cair no caso "0 horas" que
-    // dispara uma mensagem diferente ('ainda não estudou'). Usa setHora()
-    // (namespace por-semana), a mesma fonte que horasPorMateria/recomendacoes
-    // leem via totalMateriaSemana -- adicionarHoras() grava num namespace
-    // por-data separado que essas telas não enxergam (ver nota de bug real).
+    // Estuda todas as matérias, uma com 20h e as demais com 1h cada, pra não
+    // cair no caso "0 horas" que dispara uma mensagem diferente ('ainda não
+    // estudou'). Usa setHora() (namespace por-semana), a mesma fonte que
+    // horasPorMateria/recomendacoes leem via totalMateriaSemana --
+    // adicionarHoras() grava num namespace por-data separado que essas telas
+    // não enxergam.
     CONTEUDOS.forEach((m, idx) => {
       horas.setHora(1, 'seg', m.id, idx === 0 ? 20 : 1);
     });
