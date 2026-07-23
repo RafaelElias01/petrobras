@@ -85,4 +85,37 @@ describe('useHoras', () => {
     setHora(5, 'sex', 'matematica', 3);
     expect(totalHorasAcumuladas.value).toBe(5);
   });
+
+  it('totalDia soma as horas de todas as matérias de um dia específico da semana', async () => {
+    const { setHora, totalDia } = await montarHoras();
+    setHora(1, 'seg', 'quimica', 2);
+    setHora(1, 'seg', 'portugues', 1);
+    setHora(1, 'ter', 'quimica', 5); // outro dia, não deve entrar na soma
+
+    expect(totalDia(1, 'seg')).toBe(3);
+  });
+
+  it('totalDia é 0 para uma semana/dia sem nenhum registro', async () => {
+    const { totalDia } = await montarHoras();
+    expect(totalDia(1, 'seg')).toBe(0);
+  });
+
+  it('metaSemanaCss retorna "" quando o progresso da semana atual é baixo (< 70% da meta)', async () => {
+    const { metaSemanaCss } = await montarHoras();
+    expect(metaSemanaCss.value).toBe('');
+  });
+
+  it('metaSemanaCss retorna "laranja" quando o progresso está entre 70% e 100% da meta', async () => {
+    const { setHora, semanaAtual, metaSemanaCss, META_HORAS_SEMANA } = await montarHoras();
+    semanaAtual.value = 1;
+    setHora(1, 'seg', 'quimica', META_HORAS_SEMANA * 0.8);
+    expect(metaSemanaCss.value).toBe('laranja');
+  });
+
+  it('metaSemanaCss retorna "verde" quando a meta da semana atual foi atingida ou superada', async () => {
+    const { setHora, semanaAtual, metaSemanaCss, META_HORAS_SEMANA } = await montarHoras();
+    semanaAtual.value = 1;
+    setHora(1, 'seg', 'quimica', META_HORAS_SEMANA);
+    expect(metaSemanaCss.value).toBe('verde');
+  });
 });

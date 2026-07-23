@@ -77,6 +77,47 @@ describe('POST /api/auth/login', () => {
     expect(res.status).toBe(401);
     expect(res.body.erro).toBe('Usuário ou senha inválidos');
   });
+
+  it('rejeita quando falta a senha', async () => {
+    const res = await request(app).post('/api/auth/login').send({ usuario: 'fulano' });
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toBe('Credenciais inválidas');
+  });
+
+  it('rejeita quando falta o usuario', async () => {
+    const res = await request(app).post('/api/auth/login').send({ senha: '123456' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejeita quando usuario ou senha não são string (ex: objeto/array)', async () => {
+    const res = await request(app).post('/api/auth/login').send({ usuario: { $ne: null }, senha: '123456' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /api/auth/logout', () => {
+  it('invalida o token: uma rota autenticada para de aceitar o token depois do logout', async () => {
+    const registro = await request(app)
+      .post('/api/auth/register')
+      .send({ usuario: 'vailogout', nome: 'Vai Logout', email: 'vailogout@ex.com', senha: '123456' });
+    const token = registro.body.token;
+
+    const antesDoLogout = await request(app).get('/api/premium/status/vailogout').set('Authorization', `Bearer ${token}`);
+    expect(antesDoLogout.status).toBe(200);
+
+    const logout = await request(app).post('/api/auth/logout').set('Authorization', `Bearer ${token}`);
+    expect(logout.status).toBe(200);
+    expect(logout.body).toEqual({ ok: true });
+
+    const depoisDoLogout = await request(app).get('/api/premium/status/vailogout').set('Authorization', `Bearer ${token}`);
+    expect(depoisDoLogout.status).toBe(401);
+  });
+
+  it('retorna ok mesmo sem token (idempotente, não lança erro)', async () => {
+    const res = await request(app).post('/api/auth/logout');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
 });
 
 describe('POST /api/premium/confirmar (removido)', () => {
@@ -332,6 +373,27 @@ describe('/api/admin/usuarios', () => {
         .send({ nome: 'Fulano', senha: 'ab' });
       expect(res.status).toBe(400);
       expect(res.body.erro).toMatch(/Senha inválida/);
+    });
+
+    it('atualiza a senha de um usuário via PUT e ele consegue logar com a nova senha', async () => {
+      // Usa um usuário dedicado (não 'fulano') pra não quebrar outros testes
+      // que fazem login com 'fulano'/'123456' depois deste.
+      await request(app)
+        .post('/api/auth/register')
+        .send({ usuario: 'trocasenha', nome: 'Troca Senha', email: 'trocasenha@ex.com', senha: '123456' });
+
+      const res = await request(app)
+        .put('/api/admin/usuarios/trocasenha')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .send({ senha: 'novasenha123' });
+      expect(res.status).toBe(200);
+      expect(res.body.senhaHash).toBeUndefined();
+
+      const loginSenhaAntiga = await request(app).post('/api/auth/login').send({ usuario: 'trocasenha', senha: '123456' });
+      expect(loginSenhaAntiga.status).toBe(401);
+
+      const login = await request(app).post('/api/auth/login').send({ usuario: 'trocasenha', senha: 'novasenha123' });
+      expect(login.status).toBe(200);
     });
   });
 });

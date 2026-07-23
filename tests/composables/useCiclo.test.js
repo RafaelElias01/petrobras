@@ -107,6 +107,17 @@ describe('useCiclo', () => {
     expect(ciclo.value.posicao).toBe(0);
   });
 
+  it('cicloCompleto nunca passa de 100%, mesmo com mais conclusões que o total ponderado', () => {
+    const { ciclo, cicloCompleto } = useCiclo();
+    // Simula um usuário que completou o ciclo mais de uma vez (loop repetido).
+    ciclo.value.concluido = CICLO_ESTUDOS.reduce((acc, item, idx) => {
+      acc[`item-${idx}`] = item.peso * 3; // 3 voltas completas
+      return acc;
+    }, {});
+
+    expect(cicloCompleto.value).toBe(100);
+  });
+
   it('persiste o estado no Armazenamento (localStorage) após avancarCiclo', async () => {
     vi.useFakeTimers();
     try {

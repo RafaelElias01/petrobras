@@ -159,4 +159,13 @@ describe('useChecklist', () => {
       vi.useRealTimers();
     }
   });
+
+  it('totalExerciciosSugeridos soma exercicios_sugeridos de todos os grupos de todas as matérias', async () => {
+    const { totalExerciciosSugeridos } = await montarChecklist();
+    const esperado = CONTEUDOS.reduce((acc, m) =>
+      acc + m.grupos.reduce((s, g) => s + (g.exercicios_sugeridos || 0), 0), 0);
+
+    expect(totalExerciciosSugeridos.value).toBe(esperado);
+    expect(totalExerciciosSugeridos.value).toBeGreaterThan(0);
+  });
 });
