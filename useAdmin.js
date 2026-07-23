@@ -80,7 +80,7 @@ export function useAdmin() {
         res = await fetch('/api/admin/usuarios', {
           method: 'POST',
           headers: authHeaders(),
-          body: JSON.stringify({ usuario: u.usuario, nome: u.nome, senha: u.senha, role: u.role }),
+          body: JSON.stringify({ usuario: u.usuario, nome: u.nome, senha: u.senha, role: u.role, premium: u.premium }),
         });
         data = await res.json();
         if (!res.ok) { erro.value = data.erro || 'Erro ao criar usuário'; return; }

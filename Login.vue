@@ -282,7 +282,7 @@ async function handleLeadMagnet() {
   }
 
   try {
-    await fetch('/api/newsletter', {
+    const res = await fetch('/api/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -290,6 +290,12 @@ async function handleLeadMagnet() {
         nome: leadMagnetNome.value.trim(),
       })
     });
+    const data = await res.json();
+    if (!res.ok) {
+      leadMagnetErro.value = data.erro || 'Erro ao enviar o guia';
+      leadMagnetCarregando.value = false;
+      return;
+    }
     leadMagnetSucesso.value = true;
     leadMagnetCarregando.value = false;
   } catch {

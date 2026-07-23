@@ -56,6 +56,11 @@ export function useSimulados() {
     } else {
       simulados.value.push(novoSimulado);
     }
+    // Reseta as notas e avança pra próxima semana -- sem isso, clicar
+    // "Salvar" de novo sem trocar a semana sobrescreve silenciosamente o
+    // simulado que acabou de ser salvo (mesmo `semana`, mesmas notas antigas
+    // ainda no formulário).
+    formSimulado.value = { semana: novoSimulado.semana + 1, portugues: 0, matematica: 0, quimica: 0 };
   }
 
   function removerSimulado(semana) {

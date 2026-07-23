@@ -129,7 +129,7 @@ function handleEditar(u) {
 async function handleRemover(u) {
   if (u.usuario === props.usuarioLogado) return;
   if (!confirm(`Tem certeza que deseja remover o usuário "${u.usuario}"?`)) return;
-  await removerUsuario(u.usuario);
+  await removerUsuario(u.usuario, props.usuarioLogado);
 }
 
 function handleNovo() {
@@ -154,7 +154,10 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
 
 <template>
   <div>
-    <p v-if="erroVisitas" class="erro-form" role="alert">⚠ {{ erroVisitas }}</p>
+    <p v-if="erroVisitas" class="erro-form" role="alert">
+      ⚠ {{ erroVisitas }}
+      <button type="button" @click="carregarVisitas" class="btn-tentar-novamente">Tentar novamente</button>
+    </p>
     <div class="grade-cartoes">
       <div class="cartao-stat">
         <div class="valor">{{ totalUsuarios }}</div>
@@ -572,6 +575,22 @@ const tituloForm = computed(() => editandoExistente.value ? 'Editar Usuário' : 
   color: var(--erro);
   font-size: 13px;
   margin-bottom: 12px;
+}
+
+.btn-tentar-novamente {
+  margin-left: 8px;
+  padding: 2px 10px;
+  font-size: 12px;
+  border: 1px solid var(--erro);
+  color: var(--erro);
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-tentar-novamente:hover {
+  background: var(--erro);
+  color: #fff;
 }
 
 @media (max-width: 1024px) {

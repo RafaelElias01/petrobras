@@ -663,7 +663,7 @@ app.get('/api/admin/usuarios', (req, res) => {
 
 app.post('/api/admin/usuarios', (req, res) => {
   if (!usuarioAdminDoToken(req)) return res.status(403).json({ erro: 'Acesso restrito a administradores' });
-  const { usuario, nome, senha, role } = req.body;
+  const { usuario, nome, senha, role, premium } = req.body;
   if (!usuario || typeof usuario !== 'string' || usuario.length < 3) return res.status(400).json({ erro: 'Usuário inválido (mín. 3 caracteres)' });
   if (!nome || typeof nome !== 'string' || nome.length < 2) return res.status(400).json({ erro: 'Nome é obrigatório (mín. 2 caracteres)' });
   if (!senha || typeof senha !== 'string' || senha.length < 3 || senha.length > 200) return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
@@ -672,7 +672,7 @@ app.post('/api/admin/usuarios', (req, res) => {
   const usuarios = lerUsuarios();
   if (usuarios.find(u => u.usuario.toLowerCase() === usuarioNormalizado)) return res.status(409).json({ erro: 'Usuário já existe' });
   const senhaHash = bcrypt.hashSync(senha, 10);
-  const novo = { usuario: usuarioNormalizado, nome, email: '', senhaHash, role: roleFinal, premium: false, criadoEm: new Date().toISOString() };
+  const novo = { usuario: usuarioNormalizado, nome, email: '', senhaHash, role: roleFinal, premium: premium === true, criadoEm: new Date().toISOString() };
   usuarios.push(novo);
   salvarUsuarios(usuarios);
   res.json(semSenhaHash(novo));

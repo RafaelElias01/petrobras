@@ -10,7 +10,7 @@ const {
 } = useFlashcards();
 
 const {
-  modoRevisao, configurandoRevisao, deckRevisao, cardAtual, progressoRevisao, opcoesRevisao,
+  modoRevisao, configurandoRevisao, deckRevisao, cardAtual, cardAtualIndex, progressoRevisao, opcoesRevisao,
   abrirConfiguracaoRevisao, iniciarRevisao, proximoCard, marcarResultado, finalizarRevisao,
   cancelarConfiguracaoRevisao
 } = useFlashcardReview(flashcards, cardsParaRevisar);
@@ -41,7 +41,7 @@ function handleRemoverFlashcard(id) {
           <div class="rotulo">Progresso da revisão</div>
         </div>
         <div class="cartao-stat">
-          <div class="valor" style="font-size:20px;">{{ deckRevisao.length - (cardAtual ? deckRevisao.indexOf(cardAtual) : 0) }} / {{ deckRevisao.length }}</div>
+          <div class="valor" style="font-size:20px;">{{ deckRevisao.length - cardAtualIndex }} / {{ deckRevisao.length }}</div>
           <div class="rotulo">Restantes</div>
         </div>
       </div>

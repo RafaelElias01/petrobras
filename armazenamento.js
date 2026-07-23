@@ -37,11 +37,14 @@ function carregar(chave, padrao = null) {
 function escreverAgora(chave) {
   if (!(chave in pendentes)) return;
   const dados = pendentes[chave];
-  delete pendentes[chave];
   try {
     const json = JSON.stringify(dados);
     const stored = isSensitive(chave) ? encode(json) : json;
     localStorage.setItem(prefixo + chave, stored);
+    // Só remove de `pendentes` após sucesso -- se `setItem` lançar (ex: quota
+    // excedida), o dado continua pendente e a próxima chamada de salvar()
+    // ou flushPendentes() tenta escrevê-lo de novo, em vez de perdê-lo.
+    delete pendentes[chave];
     saveStatus.value = 'saved';
   } catch (e) {
     console.error(`Falha ao salvar '${chave}'`, e);
