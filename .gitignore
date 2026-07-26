@@ -31,3 +31,10 @@ dados/visitas.json
 # whatsapp-bot/.gitignore local).
 whatsapp-bot/auth_info/
 whatsapp-bot/node_modules/
+
+# Cronogramas em HTML: gerados a partir de cronograma-16-semanas-completo.md
+# pelos build-*.js. Nao versionados porque o workflow copia planos/ para dist/,
+# o que os deixaria acessiveis sem login em /planos/*.html -- e o cronograma
+# completo e conteudo do produto. Regerar com `node planos/build-impresso.js`
+# e `node planos/build-artifact.js`.
+petrobras-quimica-study-plan/planos/*.html
