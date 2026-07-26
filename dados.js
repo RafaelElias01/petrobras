@@ -766,7 +766,7 @@ export const CONTEUDOS = [
   }
 ];
 
-export const SEMANAS_PLANO = 12;
+export const SEMANAS_PLANO = 16;
 export const META_HORAS_SEMANA = 30;
 export const META_HORAS_DIA = 6;
 

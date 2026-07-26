@@ -5,7 +5,8 @@ import { useSimulados } from './useSimulados.js';
 import { useErros } from './useErros.js';
 import { useDiario } from './useDiario.js';
 import { useCiclo } from './useCiclo.js';
-import { CONTEUDOS, META_HORAS_SEMANA } from './dados.js';
+import { computed } from 'vue';
+import { CONTEUDOS, META_HORAS_SEMANA, SEMANAS_PLANO } from './dados.js';
 import IconeNav from './IconeNav.vue';
 
 const { progressoGeral, progressoMateria, itensConcluidos, totalItens, totalExerciciosSugeridos } = useChecklist();
@@ -17,6 +18,16 @@ const { cicloCompleto } = useCiclo();
 
 const conteudos = CONTEUDOS;
 const metaHoras = META_HORAS_SEMANA;
+const semanasPlano = SEMANAS_PLANO;
+
+// Derivado de CONTEUDOS em vez de escrito à mão: o resumo já divergiu dos dados
+// reais antes (dizia "60 questões / 40 específicas" enquanto CONTEUDOS somava 79).
+const BASICAS = ['portugues', 'matematica'];
+const somaQuestoes = (filtro) => CONTEUDOS.filter(filtro).reduce((t, m) => t + m.questoes, 0);
+
+const questoesBasicas = computed(() => somaQuestoes(m => BASICAS.includes(m.id)));
+const questoesEspecificas = computed(() => somaQuestoes(m => !BASICAS.includes(m.id)));
+const questoesTotal = computed(() => questoesBasicas.value + questoesEspecificas.value);
 </script>
 
 <template>
@@ -83,9 +94,10 @@ const metaHoras = META_HORAS_SEMANA;
     <div class="card">
       <div class="card-titulo">Resumo do Plano</div>
       <p class="resumo-plano">
-        <strong>12 semanas</strong> de estudo ·
+        <strong>{{ semanasPlano }} semanas</strong> de estudo ·
         <strong>{{ metaHoras }}h/semana</strong> ·
-        <strong>60 questões</strong> (20 básicas eliminatórias + 40 específicas classificatórias)<br>
+        <strong>{{ questoesTotal }} questões</strong>
+        ({{ questoesBasicas }} básicas eliminatórias + {{ questoesEspecificas }} específicas classificatórias)<br>
         Banca: <strong>Cesgranrio</strong> · Última prova referência: 2018
       </p>
     </div>
