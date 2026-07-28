@@ -78,6 +78,68 @@ async function enviarEmailNotificacaoPremium({ usuario, nome, email }) {
   }
 }
 
+async function enviarEmailPremiumAtivado({ email, nome, usuario }) {
+  if (!resendClient || !email) return;
+  try {
+    const nomeSeguro = escapeHtml(nome || usuario);
+    const usuarioSeguro = escapeHtml(usuario);
+    const { error } = await resendClient.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: `👑 Seu Premium foi ativado! Bem-vindo, ${nomeSeguro.split(' ')[0]}!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.6;">
+          <p>Oi, ${nomeSeguro}!</p>
+          <p>Sua assinatura Premium foi confirmada! 🎉</p>
+          <p>Agora você tem acesso completo a:</p>
+          <ul style="padding-left: 20px; line-height: 1.8;">
+            <li>🔁 <strong>Ciclo de estudos ponderado</strong> — estuda pelo peso real de cada assunto na prova Cesgranrio</li>
+            <li>🧠 <strong>Flashcards com repetição espaçada</strong> — revisão automática nos intervalos que funcionam</li>
+            <li>📊 <strong>Simulados e questões Cesgranrio</strong> — banco completo com correção na hora</li>
+            <li>📈 <strong>Relatório de desempenho</strong> — saiba exatamente onde melhorar</li>
+            <li>📝 <strong>Caderno de erros</strong> — classifica erros por tipo (conceito, conta, desatenção, interpretação)</li>
+          </ul>
+          <p>Acesso vitalício, sem expiração. Estude no seu ritmo.</p>
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${SITE_URL}/#dashboard" style="background-color: #b5561f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">📚 Ir para o Dashboard</a>
+          </div>
+          <p style="font-size: 13px; color: #777;">Seu login: <strong>${usuarioSeguro}</strong></p>
+          <p style="font-size: 13px; color: #777;">Dúvidas? Qualquer problema com o acesso, nos avise.</p>
+        </div>`,
+    });
+    if (error) console.error('Erro ao enviar email de confirmação de premium (API Resend):', error);
+  } catch (e) {
+    console.error('Erro ao enviar email de confirmação de premium:', e);
+  }
+}
+
+async function enviarEmailResetSenha({ email, nome, usuario, token }) {
+  if (!resendClient || !email) return;
+  try {
+    const nomeSeguro = escapeHtml(nome || usuario);
+    const resetLink = `${SITE_URL}/#reset-password?token=${encodeURIComponent(token)}`;
+    const { error } = await resendClient.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: `🔐 Recupere sua senha no Estudo Petrobras`,
+      html: `
+        <div style="font-family: Arial, sans-serif; font-size: 15px; color: #333; line-height: 1.6;">
+          <p>Oi, ${nomeSeguro}!</p>
+          <p>Recebemos uma solicitação para redefinir a senha da sua conta (login: <strong>${escapeHtml(usuario)}</strong>).</p>
+          <p>Se foi você, clique no botão abaixo para criar uma nova senha. Esse link expira em <strong>15 minutos</strong>.</p>
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${resetLink}" style="background-color: #b5561f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">🔐 Redefinir Senha</a>
+          </div>
+          <p style="font-size: 13px; color: #777;">Se você não solicitou isso, ignore este e-mail. Sua conta está segura.</p>
+          <p style="font-size: 13px; color: #777;">Não clique no link acima se não foi você quem solicitou a alteração.</p>
+        </div>`,
+    });
+    if (error) console.error('Erro ao enviar email de reset de senha (API Resend):', error);
+  } catch (e) {
+    console.error('Erro ao enviar email de reset de senha:', e);
+  }
+}
+
 const SITE_URL = 'https://www.petrobrasacademy.com.br';
 
 // 4 variantes de copy pro e-mail de boas-vindas, cada uma com um ângulo de
@@ -463,12 +525,20 @@ const SESSAO_TTL = 7 * 24 * 60 * 60 * 1000;
 // sem nunca deslogar). 45min limita tempo total de uso mesmo se a pessoa
 // nunca navegar pra uma feature bloqueada.
 const SESSAO_TTL_DEMO = 45 * 60 * 1000;
+const RESET_PASSWORD_TTL = 15 * 60 * 1000; // 15 minutos pra clicar no link
 const sessoes = new Map(); // token -> { usuario, exp, demoCount? }
+const resetPasswordTokens = new Map(); // token -> { usuario, exp }
 
 function criarSessao(usuario) {
   const token = crypto.randomBytes(32).toString('hex');
   const ttl = usuario === 'estudante' ? SESSAO_TTL_DEMO : SESSAO_TTL;
   sessoes.set(token, { usuario, exp: Date.now() + ttl });
+  return token;
+}
+
+function criarTokenResetSenha(usuario) {
+  const token = crypto.randomBytes(32).toString('hex');
+  resetPasswordTokens.set(token, { usuario, exp: Date.now() + RESET_PASSWORD_TTL });
   return token;
 }
 
@@ -492,10 +562,11 @@ function usuarioDoToken(req) {
 // como escapar client-side.
 const DEMO_MAX_ACESSOS = 5;
 
-// Limpeza periódica de sessões expiradas
+// Limpeza periódica de sessões e tokens expirados
 setInterval(() => {
   const agora = Date.now();
   for (const [token, s] of sessoes) if (agora > s.exp) sessoes.delete(token);
+  for (const [token, r] of resetPasswordTokens) if (agora > r.exp) resetPasswordTokens.delete(token);
 }, 60 * 60 * 1000).unref();
 
 const frontendDistPath = path.join(__dirname, 'dist');
@@ -718,8 +789,11 @@ app.put('/api/admin/usuarios/:usuario', (req, res) => {
     usuarios[idx].senhaHash = bcrypt.hashSync(senha, 10);
   }
   salvarUsuarios(usuarios);
-  // Fire-and-forget: não atrasa nem falha a resposta se o email demorar/der erro.
-  if (concedendoPremium) enviarEmailNotificacaoPremium(usuarios[idx]);
+  // Fire-and-forget: não atrasa nem falha a resposta se os emails demorarem/derem erro.
+  if (concedendoPremium) {
+    enviarEmailNotificacaoPremium(usuarios[idx]);
+    enviarEmailPremiumAtivado(usuarios[idx]);
+  }
   res.json(semSenhaHash(usuarios[idx]));
 });
 
@@ -743,6 +817,46 @@ app.post('/api/auth/logout', (req, res) => {
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
   if (token) sessoes.delete(token);
   res.json({ ok: true });
+});
+
+// Pedir reset de senha: valida email, gera token, envia email
+app.post('/api/auth/reset-password-request', authLimiter, (req, res) => {
+  const { email } = req.body;
+  if (!email || typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
+    return res.status(400).json({ erro: 'Email inválido' });
+  }
+  const usuarios = lerUsuarios();
+  const user = usuarios.find(u => u.email === email);
+  if (!user) {
+    // Não revela se o email existe ou não (evita enumeração de usuários)
+    return res.json({ ok: true, message: 'Se o email está cadastrado, você receberá um link de recuperação' });
+  }
+  const token = criarTokenResetSenha(user.usuario);
+  // Fire-and-forget: não atrasa a resposta se o email demorar/der erro
+  enviarEmailResetSenha({ email: user.email, nome: user.nome, usuario: user.usuario, token });
+  res.json({ ok: true, message: 'Se o email está cadastrado, você receberá um link de recuperação' });
+});
+
+// Redefinir senha com token de reset
+app.post('/api/auth/reset-password', (req, res) => {
+  const { token, novaSenha } = req.body;
+  if (!token || typeof token !== 'string') return res.status(400).json({ erro: 'Token inválido' });
+  if (!novaSenha || typeof novaSenha !== 'string' || novaSenha.length < 3 || novaSenha.length > 200) {
+    return res.status(400).json({ erro: 'Senha inválida (mín. 3 caracteres)' });
+  }
+  const resetData = resetPasswordTokens.get(token);
+  if (!resetData) return res.status(401).json({ erro: 'Token inválido ou expirado' });
+  if (Date.now() > resetData.exp) {
+    resetPasswordTokens.delete(token);
+    return res.status(401).json({ erro: 'Token expirado (válido por 15 minutos)' });
+  }
+  const usuarios = lerUsuarios();
+  const idx = usuarios.findIndex(u => u.usuario === resetData.usuario);
+  if (idx === -1) return res.status(404).json({ erro: 'Usuário não encontrado' });
+  usuarios[idx].senhaHash = bcrypt.hashSync(novaSenha, 10);
+  salvarUsuarios(usuarios);
+  resetPasswordTokens.delete(token);
+  res.json({ ok: true, message: 'Senha alterada com sucesso. Faça login com a nova senha.' });
 });
 
 const newsPath = process.env.NEWSLETTER_PATH || path.join(__dirname, 'dados', 'newsletter.json');
@@ -809,8 +923,11 @@ function ativarPremium(usuario) {
   usuarios[idx].premium = true;
   usuarios[idx].premiumEm = new Date().toISOString();
   salvarUsuarios(usuarios);
-  // Fire-and-forget: não atrasa nem falha a ativação se o email demorar/der erro.
-  if (!jaEraPremium) enviarEmailNotificacaoPremium(usuarios[idx]);
+  // Fire-and-forget: não atrasa nem falha a ativação se os emails demorarem/derem erro.
+  if (!jaEraPremium) {
+    enviarEmailNotificacaoPremium(usuarios[idx]);
+    enviarEmailPremiumAtivado(usuarios[idx]);
+  }
   return true;
 }
 

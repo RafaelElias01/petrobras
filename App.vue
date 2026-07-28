@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick, onMounted, onUnmounted, defineAsyncComp
 
 import Login from './Login.vue';
 import Dashboard from './Dashboard.vue';
+import ResetPasswordPage from './ResetPasswordPage.vue';
 import ErrorBoundary from './ErrorBoundary.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
 import IconeNav from './IconeNav.vue';
@@ -149,6 +150,7 @@ const titulos = {
   plano: { t: 'Plano de Estudos', s: 'Documentos e cronogramas' },
   exercicios: { t: 'Banco de Questões', s: 'Pratique com questões estilo Cesgranrio' },
   admin: { t: 'Administração', s: 'Gerenciar usuários da plataforma' },
+  'reset-password': { t: 'Redefinir Senha', s: 'Crie uma nova senha' },
 };
 
 const tituloView = computed(() => titulos[view.value]?.t || 'Dashboard');
@@ -373,6 +375,7 @@ onUnmounted(() => {
 
 const views = {
   dashboard: Dashboard,
+  'reset-password': ResetPasswordPage,
   checklist: Checklist,
   horas: Horas,
   ciclo: Ciclo,
@@ -403,8 +406,14 @@ const planoLink = { view: 'plano', icon: 'plano', text: 'Plano de Estudos' };
 </script>
 
 <template>
+  <component
+    v-if="!autenticado && view === 'reset-password'"
+    :is="ResetPasswordPage"
+    :key="view"
+  />
+
   <Login
-    v-if="!autenticado"
+    v-else-if="!autenticado"
     :erro="erroLogin"
     @tentativa-login="handleLogin"
     @registro-sucesso="handleRegisterSuccess"

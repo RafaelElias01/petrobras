@@ -31,6 +31,12 @@ const leadMagnetCarregando = ref(false);
 const leadMagnetSucesso = ref(false);
 const leadMagnetErro = ref('');
 
+const modoResetSenha = ref(false);
+const resetPasswordEmail = ref('');
+const resetPasswordCarregando = ref(false);
+const resetPasswordErro = ref('');
+const resetPasswordSucesso = ref('');
+
 const instrucaoPremium = ref(false);
 
 // Removidos: o contador "N estudantes online agora" e as notificações
@@ -165,6 +171,37 @@ async function handleRegister() {
   }
 }
 
+async function handleResetPasswordRequest() {
+  resetPasswordErro.value = '';
+  resetPasswordCarregando.value = true;
+
+  if (!resetPasswordEmail.value.trim() || !resetPasswordEmail.value.includes('@')) {
+    resetPasswordErro.value = 'Informe um email válido';
+    resetPasswordCarregando.value = false;
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/reset-password-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: resetPasswordEmail.value.trim() })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      resetPasswordErro.value = data.erro || 'Erro ao processar solicitação';
+      resetPasswordCarregando.value = false;
+      return;
+    }
+    resetPasswordSucesso.value = 'Se o email está cadastrado, você receberá um link de recuperação. Verifique sua caixa de entrada!';
+    resetPasswordCarregando.value = false;
+    resetPasswordEmail.value = '';
+  } catch {
+    resetPasswordErro.value = 'Erro de conexão. Tente novamente.';
+    resetPasswordCarregando.value = false;
+  }
+}
+
 async function handleLeadMagnet() {
   leadMagnetErro.value = '';
   leadMagnetCarregando.value = true;
@@ -259,10 +296,36 @@ async function handleLeadMagnet() {
         <PremiumCheckout v-if="instrucaoPremium" :onClose="voltarParaLogin" :onVoltar="voltarParaLogin" />
 
         <template v-else>
-          <div class="login-tabs">
-            <button class="tab-btn" :class="{ ativo: !modoCadastro }" @click="modoCadastro = false; cadastroErro = ''; cadastroSucesso = ''; if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }">Entrar</button>
-            <button class="tab-btn" :class="{ ativo: modoCadastro }" @click="modoCadastro = true; cadastroErro = ''; cadastroSucesso = ''; if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }">Criar Conta</button>
+          <div v-if="modoResetSenha" class="reset-password-container">
+            <button type="button" class="btn-voltar-reset" @click="modoResetSenha = false; resetPasswordErro = ''; resetPasswordSucesso = ''">&larr; Voltar ao login</button>
+            <h2 class="reset-titulo">Recuperar Senha</h2>
+            <p class="reset-descricao">Informe o email da sua conta e enviaremos um link para redefinir sua senha.</p>
+            <form @submit.prevent="handleResetPasswordRequest" class="reset-form">
+              <BaseInput
+                id="reset-email"
+                label="Email"
+                v-model="resetPasswordEmail"
+                type="email"
+                placeholder="seu@email.com"
+                autocomplete="email"
+                :autofocus="true"
+              >
+                <template #icon>
+                  <span class="input-icon">📧</span>
+                </template>
+              </BaseInput>
+              <button type="submit" class="btn-entrar" :disabled="resetPasswordCarregando">
+                <span>{{ resetPasswordCarregando ? 'Enviando...' : 'Enviar Link de Recuperação' }}</span>
+              </button>
+              <p v-if="resetPasswordSucesso" class="msg-sucesso">✅ {{ resetPasswordSucesso }}</p>
+              <p v-if="resetPasswordErro" class="msg-erro" role="alert">⚠ {{ resetPasswordErro }}</p>
+            </form>
           </div>
+          <div v-else>
+            <div class="login-tabs">
+              <button class="tab-btn" :class="{ ativo: !modoCadastro }" @click="modoCadastro = false; cadastroErro = ''; cadastroSucesso = ''; if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }">Entrar</button>
+              <button class="tab-btn" :class="{ ativo: modoCadastro }" @click="modoCadastro = true; cadastroErro = ''; cadastroSucesso = ''; if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }">Criar Conta</button>
+            </div>
 
           <form v-if="!modoCadastro" @submit.prevent="submeter" class="login-form">
             <BaseInput
@@ -291,6 +354,7 @@ async function handleLeadMagnet() {
               </svg>
             </button>
             <p v-if="props.erro" class="msg-erro" role="alert">⚠ {{ props.erro }}</p>
+            <button type="button" class="link-btn esqueci-senha-btn" @click="modoResetSenha = true">Esqueceu a senha?</button>
           </form>
 
           <form v-else @submit.prevent="handleRegister" class="login-form">
@@ -354,6 +418,7 @@ async function handleLeadMagnet() {
             <p v-if="cadastroErro" class="msg-erro" role="alert">⚠ {{ cadastroErro }}</p>
             <p class="cadastro-login-link">Já tem conta? <button type="button" class="link-btn" @click="alternarModo">Entrar</button></p>
           </form>
+          </div>
 
           <div class="login-card-footer">
             <div class="login-premium-cta">
@@ -761,6 +826,51 @@ async function handleLeadMagnet() {
   padding: 10px 14px;
   background: rgba(16, 185, 129, 0.08);
   border-radius: 8px;  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.reset-password-container {
+  animation: slideUp 0.3s ease-out;
+}
+
+.btn-voltar-reset {
+  background: none;
+  border: none;
+  color: var(--c-text-medium);
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 8px 12px;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+
+.btn-voltar-reset:hover {
+  color: var(--c-text-light);
+}
+
+.reset-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--c-text-light);
+  margin-bottom: 8px;
+}
+
+.reset-descricao {
+  font-size: 14px;
+  color: var(--c-text-medium);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.reset-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.esqueci-senha-btn {
+  margin-top: 12px;
+  font-size: 13px;
 }
 
 .newsletter-checkbox {
