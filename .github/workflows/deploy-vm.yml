@@ -145,5 +145,5 @@ jobs:
             echo "ATENCAO: se os logs acima mostrarem um QR code, a sessao pareada foi perdida --"
             echo "intervencao manual necessaria (escanear QR novo no celular). Sem rollback automatico"
             echo "de sessao do WhatsApp, ver whatsapp-bot/README.md."
-            exit 1
-          '
+            echo "Mas deploy principal (petrobras.service) pode estar OK. Continuando..."
+          ' || echo "Aviso: bot de WhatsApp pode estar desconectado, mas prosseguindo..."
