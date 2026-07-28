@@ -211,7 +211,7 @@ async function handleLeadMagnet() {
         <div class="brand-badge">🔥 Edital 2026</div>
         <h1 class="brand-title">Petrobras<br>Técnico em Química</h1>
         <p class="brand-subtitle">Cesgranrio • 1.000+ vagas previstas</p>
-        <p class="brand-outcome">De <strong>38% a 82%</strong> de acerto em 3 meses de ciclo certo</p>
+        <p class="brand-outcome">Conteúdo programático inteiro mapeado por incidência — <strong>18 grupos</strong> só de Química</p>
         <div class="brand-highlight">
           <div class="highlight-item">
             <span class="highlight-value">R$ 6.638</span>

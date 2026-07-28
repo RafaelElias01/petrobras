@@ -1,12 +1,12 @@
 # Stories — Instagram / Facebook
 
-## 📸 Story 1 — Prova Social (16:9)
+## 📸 Story 1 — Prova de Mecanismo (16:9)
 **Layout:** Fundo gradiente verde ou azul escuro
 **Texto central:**
-"Passei em 12º lugar!
-Carlos M. — Macaé/RJ
-Turno 12x36 • Estudava 2h/dia
-38% → 82% em 3 meses"
+"Química é 48% da prova.
+38 de 79 questões.
+18 grupos mapeados por incidência.
+O ciclo estuda por peso, não por gosto."
 
 **Link:** 👆 Arrasta pra cima
 
@@ -41,8 +41,8 @@ Acesso Vitalício
 **Layout:** Print screen da plataforma (modo quiz)
 **Texto sobreposto:**
 Você acertaria essa questão da Cesgranrio?
-📊 70% dos nossos alunos ERRAM na primeira vez.
-Com o Caderno de Erros + Flashcards, você NÃO erra duas vezes.
+📊 Errar é normal. O problema é errar pelo mesmo motivo de novo.
+O Caderno de Erros classifica cada erro em 4 causas — conceito, conta, desatenção, interpretação — e cada uma pede um tratamento diferente.
 
 **CTA:** 👆 Teste você mesmo — link na bio
 
@@ -89,7 +89,7 @@ Você vai ficar de fora?"
 ### Story 2 — Interesse
 "O segredo não é estudar mais.
 É estudar CERTO.
-60% da prova é Química.
+48% da prova é Química — 38 de 79 questões.
 Você sabe quanto tempo dedica a ela?"
 
 ### Story 3 — Decisão

@@ -10,8 +10,8 @@
 ### Slide 2 — Erro #1
 **Título:** ❌ Erro #1: Estudar TUDO sem prioridade
 **Texto:**
-O edital da Cesgranrio tem 40+ tópicos. Mas 60% da prova é só Química.
-Estudar Português e Matemática como se tivessem o mesmo peso te faz perder horas preciosas.
+O conteúdo programático tem centenas de tópicos. Mas Química sozinha é 48% da prova — 38 de 79 questões.
+Estudar Português e Matemática (13% cada) como se tivessem o mesmo peso de Química te faz perder horas preciosas.
 **CTAs visuais:** → | ✅ Ciclo Ponderado = mais horas no que MAIS cai
 
 ### Slide 3 — Erro #2
@@ -31,7 +31,7 @@ A maioria descobre que estava perdendo tempo SÓ depois de perder a vaga.
 **CTAs visuais:** → | ✅ Relatório em tempo real do seu progresso
 
 ### Slide 5 — Solução
-**Título:** ✅ O Método Que Aprovou Nossos Alunos
+**Título:** ✅ O Método Por Trás do Plano
 **Texto:**
 🟢 Ciclo Ponderado — foco no que a Cesgranrio mais cobra
 🟢 Flashcards Inteligentes — revisão no timing certo
@@ -64,10 +64,10 @@ Total no primeiro ano: ~R$ 130.000.
 
 Retorno em 1 mês de trabalho: MAIS de 10x o investimento.
 
-### Slide 4 — Depoimento
-**Título:** "Passei em 12º lugar"
+### Slide 4 — Prova de Profundidade
+**Título:** Não é curso genérico
 **Texto:**
-"Estudava 2h por dia depois do trabalho no turno 12x36. Em 3 meses fui de 38% para 82% nos simulados." — Carlos M., Macaé/RJ
+79 questões, 18 grupos de Química mapeados por incidência, cronograma de 16 semanas dia a dia. Feito para o cargo específico de Técnico de Química — não é material reaproveitado de outro concurso.
 **CTA:** 👑 Quero meu acesso vitalício por R$ 49,90
 
 ---
@@ -79,9 +79,9 @@ Retorno em 1 mês de trabalho: MAIS de 10x o investimento.
 **Subtítulo:** 3 passos para sua aprovação
 
 ### Slide 2 — Passo a Passo
-**1️⃣ Pague com Pix** → R$ 49,90 (único)
-**2️⃣ Envie o comprovante no WhatsApp**
-**3️⃣ Receba seu acesso e comece a estudar**
+**1️⃣ Pague com Pix, cartão ou boleto** → R$ 49,90 (único, via Mercado Pago)
+**2️⃣ Liberação automática assim que o pagamento é aprovado**
+**3️⃣ Comece a estudar na hora**
 
 ### Slide 3 — O que você leva
 **Texto:**

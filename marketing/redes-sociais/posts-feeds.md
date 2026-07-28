@@ -2,14 +2,14 @@
 
 ---
 
-## Post 1 — Prova Social com Depoimento
+## Post 1 — Prova de Mecanismo
 
 **Texto:**
-"Estudava 2h por dia depois do trabalho no turno 12x36. Em 3 meses fui de 38% para 82% nos simulados. Passei em 12º para Técnico Químico de Petróleo." — Carlos M., Macaé/RJ
+79 questões na prova de Técnico de Química. 38 são de Química — quase metade da prova inteira.
 
-Histórias como a do Carlos mostram que não é sobre QUANTO tempo você tem — é sobre como você USA esse tempo.
+Não é sobre QUANTO tempo você tem — é sobre como você USA esse tempo.
 
-O Ciclo Ponderado organiza seus estudos pelo peso real da Cesgranrio. Enquanto outros estudam tudo aleatoriamente, você foca no que realmente cai.
+O Ciclo Ponderado organiza seus estudos pelo peso real da Cesgranrio: uma fila circular de 24 slots em que cada matéria aparece proporcionalmente ao que vale na prova. Enquanto outros estudam tudo com o mesmo peso, você foca no que realmente cai.
 
 🔥 Edital 2026 com 1.000+ vagas previstas
 👑 Acesso vitalício por R$ 49,90
@@ -47,20 +47,20 @@ A diferença entre passar e "ficar de fora" é de alguns meses de estudo intelig
 **Título:** Você sabe o que mais cai na prova da Cesgranrio? 📊
 
 **Texto:**
-Distribuição real da última prova de Técnico em Química:
+Distribuição real da prova de Técnico em Química (79 questões):
 
-🧪 Química Geral: 25%
-🧪 Química Orgânica: 35%
-📐 Matemática: 20%
-📝 Português: 20%
-
-Total de Química: 60% da prova.
+🧪 Química: 48% (38 questões)
+📝 Português: 13% (10 questões)
+📐 Matemática: 13% (10 questões)
+🛢️ Processos de Petróleo: 10% (8 questões)
+🔐 Segurança, Saúde e Ambiente: 9% (7 questões)
+⚖️ Metrologia e Controle de Qualidade: 8% (6 questões)
 
 Se você divide seu estudo igualmente entre as matérias, está PERDENDO tempo.
 
 O Ciclo Ponderado da nossa plataforma aloca MAIS horas de estudo para o que MAIS cai na prova. Simples, lógico e eficiente.
 
-🔥 Já são mais de 200 alunos usando o método.
+🔥 Todo o conteúdo programático mapeado por incidência — 18 grupos só de Química.
 
 👑 Acesso vitalício: R$ 49,90
 
@@ -92,15 +92,13 @@ O concurso vai sair. Você vai estar pronto?
 ## Post 5 — Pergunta + Prova Social
 
 **Texto:**
-"E se eu não gostar?"
+"E se eu não usar direito?"
 
-📌 Você tem 7 dias de garantia incondicional.
-📌 Se não servir pra você, devolvemos 100% do seu dinheiro.
-📌 Sem burocracia. Sem perguntas.
+📌 O cronograma de 16 semanas é aberto — dá pra conferir antes de comprar.
+📌 O pagamento é único, via Mercado Pago, com liberação automática.
+📌 Sem mensalidade, sem pegadinha.
 
-Mas sabe o que acontece na prática?
-
-Nossos alunos estão aumentando a performance em MÉDIA 40% nos simulados nas primeiras 4 semanas.
+A diferença não está em promessa — está no mecanismo: conteúdo programático mapeado por incidência, ciclo ponderado, revisão espaçada D+1/D+7/D+30 e caderno de erros que separa erro de conta de erro de conceito.
 
 A plataforma foi feita por alguém que estudou para esse concurso, entende a banca e sabe exatamente onde a Cesgranrio pega.
 

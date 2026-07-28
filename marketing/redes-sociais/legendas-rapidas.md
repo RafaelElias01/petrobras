@@ -1,11 +1,11 @@
 # Legendas Rápidas — Posts de Feed
 
-## 📝 Legenda 1 — Prova Social
-"Passei em 12º para Técnico Químico de Petróleo."
+## 📝 Legenda 1 — Prova de Mecanismo
+79 questões na prova de Técnico de Química. 38 são só de Química — 48% da prova.
 
-Essa frase mudou a vida do Carlos. Ele estudava 2h por dia no turno 12x36, usou nosso método, e em 3 meses saltou de 38% para 82% nos simulados.
+A gente mapeou os 18 grupos de Química por incidência: cada tópico marcado por quanto realmente cai. Estequiometria não pesa igual a Isomeria — e o ciclo de estudos entende isso.
 
-O concurso da Petrobras 2026 vem aí. Sua história pode ser a próxima.
+Quem estuda 2h por dia no tempo que sobra não pode se dar ao luxo de estudar tudo igual.
 
 👑 Plataforma completa — R$ 49,90 (acesso vitalício)
 🔗 Link na bio
@@ -55,15 +55,14 @@ A diferença é quem começa a estudar AGORA.
 
 ---
 
-## 📝 Legenda 5 — Garantia
-Medo de investir e não gostar?
+## 📝 Legenda 5 — Transparência
+Não vamos te prometer aprovação. Isso ninguém pode garantir.
 
-7 dias de garantia incondicional.
-Se não servir, devolvemos 100%.
+O que dá pra mostrar é o mecanismo: o conteúdo programático inteiro mapeado por incidência, o ciclo que pondera as matérias pelo peso real na prova, e o caderno de erros que separa erro de conta de erro de conceito.
 
-Mas com mais de 200 alunos aprovados e relatos de aumento de 40% na performance, as chances de você não gostar são mínimas. 😉
+Prefere ver por dentro antes de decidir? O cronograma completo de 16 semanas está aberto — não precisa comprar pra conferir.
 
-👑 Experimente sem risco
+👑 R$ 49,90 quando decidir
 🔗 Link na bio
 
 ---
@@ -84,9 +83,9 @@ Matemática simples. 🧮
 ---
 
 ## 📝 Legenda 7 — Conteúdo Específico
-🧪 Bloco I, II e III de Química
-📐 Matemática: 20% da prova
-📝 Português Interpretativo
+🧪 Química: 48% da prova (38 de 79 questões)
+📐 Matemática: 13% da prova (10 questões)
+📝 Português: 13% da prova (10 questões)
 
 Tudo baseado no estilo CESGRANRIO.
 Questões comentadas.

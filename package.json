@@ -8,10 +8,11 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/gerar-paginas-seo.js && vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seo": "node scripts/gerar-paginas-seo.js"
   },
   "dependencies": {
     "@datadog/browser-rum": "^7.6.0",
