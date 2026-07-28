@@ -11,7 +11,8 @@ const tokenValido = ref(false);
 const token = ref('');
 
 onMounted(() => {
-  const params = new URLSearchParams(window.location.search);
+  const hashPart = window.location.hash.slice(1);
+  const params = new URLSearchParams(hashPart.split('?')[1] || '');
   token.value = params.get('token') || '';
   if (token.value) {
     tokenValido.value = true;
