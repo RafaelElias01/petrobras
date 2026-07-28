@@ -26,6 +26,10 @@ dados/newsletter.json
 # tracking; server.js continua lendo/escrevendo normalmente em disco na VM.
 dados/visitas.json
 
+# Tokens de reset de senha (secretos, TTL de 15min) -- persistidos em arquivo
+# pra sobreviver a restart/deploy, nunca deveriam ir pro repo.
+dados/reset-tokens.json
+
 # Bot de WhatsApp: pasta de sessão contém credenciais de autenticação da
 # conta real conectada -- nunca versionar (reforço além do
 # whatsapp-bot/.gitignore local).

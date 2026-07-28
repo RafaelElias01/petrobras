@@ -528,6 +528,25 @@ const SESSAO_TTL_DEMO = 45 * 60 * 1000;
 const RESET_PASSWORD_TTL = 15 * 60 * 1000; // 15 minutos pra clicar no link
 const sessoes = new Map(); // token -> { usuario, exp, demoCount? }
 const resetPasswordTokens = new Map(); // token -> { usuario, exp }
+const resetTokensPath = process.env.RESET_TOKENS_PATH || path.join(__dirname, 'dados', 'reset-tokens.json');
+
+function carregarResetTokens() {
+  try {
+    if (fs.existsSync(resetTokensPath)) {
+      const data = JSON.parse(fs.readFileSync(resetTokensPath, 'utf-8'));
+      resetPasswordTokens.clear();
+      for (const [token, r] of Object.entries(data)) {
+        if (Date.now() <= r.exp) resetPasswordTokens.set(token, r);
+      }
+    }
+  } catch (e) { /* arquivo pode não existir ainda */ }
+}
+
+function salvarResetTokens() {
+  const obj = {};
+  for (const [token, r] of resetPasswordTokens) obj[token] = r;
+  escreverJsonAtomico(resetTokensPath, obj);
+}
 
 function criarSessao(usuario) {
   const token = crypto.randomBytes(32).toString('hex');
@@ -539,8 +558,11 @@ function criarSessao(usuario) {
 function criarTokenResetSenha(usuario) {
   const token = crypto.randomBytes(32).toString('hex');
   resetPasswordTokens.set(token, { usuario, exp: Date.now() + RESET_PASSWORD_TTL });
+  salvarResetTokens();
   return token;
 }
+
+carregarResetTokens();
 
 function sessaoDoToken(req) {
   const auth = req.headers.authorization || '';
@@ -566,7 +588,11 @@ const DEMO_MAX_ACESSOS = 5;
 setInterval(() => {
   const agora = Date.now();
   for (const [token, s] of sessoes) if (agora > s.exp) sessoes.delete(token);
-  for (const [token, r] of resetPasswordTokens) if (agora > r.exp) resetPasswordTokens.delete(token);
+  let resetTokensMudou = false;
+  for (const [token, r] of resetPasswordTokens) {
+    if (agora > r.exp) { resetPasswordTokens.delete(token); resetTokensMudou = true; }
+  }
+  if (resetTokensMudou) salvarResetTokens();
 }, 60 * 60 * 1000).unref();
 
 const frontendDistPath = path.join(__dirname, 'dist');
@@ -848,6 +874,7 @@ app.post('/api/auth/reset-password', (req, res) => {
   if (!resetData) return res.status(401).json({ erro: 'Token inválido ou expirado' });
   if (Date.now() > resetData.exp) {
     resetPasswordTokens.delete(token);
+    salvarResetTokens();
     return res.status(401).json({ erro: 'Token expirado (válido por 15 minutos)' });
   }
   const usuarios = lerUsuarios();
@@ -856,6 +883,7 @@ app.post('/api/auth/reset-password', (req, res) => {
   usuarios[idx].senhaHash = bcrypt.hashSync(novaSenha, 10);
   salvarUsuarios(usuarios);
   resetPasswordTokens.delete(token);
+  salvarResetTokens();
   res.json({ ok: true, message: 'Senha alterada com sucesso. Faça login com a nova senha.' });
 });
 
