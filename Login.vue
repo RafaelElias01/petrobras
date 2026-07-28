@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import BaseInput from './BaseInput.vue';
 import PasswordInput from './PasswordInput.vue';
 import PremiumCheckout from './PremiumCheckout.vue';
@@ -33,143 +33,42 @@ const leadMagnetErro = ref('');
 
 const instrucaoPremium = ref(false);
 
-const estudantesOnline = ref(32);
-let animFrameId = null;
+// Removidos: o contador "N estudantes online agora" e as notificações
+// "Fulano (Cidade) acabou de adquirir o Premium!". Os dois eram gerados por
+// Math.random() sobre uma lista de nomes inventados -- ou seja, registro de
+// compra e de audiência fabricados num site que vende. Prova social só volta
+// aqui com dado real vindo do servidor.
 
-const notificacao = ref(null);
-let notifTimer = null;
-
-const depoimentos = [
+// Prova de mecanismo, não depoimento: o que a plataforma faz, com os números
+// que saem de dados.js. Números inventados não entram nesta lista.
+const provas = [
   {
-    nome: 'Carlos M.',
-    cidade: 'Macaé, RJ',
-    resultado: { valor: '38% → 82%', rotulo: 'acerto em 3 meses' },
-    texto: 'Estudava 2h por dia depois do trabalho no turno 12x36. Minha maior dificuldade era o Bloco I — orgânica e eletromagnetismo. O ciclo ponderado organizou os estudos por peso de matéria. Em 3 meses fui de 38% para 82% nos simulados. Passei em 12º para Técnico Químico de Petróleo. Hoje tiro R$ 14 mil líquido por mês.',
-    estrelas: 5,
+    titulo: 'Química é 48% da prova',
+    destaque: { valor: '38', rotulo: 'de 79 questões' },
+    texto: 'O conteúdo programático inteiro está mapeado por incidência: 18 grupos de Química, cada tópico marcado por quanto realmente cai. Você para de dar o mesmo peso para Estequiometria e para Isomeria.',
   },
   {
-    nome: 'Ana J.',
-    cidade: 'Salvador, BA',
-    resultado: { valor: '6º lugar', rotulo: 'PLR de R$ 52 mil no 1º ano' },
-    texto: 'Reações orgânicas era meu pesadelo. Com 40 questões de específicas e 60% do peso na prova, não dava pra errar. Os flashcards com revisão espaçada foram meu divisor de águas — repetia as reações todo dia no ônibus. Na prova, caiu exatamente o que mais revisei. Aprovada em 6º lugar. PLR de R$ 52 mil no primeiro ano.',
-    estrelas: 5,
+    titulo: 'O ciclo estuda por peso, não por gosto',
+    destaque: { valor: '24', rotulo: 'slots ponderados' },
+    texto: 'Uma fila circular em que cada matéria aparece proporcionalmente ao que vale na prova. Você não escolhe o que estudar hoje no impulso — e não passa três semanas fugindo da matéria que odeia.',
   },
   {
-    nome: 'Rafael S.',
-    cidade: 'Belo Horizonte, MG',
-    resultado: { valor: 'R$ 10 mil+', rotulo: 'com benefícios' },
-    texto: 'O relatório de horas mostrou: eu estudava 3h por dia mas só 45min era produtivo. Ajustei minha rotina com base nos dados da plataforma. Português e Matemática são 40% da prova — gabaritei as duas. Isso fez toda diferença na classificação. Passei pra Química de Petróleo. Salário base R$ 6.636, com benefícios passa de R$ 10 mil.',
-    estrelas: 5,
+    titulo: 'Revisão espaçada embutida',
+    destaque: { valor: 'D+1 / D+7 / D+30', rotulo: 'automático' },
+    texto: 'O que você estudou na semana 2 volta na 3 e na 6, sem você precisar lembrar. É a diferença entre chegar na prova sabendo tudo e chegar sabendo só o último mês.',
   },
   {
-    nome: 'Mariana C.',
-    cidade: 'Duque de Caxias, RJ',
-    resultado: { valor: 'Aprovada', rotulo: 'Técnica de Operação' },
-    texto: 'Sou mãe e trabalho o dia todo. Só tinha a noite para estudar. Os flashcards foram perfeitos para revisar no pouco tempo livre. O ciclo de estudos me mostrou onde focar minha energia. Passei para Técnica de Operação. Meu filho agora diz que quer trabalhar na Petrobras também. Isso não tem preço.',
-    estrelas: 5,
-  },
-  {
-    nome: 'Bruno P.',
-    cidade: 'Betim, MG',
-    texto: 'Sempre fui péssimo em matemática, que vale 20% da prova. Achei que não ia dar. As questões da plataforma, com explicação detalhada, me fizeram entender a lógica da Cesgranrio. Fui de 3 para 8 acertos nos simulados. Essa diferença me colocou dentro das vagas. Nunca imaginei que diria isso, mas até peguei gosto pelos cálculos.',
-    estrelas: 5,
-  },
-  {
-    nome: 'Livia S.',
-    cidade: 'Cubatão, SP',
-    texto: 'Eu tinha todos os livros, mas estava completamente perdida, sem saber por onde começar. O ciclo de estudos da plataforma foi meu guia. Ele me dizia exatamente o que estudar a cada dia. Parei de perder tempo e meu rendimento decolou. Passei de primeira. Os R$ 49,90 me economizaram meses de estudo perdido.',
-    estrelas: 5,
+    titulo: 'Erro de conta e erro de conceito não são a mesma coisa',
+    destaque: { valor: '4', rotulo: 'causas classificadas' },
+    texto: 'O caderno de erros registra a causa: conceito, conta, desatenção ou interpretação. Cada uma pede um tratamento diferente — e sem separar, você trata todas igual e não corrige nenhuma.',
   },
 ];
 
-const notificacoes = [
-  { nome: 'João V.', cidade: 'Santos, SP' },
-  { nome: 'Marina F.', cidade: 'Niterói, RJ' },
-  { nome: 'Lucas A.', cidade: 'Campinas, SP' },
-  { nome: 'Fernanda R.', cidade: 'Recife, PE' },
-  { nome: 'Gabriel S.', cidade: 'Brasília, DF' },
-  { nome: 'Camila T.', cidade: 'Curitiba, PR' },
-  { nome: 'Thiago M.', cidade: 'Manaus, AM' },
-  { nome: 'Patrícia N.', cidade: 'Porto Alegre, RS' },
-  { nome: 'Rodrigo B.', cidade: 'Fortaleza, CE' },
-  { nome: 'Juliana C.', cidade: 'Belém, PA' },
-  { nome: 'Bruno L.', cidade: 'Betim, MG' },
-  { nome: 'Aline P.', cidade: 'Vitória, ES' },
-  { nome: 'Diego R.', cidade: 'Goiânia, GO' },
-  { nome: 'Beatriz S.', cidade: 'Duque de Caxias, RJ' },
-  { nome: 'Felipe A.', cidade: 'São Luís, MA' },
-  { nome: 'Larissa M.', cidade: 'Natal, RN' },
-  { nome: 'Eduardo T.', cidade: 'Macaé, RJ' },
-  { nome: 'Vanessa G.', cidade: 'Salvador, BA' },
-  { nome: 'André F.', cidade: 'Joinville, SC' },
-  { nome: 'Priscila H.', cidade: 'Uberlândia, MG' },
-  { nome: 'Ricardo N.', cidade: 'Campo Grande, MS' },
-  { nome: 'Tatiane D.', cidade: 'João Pessoa, PB' },
-  { nome: 'Marcelo V.', cidade: 'Londrina, PR' },
-  { nome: 'Renata K.', cidade: 'Aracaju, SE' },
-  { nome: 'Alexandre J.', cidade: 'Cuiabá, MT' },
-  { nome: 'Simone W.', cidade: 'Maceió, AL' },
-  { nome: 'Fábio Q.', cidade: 'Ribeirão Preto, SP' },
-  { nome: 'Débora Z.', cidade: 'Sorocaba, SP' },
-  { nome: 'Leandro X.', cidade: 'Florianópolis, SC' },
-  { nome: 'Cristina Y.', cidade: 'Teresina, PI' },
-  { nome: 'Rafael O.', cidade: 'Porto Velho, RO' },
-  { nome: 'Mônica U.', cidade: 'Caxias do Sul, RS' },
-  { nome: 'Vitor E.', cidade: 'Juiz de Fora, MG' },
-  { nome: 'Sandra I.', cidade: 'Bauru, SP' },
-  { nome: 'Paulo K.', cidade: 'Contagem, MG' },
-  { nome: 'Isabela L.', cidade: 'Anápolis, GO' },
-];
-let notifInterval = null;
-
-function mostrarNotificacao() {
-  const item = notificacoes[Math.floor(Math.random() * notificacoes.length)];
-  notificacao.value = `${item.nome} (${item.cidade}) acabou de adquirir o Premium!`;
-  if (notifTimer) clearTimeout(notifTimer);
-  notifTimer = setTimeout(() => { notificacao.value = null; }, 5000);
-}
-
-function iniciarSocialProof() {
-  mostrarNotificacao();
-  notifInterval = setInterval(mostrarNotificacao, 25000 + Math.random() * 20000);
-}
-
-function animarContador(novoValor) {
-  if (animFrameId) cancelAnimationFrame(animFrameId);
-  const inicio = estudantesOnline.value;
-  const delta = novoValor - inicio;
-  const duracao = 800;
-  const inicioTempo = performance.now();
-  function passo(agora) {
-    const progresso = Math.min(1, (agora - inicioTempo) / duracao);
-    estudantesOnline.value = Math.floor(inicio + delta * progresso);
-    if (progresso < 1) animFrameId = requestAnimationFrame(passo);
-    else estudantesOnline.value = novoValor;
-  }
-  animFrameId = requestAnimationFrame(passo);
-}
-
-const ONLINE_MIN = 28;
-const ONLINE_MAX = 47;
-let onlineInterval = null;
-
-function proximoOnlineAleatorio() {
-  return ONLINE_MIN + Math.floor(Math.random() * (ONLINE_MAX - ONLINE_MIN + 1));
-}
-
-onMounted(() => {
-  animarContador(proximoOnlineAleatorio());
-  onlineInterval = setInterval(() => {
-    animarContador(proximoOnlineAleatorio());
-  }, 5 * 60 * 1000);
-  iniciarSocialProof();
-});
-
+// O onUnmounted que existia aqui só limpava os timers do contador e das
+// notificações. Some com eles, mas fica: o timeout do cadastro escreve em refs
+// depois de resolver e vazava se o componente desmontasse antes de disparar.
 onUnmounted(() => {
-  if (animFrameId) cancelAnimationFrame(animFrameId);
-  if (onlineInterval) clearInterval(onlineInterval);
-  if (notifInterval) clearInterval(notifInterval);
-  if (notifTimer) clearTimeout(notifTimer);
+  if (cadastroTimeout) { clearTimeout(cadastroTimeout); cadastroTimeout = null; }
 });
 
 function submeter() {
@@ -330,8 +229,8 @@ async function handleLeadMagnet() {
           </div>
         </div>
         <div class="visit-counter">
-          <span class="visit-counter-icon">🔥</span>
-          <span class="visit-counter-text"><strong>{{ estudantesOnline.toLocaleString('pt-BR') }}</strong> estudantes online agora</span>
+          <span class="visit-counter-icon">📋</span>
+          <span class="visit-counter-text"><strong>79 questões</strong> do edital mapeadas por incidência</span>
         </div>
         <div class="brand-features">
           <div class="feature-item">
@@ -502,23 +401,15 @@ async function handleLeadMagnet() {
       <HowItWorks />
 
       <div class="depoimentos-section">
+        <h2 class="provas-titulo">Por que o plano funciona</h2>
         <div class="depoimentos-grid">
-          <div v-for="(d, i) in depoimentos.slice(0, 4)" :key="i" class="depoimento-card">
-            <div class="depoimento-stars">
-              <svg v-for="s in d.estrelas" :key="s" width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <div v-for="(p, i) in provas" :key="i" class="depoimento-card">
+            <div class="depoimento-resultado">
+              <span class="resultado-valor">{{ p.destaque.valor }}</span>
+              <span class="resultado-rotulo">{{ p.destaque.rotulo }}</span>
             </div>
-            <div v-if="d.resultado" class="depoimento-resultado">
-              <span class="resultado-valor">{{ d.resultado.valor }}</span>
-              <span class="resultado-rotulo">{{ d.resultado.rotulo }}</span>
-            </div>
-            <p class="depoimento-texto">"{{ d.texto }}"</p>
-            <div class="depoimento-footer">
-              <div class="depoimento-avatar">{{ d.nome.charAt(0) }}</div>
-              <div class="depoimento-info">
-                <strong>{{ d.nome }}</strong>
-                <span>{{ d.cidade }}</span>
-              </div>
-            </div>
+            <strong class="prova-titulo">{{ p.titulo }}</strong>
+            <p class="depoimento-texto">{{ p.texto }}</p>
           </div>
         </div>
       </div>
@@ -526,13 +417,6 @@ async function handleLeadMagnet() {
       <FaqSection />
     </div>
   </main>
-
-  <transition name="notif">
-    <div v-if="notificacao" class="social-notification">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      <span>{{ notificacao }}</span>
-    </div>
-  </transition>
 </template>
 
 <style scoped>
@@ -1139,6 +1023,23 @@ async function handleLeadMagnet() {
   max-width: 800px;
 }
 
+.provas-titulo {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-text-light);
+  text-align: center;
+}
+
+.prova-titulo {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--c-text-light);
+}
+
 .depoimentos-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1167,12 +1068,6 @@ async function handleLeadMagnet() {
   transform: translateY(-2px);
 }
 
-.depoimento-stars {
-  display: flex;
-  gap: 2px;
-  margin-bottom: 10px;
-}
-
 .depoimento-resultado {
   display: flex;
   align-items: baseline;
@@ -1199,81 +1094,7 @@ async function handleLeadMagnet() {
   font-size: 13px;
   line-height: 1.6;
   color: var(--c-text-light);
-  margin-bottom: 14px;
-  font-style: italic;
-}
-
-.depoimento-footer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.depoimento-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.5), rgba(37, 99, 235, 0.5));
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--c-text-light);
-  flex-shrink: 0;
-}
-
-.depoimento-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.depoimento-info strong {
-  font-size: 13px;
-  color: var(--c-text-light);
-}
-
-.depoimento-info span {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.social-notification {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(16, 185, 129, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--c-border);
-  color: var(--c-text-light);
-  padding: 12px 20px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  z-index: 1000;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-  white-space: nowrap;
-}
-
-.notif-enter-active {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.notif-leave-active {
-  transition: all 0.3s ease;
-}
-.notif-enter-from {
-  opacity: 0;
-  transform: translateX(-50%) translateY(20px);
-}
-.notif-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(10px);
+  margin-bottom: 0;
 }
 
 @media (max-width: 1024px) {
@@ -1488,14 +1309,6 @@ async function handleLeadMagnet() {
   }
   .lead-magnet-success .login-premium-link {
     font-size: 15px;
-  }
-  .social-notification {
-    white-space: normal;
-    max-width: calc(100vw - 32px);
-    font-size: 12px;
-    padding: 10px 14px;
-    bottom: 16px;
-    text-align: center;
   }
   .depoimentos-grid {
     grid-template-columns: 1fr;
