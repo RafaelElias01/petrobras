@@ -193,7 +193,7 @@ async function handleResetPasswordRequest() {
       resetPasswordCarregando.value = false;
       return;
     }
-    resetPasswordSucesso.value = 'Se o email está cadastrado, você receberá um link de recuperação. Verifique sua caixa de entrada!';
+    resetPasswordSucesso.value = 'Link enviado! Verifique seu email para continuar (não esqueça de checar spam).';
     resetPasswordCarregando.value = false;
     resetPasswordEmail.value = '';
   } catch {

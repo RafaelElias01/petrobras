@@ -177,7 +177,7 @@ function alternarTema() {
 // usuário (incrementa acesso demo); carregar uma URL com #hash já na barra
 // de endereço não deveria contar como clique em feature bloqueada.
 function navegarHash() {
-  const hash = window.location.hash.slice(1);
+  const hash = window.location.hash.slice(1).split('?')[0];
   if (hash && views[hash] && hash !== view.value) {
     view.value = hash;
     menuAberta.value = false;
