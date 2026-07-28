@@ -170,7 +170,12 @@ function grava(rel, html, prioridade) {
   const destino = path.join(SAIDA, rel);
   fs.mkdirSync(path.dirname(destino), { recursive: true });
   fs.writeFileSync(destino, html, 'utf8');
-  urls.push({ loc: `${SITE}/estudar/${rel.replace(/\\/g, '/')}`, prioridade });
+
+  // O sitemap tem que listar a MESMA url que a tag canonical da página, senão o
+  // Search Console acusa canônica duplicada. Páginas de índice são servidas em
+  // /estudar/ e /estudar/materia/ -- sem o "index.html".
+  const publico = rel.replace(/\\/g, '/').replace(/index\.html$/, '');
+  urls.push({ loc: `${SITE}/estudar/${publico}`, prioridade });
 }
 
 function paginaGrupo(materia, grupo, irmaos) {
