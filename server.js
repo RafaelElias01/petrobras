@@ -464,6 +464,167 @@ function startAgendadorPropaganda() {
 }
 startAgendadorPropaganda();
 
+// --- Relatório diário por email (visitas + premium) ---
+// Destinatário fixo pedido pelo usuário; sobrescrevível por env var sem
+// precisar mexer no código se ele quiser mandar pra outro email no futuro.
+const RELATORIO_DIARIO_EMAIL = process.env.RELATORIO_DIARIO_EMAIL || 'rafaelioppi@gmail.com';
+
+function dataBrasiliaDe(isoTimestamp) {
+  if (!isoTimestamp) return null;
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date(isoTimestamp));
+  } catch {
+    return null;
+  }
+}
+
+function diaAnteriorISO(dataISO, dias = 1) {
+  const d = new Date(`${dataISO}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - dias);
+  return d.toISOString().slice(0, 10);
+}
+
+// Relatório cobre o dia anterior completo (não o dia corrente, que às 6h da
+// manhã mal começou) -- "ontem" na virada de horário de Brasília.
+function gerarDadosRelatorioDiario() {
+  const usuarios = lerUsuarios();
+  const visitas = lerVisitas();
+  const hoje = hojeBrasiliaISO();
+  const ontem = diaAnteriorISO(hoje);
+
+  const visitasOntem = visitas.filter(v => v.data === ontem);
+  const unicosOntem = new Set(visitasOntem.map(v => v.usuario === 'anônimo' ? `ip:${v.ip}` : `u:${v.usuario}`)).size;
+
+  const porPaginaMap = new Map();
+  for (const v of visitasOntem) {
+    const p = v.pagina || 'dashboard';
+    porPaginaMap.set(p, (porPaginaMap.get(p) || 0) + 1);
+  }
+  const porPagina = Array.from(porPaginaMap.entries())
+    .map(([pagina, total]) => ({ pagina, total }))
+    .sort((a, b) => b.total - a.total);
+
+  const cadastrosOntem = usuarios.filter(u => dataBrasiliaDe(u.criadoEm) === ontem);
+  const premiumAtivadosOntem = usuarios.filter(u => u.premium === true && dataBrasiliaDe(u.premiumEm) === ontem);
+  const totalUsuarios = usuarios.length;
+  const totalPremium = usuarios.filter(u => u.premium === true).length;
+
+  const ultimos7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const dataStr = diaAnteriorISO(hoje, i + 1);
+    ultimos7.push({ data: dataStr, total: visitas.filter(v => v.data === dataStr).length });
+  }
+  const anteontemTotal = ultimos7[5]?.total ?? 0;
+  const variacaoVisitasPct = anteontemTotal > 0
+    ? Math.round(((visitasOntem.length - anteontemTotal) / anteontemTotal) * 1000) / 10
+    : null;
+
+  return {
+    ontem,
+    totalVisitasOntem: visitasOntem.length,
+    unicosOntem,
+    porPagina,
+    cadastrosOntem: cadastrosOntem.map(u => u.nome || u.usuario),
+    premiumAtivadosOntem: premiumAtivadosOntem.map(u => ({ nome: u.nome || u.usuario, email: u.email || '' })),
+    totalUsuarios,
+    totalPremium,
+    receitaOntem: premiumAtivadosOntem.length * PREMIUM_PRECO,
+    receitaTotalAcumulada: totalPremium * PREMIUM_PRECO,
+    ultimos7,
+    variacaoVisitasPct,
+  };
+}
+
+async function enviarEmailRelatorioDiario() {
+  if (!resendClient) return;
+  const r = gerarDadosRelatorioDiario();
+  const dataFormatada = new Date(`${r.ontem}T12:00:00Z`).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  const fmtMoeda = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+  const linhaTabela = (a, b) => `<tr><td style="padding:4px 12px;border-bottom:1px solid #eee;">${a}</td><td style="padding:4px 12px;border-bottom:1px solid #eee;text-align:right;">${b}</td></tr>`;
+
+  const linhasPagina = r.porPagina.map(p => linhaTabela(escapeHtml(p.pagina), p.total)).join('') || linhaTabela('Sem visitas ontem', '-');
+  const linhasTrend = r.ultimos7.map(d => linhaTabela(d.data, d.total)).join('');
+  const listaCadastros = r.cadastrosOntem.length ? r.cadastrosOntem.map(escapeHtml).join(', ') : '-';
+  const listaPremium = r.premiumAtivadosOntem.length
+    ? r.premiumAtivadosOntem.map(u => `${escapeHtml(u.nome)}${u.email ? ` (${escapeHtml(u.email)})` : ''}`).join(', ')
+    : '-';
+  const variacaoTexto = r.variacaoVisitasPct === null
+    ? ''
+    : `<li>Variação vs. anteontem: <strong>${r.variacaoVisitasPct > 0 ? '+' : ''}${r.variacaoVisitasPct}%</strong></li>`;
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; color: #222;">
+      <h2>📊 Relatório diário — ${dataFormatada}</h2>
+
+      <h3>Visitas</h3>
+      <ul>
+        <li>Total de visitas: <strong>${r.totalVisitasOntem}</strong></li>
+        <li>Visitantes únicos: <strong>${r.unicosOntem}</strong></li>
+        ${variacaoTexto}
+      </ul>
+
+      <h3>Premium</h3>
+      <ul>
+        <li>Novas assinaturas ontem: <strong>${r.premiumAtivadosOntem.length}</strong> (${fmtMoeda(r.receitaOntem)})</li>
+        <li>Quem assinou: ${listaPremium}</li>
+        <li>Total de usuários Premium (acumulado): <strong>${r.totalPremium}</strong></li>
+        <li>Receita acumulada estimada: <strong>${fmtMoeda(r.receitaTotalAcumulada)}</strong></li>
+      </ul>
+
+      <h3>Cadastros</h3>
+      <ul>
+        <li>Novos cadastros ontem: <strong>${r.cadastrosOntem.length}</strong> (${listaCadastros})</li>
+        <li>Total de usuários cadastrados: <strong>${r.totalUsuarios}</strong></li>
+      </ul>
+
+      <h3>Páginas mais acessadas ontem</h3>
+      <table style="width:100%;border-collapse:collapse;">${linhasPagina}</table>
+
+      <h3 style="margin-top:20px;">Visitas — últimos 7 dias</h3>
+      <table style="width:100%;border-collapse:collapse;">${linhasTrend}</table>
+
+      <p style="font-size:12px;color:#999;margin-top:24px;">Relatório automático, gerado às 6h (horário de Brasília), sempre referente ao dia anterior completo.</p>
+    </div>
+  `;
+
+  try {
+    const { error } = await resendClient.emails.send({
+      from: EMAIL_FROM,
+      to: RELATORIO_DIARIO_EMAIL,
+      subject: `📊 Relatório diário Estudo Petrobras — ${dataFormatada}`,
+      html,
+    });
+    if (error) console.error('Erro ao enviar relatório diário (API Resend):', error);
+  } catch (e) {
+    console.error('Erro ao enviar relatório diário:', e);
+  }
+}
+
+// Mesmo padrão de dedupe do agendador de propaganda: checagem a cada hora,
+// "já enviado hoje" guardado em memória (não sobrevive a restart, então na
+// pior hipótese um restart bem na hora do envio pode gerar 2 emails no
+// mesmo dia -- nunca 0).
+let ultimoEnvioRelatorio = null;
+async function rodarEnvioRelatorioDiario() {
+  const hoje = hojeBrasiliaISO();
+  if (ultimoEnvioRelatorio === hoje) return;
+  ultimoEnvioRelatorio = hoje;
+  await enviarEmailRelatorioDiario();
+}
+
+const HORA_ENVIO_RELATORIO = 6; // 6h, horário de Brasília
+function startAgendadorRelatorioDiario() {
+  if (!resendClient) {
+    console.warn('RESEND_API_KEY nao configurado: relatorio diario desativado.');
+    return;
+  }
+  setInterval(() => {
+    const horaBrasilia = Number(new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }).format(new Date()));
+    if (horaBrasilia === HORA_ENVIO_RELATORIO) rodarEnvioRelatorioDiario();
+  }, 60 * 60 * 1000).unref();
+}
+startAgendadorRelatorioDiario();
+
 // Segurança de cabeçalhos. GA4/Facebook Pixel removidos do index.html (IDs
 // placeholder) — CSP não referencia mais esses domínios. Reativar aqui
 // junto com o index.html quando houver IDs reais.
